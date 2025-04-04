@@ -147,7 +147,9 @@ describe.only("Tests for Portfolio Config", () => {
       const assetManagementConfig = await AssetManagementConfig.deploy();
       await assetManagementConfig.deployed();
 
-      const BorrowManager = await ethers.getContractFactory("BorrowManagerAave");
+      const BorrowManager = await ethers.getContractFactory(
+        "BorrowManagerAave"
+      );
       borrowManager = await BorrowManager.deploy();
       await borrowManager.deployed();
 
@@ -712,6 +714,15 @@ describe.only("Tests for Portfolio Config", () => {
             owner.address
           )
         ).to.be.true;
+      });
+
+      it("transferSuperAdminOwnership should revert if new and old admin are same", async () => {
+        await expect(
+          portfolioFactory.transferSuperAdminOwnership(
+            accessController0.address,
+            owner.address
+          )
+        ).to.be.revertedWithCustomError(portfolioFactory, "InvalidAddress");
       });
 
       it("only Super admin can transfer roles", async () => {
