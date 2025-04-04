@@ -97,7 +97,7 @@ abstract contract PositionManagerAlgebraBase is PositionManagerAbstract {
       address(uniswapV3PositionManager)
     );
 
-    _verifyRatioAfterSwap(
+    (balance0, balance1) = _verifyRatioAfterSwap(
       _params,
       balanceTokenInBeforeSwap,
       tokenIn,
