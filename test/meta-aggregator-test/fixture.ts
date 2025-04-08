@@ -37,7 +37,7 @@ export const setupTest = async () => {
 
     // Deploy MetaAggregatorTestSwapContract
     const MetaAggregatorTestSwapContract = await ethers.getContractFactory("MetaAggregatorSwapContract");
-    const metaAggregatorTestSwapContract = await MetaAggregatorTestSwapContract.deploy(ensoAggregator.address, usdt.address);
+    const metaAggregatorTestSwapContract = await MetaAggregatorTestSwapContract.deploy(ensoAggregator.address, [usdt.address]);
     await metaAggregatorTestSwapContract.deployed();
 
     // Deploy MetaAggregatorManager
