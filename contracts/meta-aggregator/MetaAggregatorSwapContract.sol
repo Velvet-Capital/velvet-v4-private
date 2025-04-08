@@ -4,14 +4,14 @@ pragma solidity 0.8.17;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IMetaAggregatorSwapContract} from "./interfaces/IMetaAggregatorSwapContract.sol";
 import {TransferHelper} from "./libraries/TransferHelper.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title MetaAggregatorSwapContract
  * @dev Facilitates swapping between ETH and ERC20 tokens or between two ERC20 tokens using an aggregator.
  */
-contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract {
+contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
     address constant nativeToken = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE; // Represent native ETH token
-    address immutable usdt; // Address of USDT token
     address immutable SWAP_TARGET; // Address of the swap target for delegatecall operations
     address immutable _this; // Address of this contract instance
     uint256 private constant _NOT_ENTERED = 1;
@@ -27,13 +27,14 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract {
     error CannotSwapETHToETH();
     error InvalidReceiver();
     error InvalidENSOAddress();
-    error InvalidUSDTAddress();
     error InsufficientOutputBalance();
     error InsufficientETHOutAmount();
     error InsufficientTokenOutAmount();
     error SwapFailed();
     error CannotSwapETH();
     error FeeTransferFailed();
+    error TransferFailed();
+    error InvalidToken();
 
     //   Event emitted when Tokens are swapped
     event TokenSwapped(
@@ -50,18 +51,45 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract {
         bool isDelegate
     );
 
+    // Event emitted when ETH is transferred to a specified address
+    event EthTransferred(address indexed to, uint256 indexed amount);
+
+    // Event emitted when ERC20 tokens are transferred to a specified address
+    event ERC20Transferred(
+        address indexed token,
+        address indexed to,
+        uint256 indexed amount
+    );
+
+    // Event emitted when a token is added to the zeroApprovalTokens mapping
+    event ZeroApprovalTokenAdded(address token);
+
+    // Event emitted when a token is removed from the zeroApprovalTokens mapping
+    event ZeroApprovalTokenRemoved(address token);
+
+    /**
+     * @dev Mapping to store the tokens which use approval zero before actual approval.
+     */
+    mapping(address => bool) public zeroApprovalTokens;
+
     /**
      * @dev Initializes the contract with the swap target and USDT addresses.
      * @param _ensoSwapContract The address of the swap target contract.
-     * @param _usdt The address of the USDT token.
+     * @param _zeroApprovalTokens The list of token address which need zero approval
      */
-    constructor(address _ensoSwapContract, address _usdt) {
+    constructor(
+        address _ensoSwapContract,
+        address[] memory _zeroApprovalTokens
+    ) Ownable() {
         if (_ensoSwapContract == address(0)) revert InvalidENSOAddress();
-        if (_usdt == address(0)) revert InvalidUSDTAddress();
         SWAP_TARGET = _ensoSwapContract;
-        usdt = _usdt;
         _this = address(this);
         _status = _NOT_ENTERED;
+        for (uint256 i = 0; i < _zeroApprovalTokens.length; i++) {
+            if (_zeroApprovalTokens[i] == address(0)) revert InvalidToken();
+            zeroApprovalTokens[_zeroApprovalTokens[i]] = true;
+            emit ZeroApprovalTokenAdded(_zeroApprovalTokens[i]);
+        }
     }
 
     /**
@@ -149,6 +177,51 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract {
     }
 
     /**
+     * @dev Transfers ETH to a specified address.
+     * @param to The address to transfer the ETH to.
+     * @param amount The amount of ETH to transfer.
+     */
+    function transferEth(address to, uint256 amount) external onlyOwner {
+        (bool success, ) = to.call{value: amount}("");
+        if (!success) revert TransferFailed();
+        emit EthTransferred(to, amount);
+    }
+
+    /**
+     * @dev Transfers ERC20 tokens to a specified address.
+     * @param token The address of the ERC20 token to transfer.
+     * @param to The address to transfer the ERC20 tokens to.
+     * @param amount The amount of ERC20 tokens to transfer.
+     */
+    function transferERC20(
+        address token,
+        address to,
+        uint256 amount
+    ) external onlyOwner {
+        TransferHelper.safeTransfer(token, to, amount);
+        emit ERC20Transferred(token, to, amount);
+    }
+
+    /*
+     * @dev Add a token to the zeroApprovalTokens mapping.
+     * @param token The address of the token to add.
+     */
+    function addZeroApprovalToken(address token) external onlyOwner {
+        if (token == address(0)) revert InvalidToken();
+        zeroApprovalTokens[token] = true;
+        emit ZeroApprovalTokenAdded(token);
+    }
+
+    /*
+     * @dev Remove a token from the zeroApprovalTokens mapping.
+     * @param token The address of the token to remove.
+     */
+    function removeZeroApprovalToken(address token) external onlyOwner {
+        if (token == address(0)) revert InvalidToken();
+        zeroApprovalTokens[token] = false;
+        emit ZeroApprovalTokenRemoved(token);
+    }
+    /**
      * @dev Internal function to perform the swap from ETH to ERC20.
      * @param params SwapETHParams
      */
@@ -169,9 +242,9 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract {
             receiver
         );
 
-        if (msg.value < amountIn) revert IncorrectEtherAmountSent();
+        if (msg.value != amountIn) revert IncorrectEtherAmountSent();
         uint256 fee;
-        if (feeRecipient != address(0) || feeBps != 0) {
+        if (feeRecipient != address(0) && feeBps != 0) {
             fee = (amountIn * feeBps) / 10000;
             amountIn -= fee;
             (bool success, ) = payable(feeRecipient).call{value: fee}("");
@@ -220,12 +293,12 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract {
         );
 
         if (!isDelegate) {
-            if (address(tokenIn) == usdt)
+            if (zeroApprovalTokens[address(tokenIn)])
                 TransferHelper.safeApprove(address(tokenIn), aggregator, 0);
             TransferHelper.safeApprove(address(tokenIn), aggregator, amountIn);
         }
         uint256 fee;
-        if (feeRecipient != address(0) || feeBps != 0) {
+        if (feeRecipient != address(0) && feeBps != 0) {
             fee = (amountIn * feeBps) / 10000;
             amountIn -= fee;
             TransferHelper.safeTransfer(address(tokenIn), feeRecipient, fee);
@@ -303,6 +376,8 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract {
         if (amountIn == 0) revert AmountInMustBeGreaterThanZero();
         if (minAmountOut == 0) revert MinAmountOutMustBeGreaterThanZero();
         if (tokenIn == tokenOut) revert TokenInAndTokenOutCannotBeSame();
+        if (tokenIn == address(0) || tokenOut == address(0))
+            revert InvalidToken();
     }
 
     /**
