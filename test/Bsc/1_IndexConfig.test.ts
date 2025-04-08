@@ -573,6 +573,15 @@ describe.only("Tests for Portfolio Config", () => {
         );
       });
 
+      it("claim removed tokens at id should fail if protocol is emergency paused", async () => {
+        await expect(
+          tokenExclusionManager.claimTokenAtId(owner.address, 2)
+        ).to.be.revertedWithCustomError(
+          tokenExclusionManager,
+          "ProtocolIsPaused"
+        );
+      });
+
       it("unpause protocol when emergency paused should fail", async () => {
         await expect(
           protocolConfig.setProtocolPause(false)
