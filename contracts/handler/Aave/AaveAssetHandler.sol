@@ -1338,7 +1338,10 @@ contract AaveAssetHandler is IAssetHandler {
     try
       IPoolDataProvider(
         IPoolAddressesProvider(AAVE_ADDRESS_PROVIDER).getPoolDataProvider()
-      ).getUserReserveData(token, vault)
+      ).getUserReserveData(
+          IAaveToken(token).UNDERLYING_ASSET_ADDRESS(),
+          vault
+      )
     returns (
       uint256 /* aTokenBalance */,
       uint256 /* stableDebt */,
