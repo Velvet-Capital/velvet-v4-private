@@ -1704,4 +1704,13 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
       }
     }
   }
+
+  function isCollateralEnabled(
+    address vToken,
+    address vault,
+    address controller
+  ) external view returns (bool) {
+    // Directly use checkMembership if available.
+    return IVenusComptroller(controller).checkMembership(vault, vToken);
+  }
 }
