@@ -15,6 +15,12 @@ export const setupTest = async () => {
     const usdt = await usdtToken.deploy("USDT","usdt");
     await usdt.deployed();
 
+
+    const usdcToken = await ethers.getContractFactory("TESTERC20");
+    const usdc = await usdcToken.deploy("USDC","usdc");
+    await usdc.deployed();
+
+
     // Deploy Token2
     const Token2 = await ethers.getContractFactory("TESTERC20");
     const token2 = await Token2.deploy("Token2", "T2");
@@ -37,7 +43,7 @@ export const setupTest = async () => {
 
     // Deploy MetaAggregatorTestSwapContract
     const MetaAggregatorTestSwapContract = await ethers.getContractFactory("MetaAggregatorSwapContract");
-    const metaAggregatorTestSwapContract = await MetaAggregatorTestSwapContract.deploy(ensoAggregator.address, [usdt.address]);
+    const metaAggregatorTestSwapContract = await MetaAggregatorTestSwapContract.deploy(ensoAggregator.address, [usdt.address, usdc.address]);
     await metaAggregatorTestSwapContract.deployed();
 
     // Deploy MetaAggregatorManager
@@ -83,6 +89,7 @@ export const setupTest = async () => {
         receiverRevert,
         zeroAddress,
         usdt,
+        usdc,
         feeReceiver
     };
 };
