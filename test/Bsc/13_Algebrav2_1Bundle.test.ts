@@ -601,6 +601,7 @@ describe.only("Tests for Deposit", () => {
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
             _deployer: zeroAddress,
+            _fee: [100, 100],
           },
           {
             value: "1000000000000000000",
@@ -685,6 +686,7 @@ describe.only("Tests for Deposit", () => {
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
             _deployer: zeroAddress,
+            _fee: [100, 100],
           }
         );
 
@@ -767,6 +769,7 @@ describe.only("Tests for Deposit", () => {
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
             _deployer: zeroAddress,
+            _fee: [100, 100],
           }
         );
 
@@ -864,12 +867,12 @@ describe.only("Tests for Deposit", () => {
         const callDataDecreaseLiquidity: any = [];
         // Encode the function call
         let ABI = [
-          "function decreaseLiquidity(address _positionWrapper, uint256 _withdrawalAmount, uint256 _amount0Min, uint256 _amount1Min, address tokenIn, address tokenOut, uint256 amountIn)",
+          "function decreaseLiquidity(address _positionWrapper, uint256 _withdrawalAmount, uint256 _amount0Min, uint256 _amount1Min, address tokenIn, address tokenOut, uint256 amountIn, uint24 _fee)",
         ];
         let abiEncode = new ethers.utils.Interface(ABI);
         callDataDecreaseLiquidity[0] = abiEncode.encodeFunctionData(
           "decreaseLiquidity",
-          [sellToken, sellTokenBalance, 0, 0, token0, token1, 0]
+          [sellToken, sellTokenBalance, 0, 0, token0, token1, 0, 100]
         );
 
         const encodedParameters = ethers.utils.defaultAbiCoder.encode(
@@ -1039,6 +1042,7 @@ describe.only("Tests for Deposit", () => {
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
+            _fee: [100, 100],
           }
         );
 
@@ -1161,6 +1165,7 @@ describe.only("Tests for Deposit", () => {
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
+            _fee: [100, 100],
           }
         );
 
@@ -1249,6 +1254,7 @@ describe.only("Tests for Deposit", () => {
             _tokenOut: [ZERO_ADDRESS],
             _amountIn: ["0"],
             _deployer: zeroAddress,
+            _fee: [100],
           }
         );
 
@@ -1344,6 +1350,7 @@ describe.only("Tests for Deposit", () => {
             _tokenOut: [ZERO_ADDRESS],
             _amountIn: ["0"],
             _deployer: zeroAddress,
+            _fee: [100],
           }
         );
 
@@ -1469,6 +1476,7 @@ describe.only("Tests for Deposit", () => {
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
+            _fee: [100, 100],
           }
         );
 
