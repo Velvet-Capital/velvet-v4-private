@@ -143,7 +143,7 @@ abstract contract PositionManagerAbstractAlgebraV1_2 is
     );
 
     // Update the wrapper with the new token ID to reflect the repositioned state.
-    _positionWrapper.updateTokenId(newTokenId);
+    _positionWrapper.updateTokenId(newTokenId, 0, _tickLower, _tickUpper);
 
     emit PriceRangeUpdated(address(_positionWrapper), _tickLower, _tickUpper);
   }

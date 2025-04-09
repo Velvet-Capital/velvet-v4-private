@@ -805,7 +805,7 @@ describe.only("Tests for Deposit", () => {
           await positionWrapper2.token1(), // position2 - token1
           iaddress.dogeAddress,
           iaddress.btcAddress,
-          iaddress.usdtAddress,
+          buyToken,
         ];
         positionWrapperIndex = [1];
         portfolioTokenIndex = [0, 1, 1, 2, 3, 4];
@@ -963,8 +963,8 @@ describe.only("Tests for Deposit", () => {
               positionWrappers[wrapperIndex]
             );
             let percentage = await amountCalculationsAlgebra.getPercentage(
-              withdrawalAmounts[i].toString(),
-              await positionWrapperCurrent.totalSupply()
+              withdrawalAmounts[i],
+              (await positionWrapperCurrent.totalSupply()).toString()
             );
 
             let withdrawAmounts = await calculateOutputAmounts(
@@ -973,12 +973,12 @@ describe.only("Tests for Deposit", () => {
             );
             if (withdrawAmounts.token0Amount > 0) {
               swapAmounts.push(
-                (withdrawAmounts.token0Amount * 0.999).toFixed(0)
+                (withdrawAmounts.token0Amount * 0.99999).toFixed(0)
               );
             }
             if (withdrawAmounts.token1Amount > 0) {
               swapAmounts.push(
-                (withdrawAmounts.token1Amount * 0.999).toFixed(0)
+                (withdrawAmounts.token1Amount * 0.99999).toFixed(0)
               );
             }
             wrapperIndex++;
@@ -1242,12 +1242,12 @@ describe.only("Tests for Deposit", () => {
             _portfolioTokenIndex: portfolioTokenIndex,
             _index0: index0,
             _index1: index1,
-            _amount0Min: [0, 0],
-            _amount1Min: [0, 0],
+            _amount0Min: [0],
+            _amount1Min: [0],
             _isExternalPosition: isExternalPosition,
-            _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
-            _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
-            _amountIn: ["0", "0"],
+            _tokenIn: [ZERO_ADDRESS],
+            _tokenOut: [ZERO_ADDRESS],
+            _amountIn: ["0"],
             _deployer: zeroAddress,
           }
         );
@@ -1337,12 +1337,12 @@ describe.only("Tests for Deposit", () => {
             _portfolioTokenIndex: portfolioTokenIndex,
             _index0: index0,
             _index1: index1,
-            _amount0Min: [0, 0],
-            _amount1Min: [0, 0],
+            _amount0Min: [0],
+            _amount1Min: [0],
             _isExternalPosition: isExternalPosition,
-            _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
-            _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
-            _amountIn: ["0", "0"],
+            _tokenIn: [ZERO_ADDRESS],
+            _tokenOut: [ZERO_ADDRESS],
+            _amountIn: ["0"],
             _deployer: zeroAddress,
           }
         );
