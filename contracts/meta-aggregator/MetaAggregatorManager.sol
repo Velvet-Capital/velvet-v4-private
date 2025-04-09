@@ -24,9 +24,18 @@ contract MetaAggregatorManager is
     error CannotSwapETH();
     error InvalidMetaAggregatorAddress();
     error TransferFailed();
+    error InvalidToken();
     //events
-    event EthTransferred(address indexed to, uint256 amount);
-    event ERC20Transferred(address indexed token, address indexed to, uint256 amount);
+    event ERC20Transferred(
+        address indexed token,
+        address indexed to,
+        uint256 amount
+    );
+    event ERC20TransferredBatch(
+        address[] tokens,
+        address[] to,
+        uint256[] amounts
+    );
 
     /**
      * @dev Sets the address of the MetaAggregatorSwap contract.
@@ -107,5 +116,34 @@ contract MetaAggregatorManager is
     ) external onlyOwner {
         TransferHelper.safeTransfer(token, to, amount);
         emit ERC20Transferred(token, to, amount);
+    }
+
+    /**
+     * @dev Transfers multiple ERC20 tokens to a specified address.
+     * @param tokens The addresses of the ERC20 tokens to transfer.
+     * @param to The address to transfer the ERC20 tokens to.
+     * @param amounts The amounts of ERC20 tokens to transfer.
+     */
+    function transferERC20Batch(
+        address[] memory tokens,
+        address[] memory to,
+        uint256[] memory amounts
+    ) external onlyOwner {
+        for (uint256 i = 0; i < tokens.length; i++) {
+            _transferERC20(tokens[i], to[i], amounts[i]);
+        }
+        emit ERC20TransferredBatch(tokens, to, amounts);
+    }
+
+    /**
+     * @dev Transfers ERC20 tokens to a specified address.
+     */
+    function _transferERC20(
+        address token,
+        address to,
+        uint256 amount
+    ) internal {
+        if (token == address(0)) revert InvalidToken();
+        TransferHelper.safeTransfer(token, to, amount);
     }
 }

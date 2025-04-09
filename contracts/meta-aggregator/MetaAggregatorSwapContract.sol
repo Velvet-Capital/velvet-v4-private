@@ -61,11 +61,24 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
         uint256 indexed amount
     );
 
+    // Event emitted when multiple ERC20 tokens are transferred to a specified address
+    event ERC20TransferredBatch(
+        address[] tokens,
+        address[] to,
+        uint256[] amounts
+    );
+
     // Event emitted when a token is added to the zeroApprovalTokens mapping
     event ZeroApprovalTokenAdded(address token);
 
     // Event emitted when a token is removed from the zeroApprovalTokens mapping
     event ZeroApprovalTokenRemoved(address token);
+
+    // Event emitted when multiple tokens are added to the zeroApprovalTokens mapping
+    event ZeroApprovalTokensAdded(address[] tokens);
+
+    // Event emitted when multiple tokens are removed from the zeroApprovalTokens mapping
+    event ZeroApprovalTokensRemoved(address[] tokens);
 
     /**
      * @dev Mapping to store the tokens which use approval zero before actual approval.
@@ -198,8 +211,25 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
         address to,
         uint256 amount
     ) external onlyOwner {
-        TransferHelper.safeTransfer(token, to, amount);
+        _transferERC20(token, to, amount);
         emit ERC20Transferred(token, to, amount);
+    }
+
+    /**
+     * @dev Transfers multiple ERC20 tokens to a specified address.
+     * @param tokens The addresses of the ERC20 tokens to transfer.
+     * @param to The address to transfer the ERC20 tokens to.
+     * @param amounts The amounts of ERC20 tokens to transfer.
+     */
+    function transferERC20Batch(
+        address[] memory tokens,
+        address[] memory to,
+        uint256[] memory amounts
+    ) external onlyOwner {
+        for (uint256 i = 0; i < tokens.length; i++) {
+            _transferERC20(tokens[i], to[i], amounts[i]);
+        }
+        emit ERC20TransferredBatch(tokens, to, amounts);
     }
 
     /*
@@ -207,20 +237,43 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
      * @param token The address of the token to add.
      */
     function addZeroApprovalToken(address token) external onlyOwner {
-        if (token == address(0)) revert InvalidToken();
-        zeroApprovalTokens[token] = true;
+        _addZeroApprovalToken(token);
         emit ZeroApprovalTokenAdded(token);
     }
 
-    /*
+    /**
+     * @dev Add multiple tokens to the zeroApprovalTokens mapping.
+     * @param tokens The addresses of the tokens to add.
+     */
+    function addZeroApprovalTokenBatch(address[] memory tokens) external onlyOwner {
+        for (uint256 i = 0; i < tokens.length; i++) {
+            _addZeroApprovalToken(tokens[i]);
+        }
+        emit ZeroApprovalTokensAdded(tokens);
+    }
+
+    /**
      * @dev Remove a token from the zeroApprovalTokens mapping.
      * @param token The address of the token to remove.
      */
     function removeZeroApprovalToken(address token) external onlyOwner {
-        if (token == address(0)) revert InvalidToken();
-        zeroApprovalTokens[token] = false;
+        _removeZeroApprovalToken(token);
         emit ZeroApprovalTokenRemoved(token);
     }
+
+    /*
+     * @dev Remove multiple tokens from the zeroApprovalTokens mapping.
+     * @param tokens The addresses of the tokens to remove.
+     */
+    function removeZeroApprovalTokenBatch(
+        address[] memory tokens
+    ) external onlyOwner {
+        for (uint256 i = 0; i < tokens.length; i++) {
+            _removeZeroApprovalToken(tokens[i]);
+        }
+        emit ZeroApprovalTokensRemoved(tokens);
+    }
+
     /**
      * @dev Internal function to perform the swap from ETH to ERC20.
      * @param params SwapETHParams
@@ -378,6 +431,36 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
         if (tokenIn == tokenOut) revert TokenInAndTokenOutCannotBeSame();
         if (tokenIn == address(0) || tokenOut == address(0))
             revert InvalidToken();
+    }
+
+    /**
+     * @dev Adds a token to the zeroApprovalTokens mapping.
+     * @param token The address of the token to add.
+     */
+    function _addZeroApprovalToken(address token) internal {
+        if (token == address(0)) revert InvalidToken();
+        zeroApprovalTokens[token] = true;
+    }
+
+    /**
+     * @dev Removes a token from the zeroApprovalTokens mapping.
+     * @param token The address of the token to remove.
+     */
+    function _removeZeroApprovalToken(address token) internal {
+        if (token == address(0)) revert InvalidToken();
+        zeroApprovalTokens[token] = false;
+    }
+
+    /**
+     * @dev Transfers ERC20 tokens to a specified address.
+     */
+    function _transferERC20(
+        address token,
+        address to,
+        uint256 amount
+    ) internal {
+        if (token == address(0)) revert InvalidToken();
+        TransferHelper.safeTransfer(token, to, amount);
     }
 
     /**
