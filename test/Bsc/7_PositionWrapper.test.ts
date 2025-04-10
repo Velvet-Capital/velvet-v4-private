@@ -786,6 +786,24 @@ describe.only("Tests for Deposit", () => {
         await protocolConfig.setEmergencyPause(false, true);
       });
 
+      it("should not be able to decrease liquidity when fake position wrapper is passed", async () => {
+        await expect(
+          positionManager.decreaseLiquidity(
+            nonOwner.address,
+            10000,
+            0,
+            0,
+            await positionWrapper.token0(),
+            await positionWrapper.token1(),
+            0,
+            100
+          )
+        ).to.be.revertedWithCustomError(
+          positionManager,
+          "InvalidPositionWrapper"
+        );
+      });
+
       it("should not be able to update range when protocol is paused", async () => {
         await protocolConfig.setProtocolPause(true);
 
