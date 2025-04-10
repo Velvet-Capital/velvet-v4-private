@@ -205,8 +205,8 @@ abstract contract PositionManagerAbstract is
       _params._dustReceiver,
       token0,
       token1,
-      balance0After,
-      balance1After
+      balance0After - balance0Before,
+      balance1After - balance1Before
     );
 
     emit LiquidityIncreased(msg.sender, liquidity);

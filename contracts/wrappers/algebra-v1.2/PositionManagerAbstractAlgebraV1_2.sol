@@ -264,7 +264,13 @@ abstract contract PositionManagerAbstractAlgebraV1_2 is
     balance1After = IERC20Upgradeable(token1).balanceOf(address(this));
 
     // Return any excess tokens (dust) that weren't used in liquidity addition back to the sender.
-    _returnDust(_dustReceiver, token0, token1, balance0After, balance1After);
+    _returnDust(
+      _dustReceiver,
+      token0,
+      token1,
+      balance0After - balance0Before,
+      balance1After - balance1Before
+    );
 
     emit PositionInitializedAndDeposited(address(_positionWrapper));
   }
