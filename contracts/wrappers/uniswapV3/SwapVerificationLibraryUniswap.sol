@@ -262,8 +262,8 @@ library SwapVerificationLibraryUniswap {
    * This function is specifically used to ensure that any fees due for reinvestment don't exceed
    * certain thresholds before proceeding with a ratio verification step.
    * @param _params Swap parameters encapsulating position and token details.
-   * @param _tokensOwed0 Tokens owed of type token0, typically fees that are ready for reinvestment.
-   * @param _tokensOwed1 Tokens owed of type token1, similarly fees that might be reinvested.
+   * @param _feeAmount0 The amount of token0 after claiming fees including previous dust.
+   * @param _feeAmount1 The amount of token1 after claiming fees including previous dust.
    * @notice Only proceeds with the verification if either of the owed token amounts exceeds
    * the minimum reinvestment threshold.
    */
@@ -271,12 +271,12 @@ library SwapVerificationLibraryUniswap {
     IProtocolConfig protocolConfig,
     WrapperFunctionParameters.SwapParams memory _params,
     address _nftManager,
-    uint128 _tokensOwed0,
-    uint128 _tokensOwed1
+    uint256 _feeAmount0,
+    uint256 _feeAmount1
   ) external {
     if (
-      _tokensOwed0 > MIN_REINVESTMENT_AMOUNT ||
-      _tokensOwed1 > MIN_REINVESTMENT_AMOUNT
+      _feeAmount0 > MIN_REINVESTMENT_AMOUNT ||
+      _feeAmount1 > MIN_REINVESTMENT_AMOUNT
     ) {
       verifyZeroSwapAmount(protocolConfig, _params, _nftManager);
     }
