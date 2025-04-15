@@ -456,7 +456,7 @@ contract Rebalancing is
     address _tokenToBorrow, // token to borrow
     address _controller, // controller address
     uint256 _amountToBorrow
-  ) external onlyAssetManager protocolNotPaused {
+  ) external onlyAssetManager protocolNotPaused nonReentrant {
     // Check for _pool address validity, prevent malicious address input
     if (
       _pool == address(0) ||
