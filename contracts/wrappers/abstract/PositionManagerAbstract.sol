@@ -249,7 +249,7 @@ abstract contract PositionManagerAbstract is
     _positionWrapper.burn(msg.sender, _withdrawalAmount);
 
     // If there are still wrapper tokens in circulation, collect fees and reinvest them.
-    if (totalSupplyBeforeBurn > 0)
+    if (_positionWrapper.totalSupply() > 0)
       _collectFeesAndReinvest(
         _positionWrapper,
         tokenId,

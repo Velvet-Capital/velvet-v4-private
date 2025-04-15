@@ -216,7 +216,9 @@ describe.only("Tests for Deposit", () => {
       const positionWrapperBaseAddress = await PositionWrapper.deploy();
       await positionWrapperBaseAddress.deployed();
 
-      const BorrowManager = await ethers.getContractFactory("BorrowManagerVenus");
+      const BorrowManager = await ethers.getContractFactory(
+        "BorrowManagerVenus"
+      );
       borrowManager = await BorrowManager.deploy();
       await borrowManager.deployed();
 
@@ -276,7 +278,6 @@ describe.only("Tests for Deposit", () => {
 
       swapHandler.init(addresses.PancakeSwapRouterAddress);
       await protocolConfig.enableSwapHandler(swapHandler.address);
-
 
       await protocolConfig.setSupportedFactory(addresses.thena_factory);
 
@@ -793,7 +794,7 @@ describe.only("Tests for Deposit", () => {
           position2,
           iaddress.dogeAddress,
           iaddress.btcAddress,
-          buyToken,
+          await removedPosition.token1(),
         ];
 
         positionWrappers = [position2];
@@ -843,25 +844,7 @@ describe.only("Tests for Deposit", () => {
           );
         }
 
-        const postResponse0 = await createEnsoCallDataRoute(
-          ensoHandler.address,
-          ensoHandler.address,
-          token0,
-          buyToken,
-          swapAmounts[0][0]
-        );
-
-        const postResponse1 = await createEnsoCallDataRoute(
-          ensoHandler.address,
-          ensoHandler.address,
-          token1,
-          buyToken,
-          swapAmounts[0][1]
-        );
-
         let callDataEnso: any = [[]];
-        callDataEnso[0][0] = postResponse0.data.tx.data;
-        callDataEnso[0][1] = postResponse1.data.tx.data;
 
         const callDataDecreaseLiquidity: any = [];
         // Encode the function call
@@ -882,8 +865,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokensOut
+            " uint256[][]", // minExpectedOutputAmounts (out)
           ],
           [
             callDataEnso,
@@ -892,8 +875,8 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [await removedPosition.token0(), await removedPosition.token1()],
             [sellToken],
-            [buyToken],
-            [0],
+            [[await removedPosition.token0(), await removedPosition.token1()]],
+            [[0, 0]],
           ]
         );
 
