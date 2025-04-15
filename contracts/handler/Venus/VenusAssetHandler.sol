@@ -1376,7 +1376,7 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
     uint256[] memory poolFees
   ) internal view returns (uint256, uint256) {
     for (uint j = 0; j < lendingTokens.length; ) {
-      address lendingToken = lendingTokens[j]; // Using index from original logic
+      address lendingToken = lendingTokens[j];
       address underlying = (lendingToken == vBNB_Address)
         ? WBNB_Address
         : IVenusPool(lendingToken).underlying();
@@ -1408,34 +1408,36 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
         _context.user,
         _sellAmount
       );
-
-      // Approve transaction - exactly as original
-      transactions[count].to = _context.executor;
-      transactions[count].txData = abi.encodeWithSelector(
-        bytes4(keccak256("vaultInteraction(address,bytes)")),
-        underlying,
-        approve(_context.router, underlyingAmount)
-      );
-      count++;
-
-      uint fee = poolFees[feeCount];
-
-      // Swap transaction - exactly as original
-      transactions[count].to = _context.executor;
-      transactions[count].txData = abi.encodeWithSelector(
-        bytes4(keccak256("vaultInteraction(address,bytes)")),
-        _context.router,
-        ISwapHandler(_context.swapHandler).swapExactTokensForTokens(
+      
+      if(underlying != _context.flashloanToken){
+        // Approve transaction - exactly as original
+        transactions[count].to = _context.executor;
+        transactions[count].txData = abi.encodeWithSelector(
+          bytes4(keccak256("vaultInteraction(address,bytes)")),
           underlying,
-          _context.flashloanToken,
-          _context.receiver,
-          underlyingAmount,
-          0,
-          fee
-        )
-      );
-      count++;
-      feeCount++;
+          approve(_context.router, underlyingAmount)
+        );
+        count++;
+
+        uint fee = poolFees[feeCount];
+
+        // Swap transaction - exactly as original
+        transactions[count].to = _context.executor;
+        transactions[count].txData = abi.encodeWithSelector(
+          bytes4(keccak256("vaultInteraction(address,bytes)")),
+          _context.router,
+          ISwapHandler(_context.swapHandler).swapExactTokensForTokens(
+            underlying,
+            _context.flashloanToken,
+            _context.receiver,
+            underlyingAmount,
+            0,
+            fee
+          )
+        );
+        count++;
+        feeCount++;
+      }
 
       unchecked {
         ++j;

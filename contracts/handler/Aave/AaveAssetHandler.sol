@@ -937,7 +937,8 @@ contract AaveAssetHandler is IAssetHandler {
     uint256 feeCount
   ) internal view returns (MultiTransaction[] memory transactions) {
     // Same array size as original
-    transactions = new MultiTransaction[](3 * lendingTokens.length);
+    uint256 tokenLength = lendingTokens.length;
+    transactions = new MultiTransaction[](3 * tokenLength);
     uint256 count;
 
     WithdrawContext memory _context = context;
@@ -962,6 +963,10 @@ contract AaveAssetHandler is IAssetHandler {
       feeCount,
       flashData.poolFees
     );
+    uint unusedLength = ((tokenLength * 3) - count);
+    assembly {
+      mstore(transactions, sub(mload(transactions), unusedLength))
+    }
     return transactions;
   }
 
@@ -1002,36 +1007,37 @@ contract AaveAssetHandler is IAssetHandler {
         )
       });
 
-      // 2. Approve transaction
-      transactions[count++] = MultiTransaction({
-        to: _context.executor,
-        txData: abi.encodeWithSelector(
-          bytes4(keccak256("vaultInteraction(address,bytes)")),
-          underlying,
-          approve(_context.router, _sellAmount)
-        )
-      });
-
-      uint fee = poolFees[feeCount];
-
-      // 3. Swap transaction
-      transactions[count++] = MultiTransaction({
-        to: _context.executor,
-        txData: abi.encodeWithSelector(
-          bytes4(keccak256("vaultInteraction(address,bytes)")),
-          _context.router,
-          ISwapHandler(_context.swapHandler).swapExactTokensForTokens(
+      if(underlying != _context.flashloanToken){
+        // 2. Approve transaction
+        transactions[count++] = MultiTransaction({
+          to: _context.executor,
+          txData: abi.encodeWithSelector(
+            bytes4(keccak256("vaultInteraction(address,bytes)")),
             underlying,
-            _context.flashloanToken,
-            _context.receiver,
-            _sellAmount,
-            1,
-            fee
+            approve(_context.router, _sellAmount)
           )
-        )
-      });
-      feeCount++;
+        });
 
+        uint fee = poolFees[feeCount];
+
+        // 3. Swap transaction
+        transactions[count++] = MultiTransaction({
+          to: _context.executor,
+          txData: abi.encodeWithSelector(
+            bytes4(keccak256("vaultInteraction(address,bytes)")),
+            _context.router,
+            ISwapHandler(_context.swapHandler).swapExactTokensForTokens(
+              underlying,
+              _context.flashloanToken,
+              _context.receiver,
+              _sellAmount,
+              1,
+              fee
+            )
+          )
+        });
+        feeCount++;
+      }
       unchecked {
         ++j;
       }
