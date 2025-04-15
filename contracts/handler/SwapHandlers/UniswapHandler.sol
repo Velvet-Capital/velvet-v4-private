@@ -42,7 +42,7 @@ contract UniswapHandler is ISwapHandler {
   ) public view returns (bytes memory data) {
     bytes memory path = abi.encodePacked(
       tokenIn, // Address of the input token
-      fee, // Pool fee (0.3%)
+      uint24(fee), // Pool fee (0.3%)
       tokenOut // Address of the output token
     );
 
