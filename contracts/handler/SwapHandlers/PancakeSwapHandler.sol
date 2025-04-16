@@ -5,7 +5,11 @@ import { ISwapHandler } from "../../core/interfaces/ISwapHandler.sol";
 import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
 contract PancakeSwapHandler is ISwapHandler {
-  address immutable ROUTER_ADDRESS = 0x1b81D678ffb9C0263b24A97847620C99d213eB14;
+
+  address public immutable ROUTER_ADDRESS;
+  constructor(address _routerAddress) {
+    ROUTER_ADDRESS = _routerAddress;
+  }
 
   function swapExactTokensForTokens(
     address tokenIn,

@@ -210,7 +210,7 @@ describe.only("Tests for Deposit", () => {
       const PancakeSwapHandler = await ethers.getContractFactory(
         "PancakeSwapHandler"
       );
-      swapHandler = await PancakeSwapHandler.deploy();
+      swapHandler = await PancakeSwapHandler.deploy(addresses.PancakeSwapV3RouterAddress);
       await swapHandler.deployed();
 
       protocolConfig = ProtocolConfig.attach(_protocolConfig.address);
