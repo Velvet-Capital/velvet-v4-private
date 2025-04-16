@@ -104,7 +104,7 @@ contract MetaAggregatorManager is
     }
 
     /**
-     * @dev Transfers ERC20 tokens to a specified address.
+     * @dev Transfers ERC20 tokens to a specified address.This is only for emergency use. This contract is not made to hold any tokens.
      * @param token The address of the ERC20 token to transfer.
      * @param to The address to transfer the ERC20 tokens to.
      * @param amount The amount of ERC20 tokens to transfer.
@@ -119,7 +119,7 @@ contract MetaAggregatorManager is
     }
 
     /**
-     * @dev Transfers multiple ERC20 tokens to a specified address.
+     * @dev Transfers multiple ERC20 tokens to a specified address.This is only for emergency use. This contract is not made to hold any tokens.
      * @param tokens The addresses of the ERC20 tokens to transfer.
      * @param to The address to transfer the ERC20 tokens to.
      * @param amounts The amounts of ERC20 tokens to transfer.

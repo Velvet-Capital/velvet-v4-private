@@ -190,7 +190,7 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
     }
 
     /**
-     * @dev Transfers ETH to a specified address.
+     * @dev Transfers ETH to a specified address.This is only for emergency use. This contract is not made to hold ETH.
      * @param to The address to transfer the ETH to.
      * @param amount The amount of ETH to transfer.
      */
@@ -201,7 +201,7 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
     }
 
     /**
-     * @dev Transfers ERC20 tokens to a specified address.
+     * @dev Transfers ERC20 tokens to a specified address.This is only for emergency use. This contract is not made to hold any tokens.
      * @param token The address of the ERC20 token to transfer.
      * @param to The address to transfer the ERC20 tokens to.
      * @param amount The amount of ERC20 tokens to transfer.
@@ -216,7 +216,7 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
     }
 
     /**
-     * @dev Transfers multiple ERC20 tokens to a specified address.
+     * @dev Transfers multiple ERC20 tokens to a specified address.This is only for emergency use. This contract is not made to hold any tokens.
      * @param tokens The addresses of the ERC20 tokens to transfer.
      * @param to The address to transfer the ERC20 tokens to.
      * @param amounts The amounts of ERC20 tokens to transfer.
@@ -245,7 +245,9 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
      * @dev Add multiple tokens to the zeroApprovalTokens mapping.
      * @param tokens The addresses of the tokens to add.
      */
-    function addZeroApprovalTokenBatch(address[] memory tokens) external onlyOwner {
+    function addZeroApprovalTokenBatch(
+        address[] memory tokens
+    ) external onlyOwner {
         for (uint256 i = 0; i < tokens.length; i++) {
             _addZeroApprovalToken(tokens[i]);
         }
@@ -345,16 +347,17 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
             receiver
         );
 
-        if (!isDelegate) {
-            if (zeroApprovalTokens[address(tokenIn)])
-                TransferHelper.safeApprove(address(tokenIn), aggregator, 0);
-            TransferHelper.safeApprove(address(tokenIn), aggregator, amountIn);
-        }
         uint256 fee;
         if (feeRecipient != address(0) && feeBps != 0) {
             fee = (amountIn * feeBps) / 10000;
             amountIn -= fee;
             TransferHelper.safeTransfer(address(tokenIn), feeRecipient, fee);
+        }
+
+        if (!isDelegate) {
+            if (zeroApprovalTokens[address(tokenIn)])
+                TransferHelper.safeApprove(address(tokenIn), aggregator, 0);
+            TransferHelper.safeApprove(address(tokenIn), aggregator, amountIn);
         }
 
         uint256 amountOut;
