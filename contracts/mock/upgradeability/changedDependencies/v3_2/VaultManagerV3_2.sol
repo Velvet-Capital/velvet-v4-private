@@ -235,7 +235,7 @@ abstract contract VaultManagerV3_2 is
         (tokenBalance * _portfolioTokenAmount) /
         totalSupplyPortfolio;
       // Transfer each token's proportional amount from the vault to the user.
-      _pullFromVault(_token, tokenBalance, msg.sender);
+      _pullFromVault(_token, tokenBalance, 0, msg.sender);
     }
 
     uint256 userBalanceAfterWithdrawal = balanceOf(msg.sender);
@@ -256,11 +256,13 @@ abstract contract VaultManagerV3_2 is
    * @dev Executes a token transfer via the VelvetSafeModule, ensuring secure transaction execution.
    * @param _token The token address to transfer.
    * @param _amount The amount of tokens to transfer.
+   * @param _value The ether value of the transaction
    * @param _to The recipient address of the tokens.
    */
   function _pullFromVault(
     address _token,
     uint256 _amount,
+    uint256 _value,
     address _to
   ) internal {
     // Prepare the data for ERC20 token transfer
@@ -273,6 +275,7 @@ abstract contract VaultManagerV3_2 is
     // Execute the transfer through the safe module and check for success
     (, bytes memory data) = IVelvetSafeModule(safeModule).executeWallet(
       _token,
+      _value,
       inputData
     );
 
@@ -292,9 +295,10 @@ abstract contract VaultManagerV3_2 is
   function pullFromVault(
     address _token,
     uint256 _amount,
+    uint256 _value,
     address _to
   ) external onlyRebalancerContract {
-    _pullFromVault(_token, _amount, _to);
+    _pullFromVault(_token, _amount, _value, _to);
   }
 
   /**

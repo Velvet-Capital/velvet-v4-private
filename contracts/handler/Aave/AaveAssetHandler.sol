@@ -733,8 +733,9 @@ contract AaveAssetHandler is IAssetHandler {
         //Vault Approves the token to dex
         transactions[count].to = context.executor;
         transactions[count].txData = abi.encodeWithSelector(
-          bytes4(keccak256("vaultInteraction(address,bytes)")),
+          bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
           context.flashLoanToken,
+          0,
           approve(context.router, flashData.flashLoanAmount[i])
         );
         count++;
@@ -746,8 +747,9 @@ contract AaveAssetHandler is IAssetHandler {
         // Swap the token using the solver handler
         transactions[count].to = context.executor;
         transactions[count].txData = abi.encodeWithSelector(
-          bytes4(keccak256("vaultInteraction(address,bytes)")),
+          bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
           _context.router,
+          0,
           _context.swapHandler.swapExactTokensForTokens(
             _context.flashLoanToken,
             _flashData.debtToken[i],
@@ -865,8 +867,9 @@ contract AaveAssetHandler is IAssetHandler {
       // Approve the debt token for the protocol
       transactions[count].to = executor;
       transactions[count].txData = abi.encodeWithSelector(
-        bytes4(keccak256("vaultInteraction(address,bytes)")),
+        bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
         flashData.debtToken[i],
+        0,
         approve(flashData.poolAddress, amountToRepay)
       );
       count++;
@@ -874,8 +877,9 @@ contract AaveAssetHandler is IAssetHandler {
       // Repay the debt using the protocol token
       transactions[count].to = executor;
       transactions[count].txData = abi.encodeWithSelector(
-        bytes4(keccak256("vaultInteraction(address,bytes)")),
+        bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
         flashData.poolAddress,
+        0,
         repay(flashData.debtToken[i], vault, amountToRepay)
       );
       count++;
@@ -1001,8 +1005,9 @@ contract AaveAssetHandler is IAssetHandler {
       transactions[count++] = MultiTransaction({
         to: _context.executor,
         txData: abi.encodeWithSelector(
-          bytes4(keccak256("vaultInteraction(address,bytes)")),
+          bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
           _context.poolAddress,
+          0,
           withdraw(underlying, _context.user, _sellAmount)
         )
       });
@@ -1012,11 +1017,13 @@ contract AaveAssetHandler is IAssetHandler {
         transactions[count++] = MultiTransaction({
           to: _context.executor,
           txData: abi.encodeWithSelector(
-            bytes4(keccak256("vaultInteraction(address,bytes)")),
+            bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
             underlying,
+            0,
             approve(_context.router, _sellAmount)
           )
         });
+
 
         uint fee = poolFees[feeCount];
 
@@ -1024,8 +1031,9 @@ contract AaveAssetHandler is IAssetHandler {
         transactions[count++] = MultiTransaction({
           to: _context.executor,
           txData: abi.encodeWithSelector(
-            bytes4(keccak256("vaultInteraction(address,bytes)")),
+            bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
             _context.router,
+            0,
             ISwapHandler(_context.swapHandler).swapExactTokensForTokens(
               underlying,
               _context.flashloanToken,

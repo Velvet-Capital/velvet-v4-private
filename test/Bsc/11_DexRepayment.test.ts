@@ -1058,7 +1058,8 @@ describe.only("Tests for Deposit", () => {
             [addresses.vLINK_Address],
             vault
           );
-
+        
+        console.log("BNB balance of vault",await provider.getBalance(vault));
         console.log("balanceBorrowed after repay", balanceBorrowed);
       });
 
