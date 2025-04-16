@@ -103,6 +103,8 @@ library ErrorLibrary {
   error SequencerIsDown();
   /// @notice Throws when sequencer threshold is not crossed
   error SequencerThresholdNotCrossed();
+  /// @notice Throws when sequencer timestamp is zero
+  error InvalidSequencerTimestamp();
   /// @notice Throws when depositAmount and depositToken length does not match
   error InvalidDepositInputLength();
   /// @notice Mint amount smaller than users indended buy amount
