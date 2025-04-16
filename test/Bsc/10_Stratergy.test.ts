@@ -276,7 +276,7 @@ describe.only("Tests for Deposit", () => {
       await protocolConfig.setCoolDownPeriod("70");
       await protocolConfig.enableSolverHandler(ensoHandler.address);
       await protocolConfig.enableSwapHandler(pancakeSwapHandler.address);
-   
+
       await protocolConfig.enableTokens([
         iaddress.ethAddress,
         iaddress.btcAddress,
@@ -318,8 +318,7 @@ describe.only("Tests for Deposit", () => {
       const VenusAssetHandler = await ethers.getContractFactory(
         "VenusAssetHandler"
       );
-      venusAssetHandler = await VenusAssetHandler.deploy(
-      );
+      venusAssetHandler = await VenusAssetHandler.deploy();
       await venusAssetHandler.deployed();
 
       const PancakeSwapHandler = await ethers.getContractFactory(
@@ -905,8 +904,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            "uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            "uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -915,8 +914,8 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 
@@ -1122,7 +1121,7 @@ describe.only("Tests for Deposit", () => {
 
         // Define the ABI with the correct structure of WrapperDepositParams
         let ABI = [
-          "function initializePositionAndDeposit(address _dustReceiver, address _positionWrapper, (uint256 _amount0Desired, uint256 _amount1Desired, uint256 _amount0Min, uint256 _amount1Min) params)",
+          "function initializePositionAndDeposit(address _dustReceiver, address _positionWrapper, (uint256 _amount0Desired, uint256 _amount1Desired, uint256 _amount0Min, uint256 _amount1Min, address _deployer) params)",
         ];
 
         let abiEncode = new ethers.utils.Interface(ABI);
@@ -1138,6 +1137,7 @@ describe.only("Tests for Deposit", () => {
               _amount1Desired: (depositAmounts.amount1 * 0.9995).toFixed(0),
               _amount0Min: 0,
               _amount1Min: 0,
+              _deployer: zeroAddress,
             },
           ]
         );
@@ -1150,8 +1150,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            " uint256[][]", // minExpectedOutputAmounts
           ],
           [
             callDataEnso,
@@ -1160,8 +1160,8 @@ describe.only("Tests for Deposit", () => {
             [[token0, token1, positionManager.address]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 
@@ -1215,8 +1215,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            " uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -1225,8 +1225,8 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 

@@ -880,8 +880,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            " uint256[][]", // minExpectedOutputAmounts
           ],
           [
             callDataEnso,
@@ -890,8 +890,8 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [await positionWrapper.token0(), await positionWrapper.token1()],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 

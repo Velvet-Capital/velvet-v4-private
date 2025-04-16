@@ -794,7 +794,7 @@ describe.only("Tests for Deposit", () => {
           position2,
           iaddress.dogeAddress,
           iaddress.btcAddress,
-          await removedPosition.token1(),
+          await removedPosition.token0(),
         ];
 
         positionWrappers = [position2];
@@ -804,8 +804,9 @@ describe.only("Tests for Deposit", () => {
           await positionWrapper2.token1(), // position2 - token1
           iaddress.dogeAddress,
           iaddress.btcAddress,
-          iaddress.usdtAddress,
+          token0,
         ];
+
         positionWrapperIndex = [1];
         portfolioTokenIndex = [0, 1, 1, 2, 3, 4];
         isExternalPosition = [false, true, true, false, false, false];
@@ -819,6 +820,15 @@ describe.only("Tests for Deposit", () => {
         let sellTokenBalance = BigNumber.from(
           await ERC20.attach(sellToken).balanceOf(vault)
         ).toString();
+
+        console.log(
+          "token0 balance before",
+          await ERC20.attach(token0).balanceOf(vault)
+        );
+        console.log(
+          "token1 balance before",
+          await ERC20.attach(token1).balanceOf(vault)
+        );
 
         // get underlying amounts of position
         let percentage = await amountCalculationsAlgebra.getPercentage(
@@ -887,6 +897,15 @@ describe.only("Tests for Deposit", () => {
           _handler: ensoHandler.address,
           _callData: encodedParameters,
         });
+
+        console.log(
+          "token0 balance after",
+          await ERC20.attach(token0).balanceOf(vault)
+        );
+        console.log(
+          "token1 balance after",
+          await ERC20.attach(token1).balanceOf(vault)
+        );
       });
 
       it("Create a new position wrapper", async () => {
@@ -915,7 +934,7 @@ describe.only("Tests for Deposit", () => {
         // initialized tokens
 
         let tokens = await portfolio.getTokens();
-        let sellToken = iaddress.usdtAddress;
+        let sellToken = iaddress.ethAddress;
         let buyToken = position3;
 
         let addedPosition = positionWrapper3;
@@ -941,6 +960,7 @@ describe.only("Tests for Deposit", () => {
           await addedPosition.token0(), // position1 - token0
           await addedPosition.token1(), // position1 - token1
         ];
+
         positionWrapperIndex = [1, 4];
         portfolioTokenIndex = [0, 1, 1, 2, 3, 4, 4];
         isExternalPosition = [false, true, true, false, false, true, true];
@@ -1033,8 +1053,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokensOut
+            " uint256[][]", // minExpectedOutputAmounts (out)
           ],
           [
             callDataEnso,
@@ -1043,8 +1063,8 @@ describe.only("Tests for Deposit", () => {
             [[token0, token1, positionManager.address]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 
