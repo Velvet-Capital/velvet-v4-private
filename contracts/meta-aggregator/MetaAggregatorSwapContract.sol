@@ -68,41 +68,15 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
         uint256[] amounts
     );
 
-    // Event emitted when a token is added to the zeroApprovalTokens mapping
-    event ZeroApprovalTokenAdded(address token);
-
-    // Event emitted when a token is removed from the zeroApprovalTokens mapping
-    event ZeroApprovalTokenRemoved(address token);
-
-    // Event emitted when multiple tokens are added to the zeroApprovalTokens mapping
-    event ZeroApprovalTokensAdded(address[] tokens);
-
-    // Event emitted when multiple tokens are removed from the zeroApprovalTokens mapping
-    event ZeroApprovalTokensRemoved(address[] tokens);
-
-    /**
-     * @dev Mapping to store the tokens which use approval zero before actual approval.
-     */
-    mapping(address => bool) public zeroApprovalTokens;
-
     /**
      * @dev Initializes the contract with the swap target and USDT addresses.
      * @param _ensoSwapContract The address of the swap target contract.
-     * @param _zeroApprovalTokens The list of token address which need zero approval
      */
-    constructor(
-        address _ensoSwapContract,
-        address[] memory _zeroApprovalTokens
-    ) Ownable() {
+    constructor(address _ensoSwapContract) Ownable() {
         if (_ensoSwapContract == address(0)) revert InvalidENSOAddress();
         SWAP_TARGET = _ensoSwapContract;
         _this = address(this);
         _status = _NOT_ENTERED;
-        for (uint256 i = 0; i < _zeroApprovalTokens.length; i++) {
-            if (_zeroApprovalTokens[i] == address(0)) revert InvalidToken();
-            zeroApprovalTokens[_zeroApprovalTokens[i]] = true;
-            emit ZeroApprovalTokenAdded(_zeroApprovalTokens[i]);
-        }
     }
 
     /**
@@ -232,50 +206,6 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
         emit ERC20TransferredBatch(tokens, to, amounts);
     }
 
-    /*
-     * @dev Add a token to the zeroApprovalTokens mapping.
-     * @param token The address of the token to add.
-     */
-    function addZeroApprovalToken(address token) external onlyOwner {
-        _addZeroApprovalToken(token);
-        emit ZeroApprovalTokenAdded(token);
-    }
-
-    /**
-     * @dev Add multiple tokens to the zeroApprovalTokens mapping.
-     * @param tokens The addresses of the tokens to add.
-     */
-    function addZeroApprovalTokenBatch(
-        address[] memory tokens
-    ) external onlyOwner {
-        for (uint256 i = 0; i < tokens.length; i++) {
-            _addZeroApprovalToken(tokens[i]);
-        }
-        emit ZeroApprovalTokensAdded(tokens);
-    }
-
-    /**
-     * @dev Remove a token from the zeroApprovalTokens mapping.
-     * @param token The address of the token to remove.
-     */
-    function removeZeroApprovalToken(address token) external onlyOwner {
-        _removeZeroApprovalToken(token);
-        emit ZeroApprovalTokenRemoved(token);
-    }
-
-    /*
-     * @dev Remove multiple tokens from the zeroApprovalTokens mapping.
-     * @param tokens The addresses of the tokens to remove.
-     */
-    function removeZeroApprovalTokenBatch(
-        address[] memory tokens
-    ) external onlyOwner {
-        for (uint256 i = 0; i < tokens.length; i++) {
-            _removeZeroApprovalToken(tokens[i]);
-        }
-        emit ZeroApprovalTokensRemoved(tokens);
-    }
-
     /**
      * @dev Internal function to perform the swap from ETH to ERC20.
      * @param params SwapETHParams
@@ -355,8 +285,7 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
         }
 
         if (!isDelegate) {
-            if (zeroApprovalTokens[address(tokenIn)])
-                TransferHelper.safeApprove(address(tokenIn), aggregator, 0);
+            try tokenIn.approve(aggregator, 0) {} catch {}
             TransferHelper.safeApprove(address(tokenIn), aggregator, amountIn);
         }
 
@@ -434,24 +363,6 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
         if (tokenIn == tokenOut) revert TokenInAndTokenOutCannotBeSame();
         if (tokenIn == address(0) || tokenOut == address(0))
             revert InvalidToken();
-    }
-
-    /**
-     * @dev Adds a token to the zeroApprovalTokens mapping.
-     * @param token The address of the token to add.
-     */
-    function _addZeroApprovalToken(address token) internal {
-        if (token == address(0)) revert InvalidToken();
-        zeroApprovalTokens[token] = true;
-    }
-
-    /**
-     * @dev Removes a token from the zeroApprovalTokens mapping.
-     * @param token The address of the token to remove.
-     */
-    function _removeZeroApprovalToken(address token) internal {
-        if (token == address(0)) revert InvalidToken();
-        zeroApprovalTokens[token] = false;
     }
 
     /**
