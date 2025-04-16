@@ -1733,15 +1733,7 @@ describe("Coverage test", async () => {
 
         const MetaAggregatorTestSwapContract = await ethers.getContractFactory("MetaAggregatorSwapContract");
 
-        await expect(MetaAggregatorTestSwapContract.deploy(zeroAddress, [usdt.address])).to.be.reverted;
-
-    })
-    it("should revert when deploying swap contract with invalid usdt contract", async () => {
-        const { ensoAggregator, zeroAddress } = await loadFixture(setupTest);
-
-        const MetaAggregatorTestSwapContract = await ethers.getContractFactory("MetaAggregatorSwapContract");
-
-        await expect(MetaAggregatorTestSwapContract.deploy(ensoAggregator.address, [zeroAddress])).to.be.reverted;
+        await expect(MetaAggregatorTestSwapContract.deploy(zeroAddress)).to.be.reverted;
     })
 
     it("should revert when native token is swapped through swap erc20 delegate function", async () => {
@@ -2295,103 +2287,6 @@ describe("Coverage test", async () => {
 
         await expect(metaAggregatorTestSwapContract.connect(user).transferERC20Batch([token1.address, token2.address], [user.address, user.address], [token1Amount, token2Amount])).to.be.revertedWith("Ownable: caller is not the owner")
     })
-
-    it("should  be true when we check if usdt is zero approval token", async () => {
-        const { metaAggregatorTestSwapContract, usdt } = await loadFixture(setupTest);
-
-        const isZeroApprovalToken = await metaAggregatorTestSwapContract.zeroApprovalTokens(usdt.address)
-        expect(isZeroApprovalToken).to.be.equal(true)
-    })
-    it("should not be true when we check if token1 is zero approval token", async () => {
-        const { metaAggregatorTestSwapContract, token1 } = await loadFixture(setupTest);
-
-        const isZeroApprovalToken = await metaAggregatorTestSwapContract.zeroApprovalTokens(token1.address)
-        expect(isZeroApprovalToken).to.be.equal(false)
-    })
-    it("should set zero approval token when caller is owner", async () => {
-        const { metaAggregatorTestSwapContract, token1, deployer } = await loadFixture(setupTest);
-
-        const isZeroApprovalTokenBeforeSet = await metaAggregatorTestSwapContract.zeroApprovalTokens(token1.address)
-        expect(isZeroApprovalTokenBeforeSet).to.be.equal(false)
-
-        await metaAggregatorTestSwapContract.connect(deployer).addZeroApprovalToken(token1.address)
-
-        const isZeroApprovalTokenAfterSet = await metaAggregatorTestSwapContract.zeroApprovalTokens(token1.address)
-        expect(isZeroApprovalTokenAfterSet).to.be.equal(true)
-    })
-    it("should set batch zero approval token when caller is owner", async () => {
-        const { metaAggregatorTestSwapContract, token1, deployer,token2 } = await loadFixture(setupTest);
-
-        const isZeroApprovalToken1BeforeSet = await metaAggregatorTestSwapContract.zeroApprovalTokens(token1.address)
-        expect(isZeroApprovalToken1BeforeSet).to.be.equal(false)
-        const isZeroApprovalToken2BeforeSet = await metaAggregatorTestSwapContract.zeroApprovalTokens(token2.address)
-        expect(isZeroApprovalToken2BeforeSet).to.be.equal(false)
-
-        await metaAggregatorTestSwapContract.connect(deployer).addZeroApprovalTokenBatch([token1.address, token2.address])
-
-        const isZeroApprovalToken1AfterSet = await metaAggregatorTestSwapContract.zeroApprovalTokens(token1.address)
-        expect(isZeroApprovalToken1AfterSet).to.be.equal(true)
-        const isZeroApprovalToken2AfterSet = await metaAggregatorTestSwapContract.zeroApprovalTokens(token2.address)
-        expect(isZeroApprovalToken2AfterSet).to.be.equal(true)
-    })
-    it("should remove zero approval token when caller is owner", async () => {
-        const { metaAggregatorTestSwapContract, usdt, deployer } = await loadFixture(setupTest);
-
-        const isZeroApprovalToken = await metaAggregatorTestSwapContract.zeroApprovalTokens(usdt.address)
-        expect(isZeroApprovalToken).to.be.equal(true)
-
-        await metaAggregatorTestSwapContract.connect(deployer).removeZeroApprovalToken(usdt.address)
-
-        const isZeroApprovalTokenAfterRemove = await metaAggregatorTestSwapContract.zeroApprovalTokens(usdt.address)
-        expect(isZeroApprovalTokenAfterRemove).to.be.equal(false)
-    })
-    it("should batch remove zero approval token when caller is owner", async () => {
-        const { metaAggregatorTestSwapContract, usdt, deployer, usdc } = await loadFixture(setupTest);
-
-        const isZeroApprovalTokenUSDC = await metaAggregatorTestSwapContract.zeroApprovalTokens(usdc.address)
-        expect(isZeroApprovalTokenUSDC).to.be.equal(true)
-        const isZeroApprovalTokenUSDT = await metaAggregatorTestSwapContract.zeroApprovalTokens(usdt.address)
-        expect(isZeroApprovalTokenUSDT).to.be.equal(true)
-
-        await metaAggregatorTestSwapContract.connect(deployer).removeZeroApprovalTokenBatch([usdt.address, usdc.address])
-
-        const isZeroApprovalTokenUSDCAfterRemove = await metaAggregatorTestSwapContract.zeroApprovalTokens(usdc.address)
-        expect(isZeroApprovalTokenUSDCAfterRemove).to.be.equal(false)
-        const isZeroApprovalTokenUSDTAfterRemove = await metaAggregatorTestSwapContract.zeroApprovalTokens(usdt.address)
-        expect(isZeroApprovalTokenUSDTAfterRemove).to.be.equal(false)
-    })
-    it("should revert set zero approval token when caller is owner", async () => {
-        const { metaAggregatorTestSwapContract, token1, deployer, zeroAddress } = await loadFixture(setupTest);
-
-
-        await expect(metaAggregatorTestSwapContract.connect(deployer).addZeroApprovalToken(zeroAddress)).to.be.revertedWithCustomError(metaAggregatorTestSwapContract, "InvalidToken")
-    })
-    it("should revert batch remove zero approval token when caller is owner", async () => {
-        const { metaAggregatorTestSwapContract, usdt, user, usdc } = await loadFixture(setupTest);
-
-        await expect(metaAggregatorTestSwapContract.connect(user).addZeroApprovalTokenBatch([usdt.address, usdc.address])).to.be.revertedWith("Ownable: caller is not the owner")
-    })
-    it("should revert remove zero approval token when caller is owner", async () => {
-        const { metaAggregatorTestSwapContract, zeroAddress, deployer } = await loadFixture(setupTest);
-
-        await expect(metaAggregatorTestSwapContract.connect(deployer).removeZeroApprovalToken(zeroAddress)).to.be.revertedWithCustomError(metaAggregatorTestSwapContract, "InvalidToken")
-    })
-
-    it("should revert set batch zero approval token when caller is owner", async () => {
-        const { metaAggregatorTestSwapContract, token1, user,token2 } = await loadFixture(setupTest);
-
-        await expect(metaAggregatorTestSwapContract.connect(user).removeZeroApprovalTokenBatch([token1.address, token2.address])).to.be.revertedWith("Ownable: caller is not the owner")
-    })
-    it("should revert set zero approval token when caller is not owner", async () => {
-        const { metaAggregatorTestSwapContract, token1, user } = await loadFixture(setupTest);
-
-        await expect(metaAggregatorTestSwapContract.connect(user).addZeroApprovalToken(token1.address)).to.be.revertedWith("Ownable: caller is not the owner")
-    })
-    it("should revert remove zero approval token when caller is owner", async () => {
-        const { metaAggregatorTestSwapContract, usdt, user } = await loadFixture(setupTest);
-
-        await expect(metaAggregatorTestSwapContract.connect(user).removeZeroApprovalToken(usdt.address)).to.be.revertedWith("Ownable: caller is not the owner")
-    })
     it("Swap revert when the token in is zero address", async () => {
         const { token1, token2, aggregator, metaAggregatorTestManager, user, zeroAddress, metaAggregatorTestSwapContract } = await loadFixture(setupTest);
 
@@ -2441,7 +2336,7 @@ describe("Coverage test", async () => {
     })
 
     it("should batch transfer erc20 to receiver when caller is owner (manager)", async () => {
-        const { deployer, metaAggregatorTestManager, user, token1,token2 } = await loadFixture(setupTest);
+        const { deployer, metaAggregatorTestManager, user, token1, token2 } = await loadFixture(setupTest);
         const token1Amount = 100000000;
         const token2Amount = 100000000;
 
@@ -2462,7 +2357,7 @@ describe("Coverage test", async () => {
         const userBalanceToken2 = await token2.balanceOf(user.address)
         expect(userBalanceToken2).to.be.equal(token2Amount)
     })
-    
+
     it("should not transfer erc20 to receiver when caller is not owner (manager)", async () => {
         const { deployer, metaAggregatorTestManager, user, token1 } = await loadFixture(setupTest);
         const token1Amount = 100000000;
@@ -2475,7 +2370,7 @@ describe("Coverage test", async () => {
 
 
     it("should revert batch transfer erc20 to receiver when caller is owner (manager)", async () => {
-        const { metaAggregatorTestManager, user, token1,token2 } = await loadFixture(setupTest);
+        const { metaAggregatorTestManager, user, token1, token2 } = await loadFixture(setupTest);
         const token1Amount = 100000000;
         const token2Amount = 100000000;
 

@@ -11,13 +11,13 @@ export const setupTest = async () => {
     const token1 = await Token1.deploy("Token1", "T1");
     await token1.deployed();
 
-    const usdtToken = await ethers.getContractFactory("TESTERC20");
-    const usdt = await usdtToken.deploy("USDT","usdt");
+    const usdtToken = await ethers.getContractFactory("TESTZEROAPPROVALERC20");
+    const usdt = await usdtToken.deploy("USDT", "usdt");
     await usdt.deployed();
 
 
-    const usdcToken = await ethers.getContractFactory("TESTERC20");
-    const usdc = await usdcToken.deploy("USDC","usdc");
+    const usdcToken = await ethers.getContractFactory("TESTZEROAPPROVALERC20");
+    const usdc = await usdcToken.deploy("USDC", "usdc");
     await usdc.deployed();
 
 
@@ -43,7 +43,7 @@ export const setupTest = async () => {
 
     // Deploy MetaAggregatorTestSwapContract
     const MetaAggregatorTestSwapContract = await ethers.getContractFactory("MetaAggregatorSwapContract");
-    const metaAggregatorTestSwapContract = await MetaAggregatorTestSwapContract.deploy(ensoAggregator.address, [usdt.address, usdc.address]);
+    const metaAggregatorTestSwapContract = await MetaAggregatorTestSwapContract.deploy(ensoAggregator.address);
     await metaAggregatorTestSwapContract.deployed();
 
     // Deploy MetaAggregatorManager
