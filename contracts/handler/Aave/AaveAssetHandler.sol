@@ -1096,9 +1096,10 @@ contract AaveAssetHandler is IAssetHandler {
       // Pull the token from the vault
       transactions[count].to = executor;
       transactions[count].txData = abi.encodeWithSelector(
-        bytes4(keccak256("pullFromVault(address,uint256,address)")),
+        bytes4(keccak256("pullFromVault(address,uint256,uint256,address)")),
         lendingTokens[j], // The address of the lending token
         sellAmounts[j], // The amount to sell
+        0,
         flashData.solverHandler // The solver handler address
       );
       count++;
