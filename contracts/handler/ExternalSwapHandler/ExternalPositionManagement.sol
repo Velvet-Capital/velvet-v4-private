@@ -74,7 +74,7 @@ contract ExternalPositionManagement {
   function _transferMultipleTokensAndVerify(
     address[] memory _tokens,
     address _vault,
-    uint256 _buyTokenBalanceBefore,
+    uint256[] memory _buyTokenBalanceBefore,
     uint256[] memory _minAmountOut
   ) internal {
     uint256 tokensLength = _tokens.length;
@@ -82,7 +82,7 @@ contract ExternalPositionManagement {
       _transferTokensAndVerify(
         _tokens[i],
         _vault,
-        _buyTokenBalanceBefore,
+        _buyTokenBalanceBefore[i],
         _minAmountOut[i]
       );
     }

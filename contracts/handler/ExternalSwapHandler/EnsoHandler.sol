@@ -139,9 +139,13 @@ contract EnsoHandler is IIntentHandler, ExternalPositionManagement {
 
     for (uint256 i; i < tokensLength; i++) {
       //address token = tokensOut[i]; // Optimize gas by caching the token address.
-      uint256 buyBalanceBefore = IERC20Upgradeable(tokensOut[i][0]).balanceOf(
-        address(this)
-      );
+      uint256 tokensOutLength = tokensOut[i].length;
+      uint256[] memory buyBalanceBefore = new uint256[](tokensOutLength);
+      for (uint256 j; j < tokensOutLength; j++) {
+        buyBalanceBefore[j] = IERC20Upgradeable(tokensOut[i][j]).balanceOf(
+          address(this)
+        );
+      }
 
       // Handle wrapped positions for input tokens: Decreases liquidity from wrapped positions
       if (
