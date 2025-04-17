@@ -47,6 +47,7 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
   mapping(address => bool) public isSupportedFactory;
 
   event ProtocolPaused(bool indexed paused);
+  event EmergencyPauseSet(bool indexed state, bool indexed unpauseProtocol);
   event MinPortfolioTokenHoldingAmountUpdated(uint256 indexed newAmount);
   event CooldownPeriodUpdated(uint256 indexed newPeriod);
   event MinInitialPortfolioAmountUpdated(uint256 indexed newAmount);
@@ -132,6 +133,8 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
     if (!_state && _unpauseProtocol) {
       setProtocolPause(false);
     }
+
+    emit EmergencyPauseSet(_state, _unpauseProtocol);
   }
 
   /**
@@ -370,8 +373,10 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
    * @param _newBorrowTokenLimit The new maximum limit for simultaneous token borrowing (must not exceed 20)
    * @dev Reverts with ErrorLibrary.ExceedsBorrowLimit() if the new limit is greater than 20
    */
-  function updateMaxBorrowTokenLimit(uint256 _newBorrowTokenLimit) external onlyProtocolOwner {
-    if(_newBorrowTokenLimit > 20) revert ErrorLibrary.ExceedsBorrowLimit();
+  function updateMaxBorrowTokenLimit(
+    uint256 _newBorrowTokenLimit
+  ) external onlyProtocolOwner {
+    if (_newBorrowTokenLimit > 20) revert ErrorLibrary.ExceedsBorrowLimit();
     MAX_BORROW_TOKEN_LIMIT = _newBorrowTokenLimit;
   }
 }
