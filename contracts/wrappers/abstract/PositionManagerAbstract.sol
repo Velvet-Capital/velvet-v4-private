@@ -509,8 +509,8 @@ abstract contract PositionManagerAbstract is
           tokenId: _tokenId,
           amount0Desired: feeCollectedT0,
           amount1Desired: feeCollectedT1,
-          amount0Min: 1,
-          amount1Min: 1,
+          amount0Min: 0,
+          amount1Min: 0,
           deadline: block.timestamp
         })
       );
