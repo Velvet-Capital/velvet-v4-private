@@ -741,6 +741,7 @@ describe.only("Tests for Deposit", () => {
             _tokenIn: await positionWrapper.token0(),
             _tokenOut: await positionWrapper.token1(),
             _amountIn: 0,
+            _fee: 100,
           })
         ).to.be.revertedWithCustomError(positionManager, "ProtocolIsPaused");
 
@@ -758,7 +759,8 @@ describe.only("Tests for Deposit", () => {
             0,
             await positionWrapper.token0(),
             await positionWrapper.token1(),
-            0
+            0,
+            100
           )
         ).to.be.revertedWithCustomError(
           positionManager,
@@ -775,17 +777,18 @@ describe.only("Tests for Deposit", () => {
         const token1 = await positionWrapper.token1();
 
         await expect(
-          positionManager.updateRange(
-            position1,
-            token0,
-            token1,
-            zeroAddress,
-            1000,
-            0,
-            0,
-            MIN_TICK,
-            MAX_TICK
-          )
+          positionManager.updateRange({
+            _positionWrapper: position1,
+            _tokenIn: token0,
+            _tokenOut: token1,
+            _deployer: zeroAddress,
+            _amountIn: 1000,
+            _underlyingAmountOut0: 0,
+            _underlyingAmountOut1: 0,
+            _tickLower: MIN_TICK,
+            _tickUpper: MAX_TICK,
+            _fee: 100,
+          })
         ).to.be.revertedWithCustomError(positionManager, "ProtocolIsPaused");
 
         await protocolConfig.setProtocolPause(false);
@@ -1293,19 +1296,18 @@ describe.only("Tests for Deposit", () => {
         const token1 = await positionWrapper.token1();
 
         await expect(
-          positionManager
-            .connect(nonOwner)
-            .updateRange(
-              position1,
-              token0,
-              token1,
-              zeroAddress,
-              0,
-              0,
-              0,
-              MIN_TICK,
-              MAX_TICK
-            )
+          positionManager.connect(nonOwner).updateRange({
+            _positionWrapper: position1,
+            _tokenIn: token0,
+            _tokenOut: token1,
+            _deployer: zeroAddress,
+            _amountIn: 1000,
+            _underlyingAmountOut0: 0,
+            _underlyingAmountOut1: 0,
+            _tickLower: MIN_TICK,
+            _tickUpper: MAX_TICK,
+            _fee: 100,
+          })
         ).to.be.revertedWithCustomError(
           positionManager,
           "CallerNotAssetManager"
@@ -1322,17 +1324,18 @@ describe.only("Tests for Deposit", () => {
         const newTickUpper = 240;
 
         await expect(
-          positionManager.updateRange(
-            position1,
-            token0,
-            token1,
-            zeroAddress,
-            0,
-            0,
-            0,
-            newTickLower,
-            newTickUpper
-          )
+          positionManager.updateRange({
+            _positionWrapper: position1,
+            _tokenIn: token0,
+            _tokenOut: token1,
+            _deployer: zeroAddress,
+            _amountIn: 0,
+            _underlyingAmountOut0: 0,
+            _underlyingAmountOut1: 0,
+            _tickLower: newTickLower,
+            _tickUpper: newTickUpper,
+            _fee: 100,
+          })
         ).to.be.revertedWithCustomError(
           swapVerificationLibrary,
           "InvalidSwapAmount"
@@ -1352,21 +1355,19 @@ describe.only("Tests for Deposit", () => {
         const newTickUpper = 240;
 
         await expect(
-          positionManager.updateRange(
-            position1,
-            token0,
-            token1,
-            zeroAddress,
-            1000,
-            0,
-            0,
-            newTickLower,
-            newTickUpper
-          )
-        ).to.be.revertedWithCustomError(
-          swapVerificationLibrary,
-          "InvalidSwapAmount"
-        );
+          positionManager.updateRange({
+            _positionWrapper: position1,
+            _tokenIn: token0,
+            _tokenOut: token1,
+            _deployer: zeroAddress,
+            _amountIn: 1000,
+            _underlyingAmountOut0: 0,
+            _underlyingAmountOut1: 0,
+            _tickLower: newTickLower,
+            _tickUpper: newTickUpper,
+            _fee: 100,
+          })
+        ).to.be.revertedWithCustomError(swapVerificationLibrary, "InvalidSwap");
 
         let totalSupplyAfter = await positionWrapper.totalSupply();
         expect(totalSupplyAfter).to.be.equals(totalSupplyBefore);
@@ -1385,17 +1386,18 @@ describe.only("Tests for Deposit", () => {
           newTickUpper
         );
 
-        await positionManager.updateRange(
-          position1,
-          updateRangeData.tokenIn,
-          updateRangeData.tokenOut,
-          zeroAddress,
-          updateRangeData.swapAmount.toString(),
-          0,
-          0,
-          newTickLower,
-          newTickUpper
-        );
+        await positionManager.updateRange({
+          _positionWrapper: position1,
+          _tokenIn: updateRangeData.tokenIn,
+          _tokenOut: updateRangeData.tokenOut,
+          _deployer: zeroAddress,
+          _amountIn: updateRangeData.swapAmount.toString(),
+          _underlyingAmountOut0: 0,
+          _underlyingAmountOut1: 0,
+          _tickLower: newTickLower,
+          _tickUpper: newTickUpper,
+          _fee: 100,
+        });
 
         let totalSupplyAfter = await positionWrapper.totalSupply();
         expect(totalSupplyAfter).to.be.equals(totalSupplyBefore);

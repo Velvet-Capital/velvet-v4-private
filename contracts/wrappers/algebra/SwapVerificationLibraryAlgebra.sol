@@ -249,8 +249,8 @@ library SwapVerificationLibraryAlgebra {
       .allowedRatioDeviationBps();
     // Calculate the maximum allowed balance after swap based on the deviation
     // This ensures that most of the tokenIn has been sold, leaving only a small dust value
-    uint256 dustAllowance = (_balanceBeforeSwap *
-      (TOTAL_WEIGHT - allowedRatioDeviationBps)) / TOTAL_WEIGHT;
+    uint256 dustAllowance = (_balanceBeforeSwap * allowedRatioDeviationBps) /
+      TOTAL_WEIGHT;
 
     if (_balanceAfterSwap > dustAllowance) {
       revert ErrorLibrary.InvalidSwapAmount();

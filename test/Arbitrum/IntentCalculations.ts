@@ -248,6 +248,7 @@ export async function increaseLiquidity(
     _tokenIn: token0,
     _tokenOut: token1,
     _amountIn: 0,
+    _fee: 100,
   });
 }
 
@@ -298,7 +299,8 @@ export async function decreaseLiquidity(
       0,
       token0,
       token1,
-      0
+      0,
+      100
     );
 
   let balanceT0After = await ERC20Upgradeable.attach(token0).balanceOf(

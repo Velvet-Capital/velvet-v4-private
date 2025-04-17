@@ -147,7 +147,9 @@ describe.only("Tests for Portfolio Config", () => {
       const assetManagementConfig = await AssetManagementConfig.deploy();
       await assetManagementConfig.deployed();
 
-      const BorrowManager = await ethers.getContractFactory("BorrowManagerAave");
+      const BorrowManager = await ethers.getContractFactory(
+        "BorrowManagerAave"
+      );
       borrowManager = await BorrowManager.deploy();
       await borrowManager.deployed();
 
@@ -714,6 +716,15 @@ describe.only("Tests for Portfolio Config", () => {
         ).to.be.true;
       });
 
+      it("transferSuperAdminOwnership should revert if new and old admin are same", async () => {
+        await expect(
+          portfolioFactory.transferSuperAdminOwnership(
+            accessController0.address,
+            owner.address
+          )
+        ).to.be.revertedWithCustomError(portfolioFactory, "InvalidAddress");
+      });
+
       it("only Super admin can transfer roles", async () => {
         await expect(
           portfolioFactory
@@ -990,6 +1001,15 @@ describe.only("Tests for Portfolio Config", () => {
       it("claim removed tokens should fail if protocol is emergency paused", async () => {
         await expect(
           tokenExclusionManager.claimRemovedTokens(owner.address, 1, 2)
+        ).to.be.revertedWithCustomError(
+          tokenExclusionManager,
+          "ProtocolIsPaused"
+        );
+      });
+
+      it("claim removed tokens at id should fail if protocol is emergency paused", async () => {
+        await expect(
+          tokenExclusionManager.claimTokenAtId(owner.address, 2)
         ).to.be.revertedWithCustomError(
           tokenExclusionManager,
           "ProtocolIsPaused"

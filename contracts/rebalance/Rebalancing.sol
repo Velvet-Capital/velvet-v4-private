@@ -313,6 +313,26 @@ contract Rebalancing is
       assetHandler.approve(_repayAddress, 0)
     );
 
+    // Get the number of borrowed tokens after the repayment
+    address[] memory borrowedTokensAfter = assetHandler.getBorrowedTokens(
+      _vault,
+      protocolConfig.marketControllers(_repayAddress)
+    );
+
+    // Check if the token is still in the borrowed list
+    bool isTokenBorrowed = false;
+    for (uint i = 0; i < borrowedTokensAfter.length; i++) {
+      if (borrowedTokensAfter[i] == _debtToken) {
+        isTokenBorrowed = true;
+        break;
+      }
+    }
+
+    // If the token is not in the borrowed list, decrement the counter
+    if (!isTokenBorrowed) {
+      tokensBorrowed--;
+    }
+
     //Events
     emit DirectTokenRepayed(_debtToken, _repayAddress, _repayAmount);
   }

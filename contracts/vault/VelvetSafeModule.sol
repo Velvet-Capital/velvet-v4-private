@@ -10,8 +10,8 @@
  */
 pragma solidity 0.8.17;
 
-import {Module, Enum} from "@gnosis.pm/zodiac/contracts/core/Module.sol";
-import {ErrorLibrary} from "../library/ErrorLibrary.sol";
+import { Module, Enum } from "@gnosis.pm/zodiac/contracts/core/Module.sol";
+import { ErrorLibrary } from "../library/ErrorLibrary.sol";
 
 contract VelvetSafeModule is Module {
   address public multiSendLibrary;

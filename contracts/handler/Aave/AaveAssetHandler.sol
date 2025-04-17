@@ -5,7 +5,7 @@ import { IAssetHandler } from "../../core/interfaces/IAssetHandler.sol";
 import { Ownable } from "@openzeppelin/contracts-4.8.2/access/Ownable.sol";
 import { FunctionParameters } from "../../FunctionParameters.sol";
 import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable-4.9.6/interfaces/IERC20Upgradeable.sol";
-import { IAavePool, DataTypes } from "./IAavePool.sol";
+import {IAavePool, DataTypes, IPoolAddressesProvider} from "./IAavePool.sol";
 import { IPoolDataProvider } from "./IPoolDataProvider.sol";
 import { IAaveToken } from "./IAaveToken.sol";
 import { IAavePriceOracle } from "./IAavePriceOracle.sol";
@@ -15,11 +15,8 @@ import { ISwapRouter } from "./ISwapRouter.sol";
 import { ISwapHandler } from "../../core/interfaces/ISwapHandler.sol";
 
 contract AaveAssetHandler is IAssetHandler {
-  address immutable DATA_PROVIDER_ADDRESS =
-    0x7F23D86Ee20D869112572136221e173428DD740B;
-
-  address immutable PRICE_ORACLE_ADDRESS =
-    0xb56c2F0B653B2e0b10C9b928C8580Ac5Df02C7C7;
+  address immutable AAVE_ADDRESS_PROVIDER =
+    0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb;
 
   /// @dev Struct to hold context data for withdrawal transactions to avoid stack too deep errors
   /// @param user Address of the user whose assets are being withdrawn
@@ -269,7 +266,7 @@ contract AaveAssetHandler is IAssetHandler {
     for (uint i = 0; i < assetsCount; ) {
       address asset = assets[i];
       (, , uint currentVariableDebt, , , , , , ) = IPoolDataProvider(
-        DATA_PROVIDER_ADDRESS
+        IPoolAddressesProvider(AAVE_ADDRESS_PROVIDER).getPoolDataProvider()
       ).getUserReserveData(assets[i], account);
       DataTypes.ReserveDataLegacy memory data = IAavePool(comptroller)
         .getReserveData(asset);
@@ -329,9 +326,9 @@ contract AaveAssetHandler is IAssetHandler {
 
   function getBorrowedTokens(
     address account,
-    address comptroller
+    address poolAddress
   ) external view returns (address[] memory borrowedTokens) {
-    address[] memory assets = IAavePool(comptroller).getReservesList();
+    address[] memory assets = IAavePool(poolAddress).getReservesList();
     uint assetsCount = assets.length; // Get the number of assets
     borrowedTokens = new address[](assetsCount); // Initialize the borrow tokens array
     uint256 borrowCount; // Counter for borrowed assets
@@ -339,9 +336,9 @@ contract AaveAssetHandler is IAssetHandler {
     for (uint i = 0; i < assetsCount; ) {
       address asset = assets[i];
       (, , uint currentVariableDebt, , , , , , ) = IPoolDataProvider(
-        DATA_PROVIDER_ADDRESS
+        IPoolAddressesProvider(AAVE_ADDRESS_PROVIDER).getPoolDataProvider()
       ).getUserReserveData(assets[i], account);
-      DataTypes.ReserveDataLegacy memory data = IAavePool(comptroller)
+      DataTypes.ReserveDataLegacy memory data = IAavePool(poolAddress)
         .getReserveData(asset);
       if (currentVariableDebt > 0) {
         borrowedTokens[borrowCount++] = data.aTokenAddress; // Add the asset to the borrow tokens if there is a balance
@@ -859,11 +856,11 @@ contract AaveAssetHandler is IAssetHandler {
     uint256 tokenLength = flashData.debtToken.length; // Get the number of debt tokens
     transactions = new MultiTransaction[](tokenLength * 2); // Initialize the transactions array
     uint256 count;
-    uint256 amountToRepay = flashData.isMaxRepayment
-      ? type(uint256).max // If it's a max repayment, repay the max amount
-      : flashData.debtRepayAmount[0]; // Otherwise, repay the debt amount
     // Loop through the debt tokens to handle repayments
     for (uint i = 0; i < tokenLength; ) {
+      uint256 amountToRepay = flashData.isMaxRepayment
+      ? type(uint256).max // If it's a max repayment, repay the max amount
+      : flashData.debtRepayAmount[i]; // Otherwise, repay the debt amount
       // Approve the debt token for the protocol
       transactions[count].to = executor;
       transactions[count].txData = abi.encodeWithSelector(
@@ -1145,7 +1142,7 @@ contract AaveAssetHandler is IAssetHandler {
       address _underlyingToken = IAaveToken(_protocolToken[i])
         .UNDERLYING_ASSET_ADDRESS();
       (, , uint currentVariableDebt, , , , , , ) = IPoolDataProvider(
-        DATA_PROVIDER_ADDRESS
+        IPoolAddressesProvider(AAVE_ADDRESS_PROVIDER).getPoolDataProvider()
       ).getUserReserveData(_underlyingToken, _user);
 
       //Convert underlyingToken to 18 decimal
@@ -1153,7 +1150,7 @@ contract AaveAssetHandler is IAssetHandler {
         10 ** (18 - IERC20MetadataUpgradeable(_underlyingToken).decimals());
 
       //Get price for _protocolToken token and convert to 18 decimal
-      uint _oraclePrice = IAavePriceOracle(PRICE_ORACLE_ADDRESS).getAssetPrice(
+      uint _oraclePrice = IAavePriceOracle(IPoolAddressesProvider(AAVE_ADDRESS_PROVIDER).getPriceOracle()).getAssetPrice(
         _underlyingToken
       ) * 10 ** 10;
 
@@ -1255,7 +1252,7 @@ contract AaveAssetHandler is IAssetHandler {
       address _underlyingToken = IAaveToken(borrowedTokens[i])
         .UNDERLYING_ASSET_ADDRESS();
       (, , uint currentVariableDebt, , , , , , ) = IPoolDataProvider(
-        DATA_PROVIDER_ADDRESS
+        IPoolAddressesProvider(AAVE_ADDRESS_PROVIDER).getPoolDataProvider()
       ).getUserReserveData(_underlyingToken, _vault);
       underlying[i] = _underlyingToken; // Get the underlying asset for the borrowed token
       tokenBalance[i] =
@@ -1290,7 +1287,7 @@ contract AaveAssetHandler is IAssetHandler {
     address[] memory assets = new address[](1);
     assets[0] = repayData._flashLoanToken;
     uint256[] memory amounts = new uint256[](1);
-    amounts[0] = repayData._flashLoanAmount[0];
+    amounts[0] = totalFlashAmount;
     uint256[] memory interestRateModes = new uint256[](1);
     interestRateModes[0] = 0;
 
@@ -1346,5 +1343,34 @@ contract AaveAssetHandler is IAssetHandler {
       abi.encode(flashData),
       0
     );
+  }
+
+  function isCollateralEnabled(
+    address token,
+    address vault,
+    address controller
+  ) external view returns (bool) {
+    try
+      IPoolDataProvider(
+        IPoolAddressesProvider(AAVE_ADDRESS_PROVIDER).getPoolDataProvider()
+      ).getUserReserveData(
+          IAaveToken(token).UNDERLYING_ASSET_ADDRESS(),
+          vault
+      )
+    returns (
+      uint256 /* aTokenBalance */,
+      uint256 /* stableDebt */,
+      uint256 /* variableDebt */,
+      uint256 /* principalStableDebt */,
+      uint256 /* scaledVariableDebt */,
+      uint256 /* stableBorrowRate */,
+      uint256 /* liquidityRate */,
+      uint40 /* stableRateLastUpdated */,
+      bool usageAsCollateralEnabled
+    ) {
+      return usageAsCollateralEnabled;
+    } catch {
+      return false;
+    }
   }
 }
