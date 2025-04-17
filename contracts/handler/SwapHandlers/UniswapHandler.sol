@@ -3,6 +3,7 @@ pragma solidity 0.8.17;
 
 import { ISwapHandler } from "../../core/interfaces/ISwapHandler.sol";
 import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 contract UniswapHandler is ISwapHandler {
   address public immutable ROUTER_ADDRESS;
@@ -21,7 +22,7 @@ contract UniswapHandler is ISwapHandler {
   ) public view returns (bytes memory data) {
     bytes memory path = abi.encodePacked(
       tokenIn, // Address of the input token
-      uint24(fee), // Pool fee (0.3%)
+      SafeCast.toUint24(fee), // Pool fee (0.3%)
       tokenOut // Address of the output token
     );
 
@@ -46,7 +47,7 @@ contract UniswapHandler is ISwapHandler {
   ) public view returns (bytes memory data) {
     bytes memory path = abi.encodePacked(
       tokenIn, // Address of the input token
-      uint24(fee), // Pool fee (0.3%)
+      SafeCast.toUint24(fee), // Pool fee (0.3%)
       tokenOut // Address of the output token
     );
 
