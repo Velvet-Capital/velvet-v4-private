@@ -123,9 +123,18 @@ contract PositionWrapper is
    * @param _tokenId New token ID to be set.
    * @dev Prevents setting the same token ID as currently set to avoid redundant operations.
    */
-  function updateTokenId(uint256 _tokenId) external onlyOwner {
+  function updateTokenId(
+    uint256 _tokenId,
+    uint24 _newFee,
+    int24 _newTickLower,
+    int24 _newTickUpper
+  ) external onlyOwner {
     if (tokenId == _tokenId) revert PositionWrapperTokenIdIsTheSame();
     tokenId = _tokenId;
+
+    initialFee = _newFee;
+    initialTickLower = _newTickLower;
+    initialTickUpper = _newTickUpper;
   }
 
   /**

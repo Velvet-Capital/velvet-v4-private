@@ -251,7 +251,9 @@ describe.only("Tests for Deposit", () => {
       const tokenExclusionManagerDefault = await TokenExclusionManager.deploy();
       await tokenExclusionManagerDefault.deployed();
 
-      const BorrowManager = await ethers.getContractFactory("BorrowManagerVenus");
+      const BorrowManager = await ethers.getContractFactory(
+        "BorrowManagerVenus"
+      );
       borrowManager = await BorrowManager.deploy();
       await borrowManager.deployed();
 
@@ -1069,17 +1071,18 @@ describe.only("Tests for Deposit", () => {
           newTickUpper
         );
 
-        await positionManager.updateRange(
-          position1,
-          updateRangeData.tokenIn,
-          updateRangeData.tokenOut,
-          zeroAddress,
-          updateRangeData.swapAmount.toString(),
-          0,
-          0,
-          newTickLower,
-          newTickUpper
-        );
+        await positionManager.updateRange({
+          _positionWrapper: position1,
+          _tokenIn: updateRangeData.tokenIn,
+          _tokenOut: updateRangeData.tokenOut,
+          _deployer: zeroAddress,
+          _amountIn: updateRangeData.swapAmount.toString(),
+          _underlyingAmountOut0: 0,
+          _underlyingAmountOut1: 0,
+          _tickLower: newTickLower,
+          _tickUpper: newTickUpper,
+          _fee: 100,
+        });
 
         let totalSupplyAfter = await positionWrapper.totalSupply();
         expect(totalSupplyAfter).to.be.equals(totalSupplyBefore);
@@ -1098,17 +1101,18 @@ describe.only("Tests for Deposit", () => {
           newTickUpper
         );
 
-        await positionManager.updateRange(
-          position1,
-          updateRangeData.tokenIn,
-          updateRangeData.tokenOut,
-          zeroAddress,
-          updateRangeData.swapAmount.toString(),
-          0,
-          0,
-          newTickLower,
-          newTickUpper
-        );
+        await positionManager.updateRange({
+          _positionWrapper: position1,
+          _tokenIn: updateRangeData.tokenIn,
+          _tokenOut: updateRangeData.tokenOut,
+          _deployer: zeroAddress,
+          _amountIn: updateRangeData.swapAmount.toString(),
+          _underlyingAmountOut0: 0,
+          _underlyingAmountOut1: 0,
+          _tickLower: newTickLower,
+          _tickUpper: newTickUpper,
+          _fee: 100,
+        });
 
         let totalSupplyAfter = await positionWrapper.totalSupply();
         expect(totalSupplyAfter).to.be.equals(totalSupplyBefore);
@@ -1127,17 +1131,18 @@ describe.only("Tests for Deposit", () => {
           newTickUpper
         );
 
-        await positionManager.updateRange(
-          position1,
-          updateRangeData.tokenIn,
-          updateRangeData.tokenOut,
-          zeroAddress,
-          updateRangeData.swapAmount.toString(),
-          0,
-          0,
-          newTickLower,
-          newTickUpper
-        );
+        await positionManager.updateRange({
+          _positionWrapper: position1,
+          _tokenIn: updateRangeData.tokenIn,
+          _tokenOut: updateRangeData.tokenOut,
+          _deployer: zeroAddress,
+          _amountIn: updateRangeData.swapAmount.toString(),
+          _underlyingAmountOut0: 0,
+          _underlyingAmountOut1: 0,
+          _tickLower: newTickLower,
+          _tickUpper: newTickUpper,
+          _fee: 100,
+        });
 
         let totalSupplyAfter = await positionWrapper.totalSupply();
         expect(totalSupplyAfter).to.be.equals(totalSupplyBefore);

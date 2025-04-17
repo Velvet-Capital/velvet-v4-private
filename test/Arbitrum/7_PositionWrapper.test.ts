@@ -171,7 +171,9 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       const positionManagerBaseAddress = await PositionManager.deploy();
       await positionManagerBaseAddress.deployed();
 
-      const BorrowManager = await ethers.getContractFactory("BorrowManagerAave");
+      const BorrowManager = await ethers.getContractFactory(
+        "BorrowManagerAave"
+      );
       borrowManager = await BorrowManager.deploy();
       await borrowManager.deployed();
 
@@ -954,18 +956,19 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         const token1 = await positionWrapper.token1();
 
         await expect(
-          positionManager.connect(nonOwner).updateRange(
-            position1,
-
-            token0,
-            token1,
-            0,
-            0,
-            0,
-            "100",
-            MIN_TICK,
-            MAX_TICK
-          )
+          positionManager.connect(nonOwner).updateRange({
+            _positionWrapper: position1,
+            _tokenIn: token0,
+            _tokenOut: token1,
+            _deployer: zeroAddress,
+            _amountIn: 0,
+            _underlyingAmountOut0: 0,
+            _underlyingAmountOut1: 0,
+            _tickLower: MIN_TICK,
+            _tickUpper: MAX_TICK,
+            _fee: 100,
+            _swapFee: 100,
+          })
         ).to.be.revertedWithCustomError(
           positionManager,
           "CallerNotAssetManager"
@@ -981,17 +984,19 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         const newTickLower = -180;
         const newTickUpper = 240;
 
-        positionManager.updateRange(
-          position1,
-          token0,
-          token1,
-          0,
-          0,
-          0,
-          "100",
-          newTickLower,
-          newTickUpper
-        );
+        positionManager.updateRange({
+          _positionWrapper: position1,
+          _tokenIn: token0,
+          _tokenOut: token1,
+          _deployer: zeroAddress,
+          _amountIn: 0,
+          _underlyingAmountOut0: 0,
+          _underlyingAmountOut1: 0,
+          _tickLower: newTickLower,
+          _tickUpper: newTickUpper,
+          _fee: 100,
+          _swapFee: 100,
+        });
 
         let totalSupplyAfter = await positionWrapper.totalSupply();
         expect(totalSupplyAfter).to.be.equals(totalSupplyBefore);
@@ -1010,17 +1015,19 @@ describe.only("Tests for Deposit + Withdrawal", () => {
           newTickUpper
         );
 
-        await positionManager.updateRange(
-          position1,
-          updateRangeData.tokenIn,
-          updateRangeData.tokenOut,
-          updateRangeData.swapAmount.toString(),
-          0,
-          0,
-          100,
-          newTickLower,
-          newTickUpper
-        );
+        await positionManager.updateRange({
+          _positionWrapper: position1,
+          _tokenIn: updateRangeData.tokenIn,
+          _tokenOut: updateRangeData.tokenOut,
+          _deployer: zeroAddress,
+          _amountIn: updateRangeData.swapAmount.toString(),
+          _underlyingAmountOut0: 0,
+          _underlyingAmountOut1: 0,
+          _tickLower: newTickLower,
+          _tickUpper: newTickUpper,
+          _fee: 100,
+          _swapFee: 100,
+        });
 
         let totalSupplyAfter = await positionWrapper.totalSupply();
         expect(totalSupplyAfter).to.be.equals(totalSupplyBefore);
@@ -1060,7 +1067,6 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             _poolFees: [0, 0, 0],
             _swapHandler: swapHandler.address,
           });
-
 
         const supplyAfter = await portfolio.totalSupply();
 

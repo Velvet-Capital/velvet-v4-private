@@ -236,7 +236,9 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       const assetManagementConfigBase = await AssetManagementConfig.deploy();
       await assetManagementConfigBase.deployed();
 
-      const BorrowManager = await ethers.getContractFactory("BorrowManagerAave");
+      const BorrowManager = await ethers.getContractFactory(
+        "BorrowManagerAave"
+      );
       borrowManager = await BorrowManager.deploy();
       await borrowManager.deployed();
 
@@ -555,6 +557,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
             _deployer: ZERO_ADDRESS,
+            _fee: [100, 100],
           },
           {
             value: "1000000000000000000",
@@ -630,6 +633,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
             _deployer: ZERO_ADDRESS,
+            _fee: [100, 100],
           }
         );
 
@@ -707,6 +711,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
             _deployer: ZERO_ADDRESS,
+            _fee: [100, 100],
           }
         );
 

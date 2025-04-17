@@ -216,7 +216,9 @@ describe.only("Tests for Deposit", () => {
       const positionWrapperBaseAddress = await PositionWrapper.deploy();
       await positionWrapperBaseAddress.deployed();
 
-      const BorrowManager = await ethers.getContractFactory("BorrowManagerVenus");
+      const BorrowManager = await ethers.getContractFactory(
+        "BorrowManagerVenus"
+      );
       borrowManager = await BorrowManager.deploy();
       await borrowManager.deployed();
 
@@ -276,7 +278,6 @@ describe.only("Tests for Deposit", () => {
 
       swapHandler.init(addresses.PancakeSwapRouterAddress);
       await protocolConfig.enableSwapHandler(swapHandler.address);
-
 
       await protocolConfig.setSupportedFactory(addresses.thena_factory);
 
@@ -599,6 +600,7 @@ describe.only("Tests for Deposit", () => {
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
             _deployer: ZERO_ADDRESS,
+            _fee: [100, 100],
           },
           {
             value: "1000000000000000000",
@@ -683,6 +685,7 @@ describe.only("Tests for Deposit", () => {
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
             _deployer: ZERO_ADDRESS,
+            _fee: [100, 100],
           }
         );
 
@@ -765,6 +768,7 @@ describe.only("Tests for Deposit", () => {
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
             _deployer: ZERO_ADDRESS,
+            _fee: [100, 100],
           }
         );
 
@@ -866,12 +870,12 @@ describe.only("Tests for Deposit", () => {
         const callDataDecreaseLiquidity: any = [];
         // Encode the function call
         let ABI = [
-          "function decreaseLiquidity(address _positionWrapper, uint256 _withdrawalAmount, uint256 _amount0Min, uint256 _amount1Min, address tokenIn, address tokenOut, uint256 amountIn)",
+          "function decreaseLiquidity(address _positionWrapper, uint256 _withdrawalAmount, uint256 _amount0Min, uint256 _amount1Min, address tokenIn, address tokenOut, uint256 amountIn, uint24 _fee)",
         ];
         let abiEncode = new ethers.utils.Interface(ABI);
         callDataDecreaseLiquidity[0] = abiEncode.encodeFunctionData(
           "decreaseLiquidity",
-          [sellToken, sellTokenBalance, 0, 0, token0, token1, 0]
+          [sellToken, sellTokenBalance, 0, 0, token0, token1, 0, 100]
         );
 
         const encodedParameters = ethers.utils.defaultAbiCoder.encode(
@@ -1187,6 +1191,7 @@ describe.only("Tests for Deposit", () => {
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
+            _fee: [100, 100],
           }
         );
 
@@ -1309,6 +1314,7 @@ describe.only("Tests for Deposit", () => {
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
+            _fee: [100, 100],
           }
         );
 
@@ -1397,6 +1403,7 @@ describe.only("Tests for Deposit", () => {
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
             _deployer: ZERO_ADDRESS,
+            _fee: [100, 100],
           }
         );
 
@@ -1492,6 +1499,7 @@ describe.only("Tests for Deposit", () => {
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
             _deployer: ZERO_ADDRESS,
+            _fee: [100, 100],
           }
         );
 
@@ -1621,6 +1629,7 @@ describe.only("Tests for Deposit", () => {
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
+            _fee: [100, 100],
           }
         );
 

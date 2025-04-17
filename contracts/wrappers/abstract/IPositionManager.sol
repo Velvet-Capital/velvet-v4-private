@@ -72,7 +72,8 @@ interface IPositionManager {
     uint256 _amount1Min,
     address tokenIn,
     address tokenOut,
-    uint256 amountIn
+    uint256 amountIn,
+    uint24 _fee
   ) external;
 
   /**

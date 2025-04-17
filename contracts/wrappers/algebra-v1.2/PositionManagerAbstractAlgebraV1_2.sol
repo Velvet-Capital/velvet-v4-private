@@ -6,6 +6,7 @@ import { PositionManagerAlgebraBase, IProtocolConfig, IPriceOracle } from "../al
 import { INonfungiblePositionManager } from "./INonfungiblePositionManager.sol";
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import { SwapVerificationLibraryAlgebraV2 } from "./SwapVerificationLibraryAlgebraV2.sol";
+import { FunctionParameters } from "../../FunctionParameters.sol";
 
 /**
  * @title PositionManagerAbstractAlgebra
@@ -83,24 +84,14 @@ abstract contract PositionManagerAbstractAlgebraV1_2 is
    * @dev This function removes all liquidity from an existing position, then re-establishes the position
    *      with new range and fee parameters. It is intended to adjust positions to more efficient or desirable
    *      price ranges based on market conditions or strategy changes.
-   * @param _positionWrapper The wrapper contract that encapsulates the Uniswap V3 position.
-   * @param _tickLower The new lower bound of the price range for the position.
-   * @param _tickUpper The new upper bound of the price range for the position.
+   * @param params The parameters for the update range operation.
    */
   function updateRange(
-    IPositionWrapper _positionWrapper,
-    address tokenIn,
-    address tokenOut,
-    address deployer,
-    uint256 amountIn,
-    uint256 _underlyingAmountOut0,
-    uint256 _underlyingAmountOut1,
-    int24 _tickLower,
-    int24 _tickUpper
+    FunctionParameters.ExternalPositionUpdateRangeParamsAlgebra memory params
   ) external notPaused onlyAssetManager {
-    uint256 tokenId = _positionWrapper.tokenId();
-    address token0 = _positionWrapper.token0();
-    address token1 = _positionWrapper.token1();
+    uint256 tokenId = params._positionWrapper.tokenId();
+    address token0 = params._positionWrapper.token0();
+    address token1 = params._positionWrapper.token1();
 
     // Retrieve existing liquidity to be removed.
     uint128 existingLiquidity = _getExistingLiquidity(tokenId);
@@ -109,43 +100,53 @@ abstract contract PositionManagerAbstractAlgebraV1_2 is
     _decreaseLiquidityAndCollect(
       existingLiquidity,
       tokenId,
-      _underlyingAmountOut0, // Minimal acceptable token amounts set to 1 as a formality; all liquidity is being removed.
-      _underlyingAmountOut1,
+      params._underlyingAmountOut0, // Minimal acceptable token amounts set to 1 as a formality; all liquidity is being removed.
+      params._underlyingAmountOut1,
       address(this)
     );
 
     _swapTokensForAmountUpdateRange(
       WrapperFunctionParameters.SwapParams({
-        _positionWrapper: _positionWrapper,
+        _positionWrapper: params._positionWrapper,
         _tokenId: tokenId,
-        _amountIn: amountIn,
+        _amountIn: params._amountIn,
         _token0: token0,
         _token1: token1,
-        _tokenIn: tokenIn,
-        _tokenOut: tokenOut,
-        _tickLower: _tickLower,
-        _tickUpper: _tickUpper
+        _tokenIn: params._tokenIn,
+        _tokenOut: params._tokenOut,
+        _tickLower: params._tickLower,
+        _tickUpper: params._tickUpper,
+        _fee: params._fee
       })
     );
 
     // Mint a new position with the adjusted range and fee, using the tokens just collected.
     (uint256 newTokenId, ) = _mintNewUniswapPosition(
-      _positionWrapper,
+      params._positionWrapper,
       WrapperFunctionParameters.PositionMintParamsAlgebra({
         _amount0Desired: IERC20Upgradeable(token0).balanceOf(address(this)),
         _amount1Desired: IERC20Upgradeable(token1).balanceOf(address(this)),
         _amount0Min: 0,
         _amount1Min: 0,
-        _tickLower: _tickLower,
-        _tickUpper: _tickUpper,
-        _deployer: deployer
+        _tickLower: params._tickLower,
+        _tickUpper: params._tickUpper,
+        _deployer: params._deployer
       })
     );
 
     // Update the wrapper with the new token ID to reflect the repositioned state.
-    _positionWrapper.updateTokenId(newTokenId);
+    params._positionWrapper.updateTokenId(
+      newTokenId,
+      0,
+      params._tickLower,
+      params._tickUpper
+    );
 
-    emit PriceRangeUpdated(address(_positionWrapper), _tickLower, _tickUpper);
+    emit PriceRangeUpdated(
+      address(params._positionWrapper),
+      params._tickLower,
+      params._tickUpper
+    );
   }
 
   /**
@@ -263,7 +264,13 @@ abstract contract PositionManagerAbstractAlgebraV1_2 is
     balance1After = IERC20Upgradeable(token1).balanceOf(address(this));
 
     // Return any excess tokens (dust) that weren't used in liquidity addition back to the sender.
-    _returnDust(_dustReceiver, token0, token1, balance0After, balance1After);
+    _returnDust(
+      _dustReceiver,
+      token0,
+      token1,
+      balance0After - balance0Before,
+      balance1After - balance1Before
+    );
 
     emit PositionInitializedAndDeposited(address(_positionWrapper));
   }

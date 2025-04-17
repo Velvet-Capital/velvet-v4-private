@@ -151,7 +151,8 @@ abstract contract PositionManagerAbstract is
       token1,
       _params._tokenIn,
       _params._tokenOut,
-      _params._amountIn
+      _params._amountIn,
+      _params._fee
     );
 
     // Track token balances before the operation to calculate dust later.
@@ -204,8 +205,8 @@ abstract contract PositionManagerAbstract is
       _params._dustReceiver,
       token0,
       token1,
-      balance0After,
-      balance1After
+      balance0After - balance0Before,
+      balance1After - balance1Before
     );
 
     emit LiquidityIncreased(msg.sender, liquidity);
@@ -229,8 +230,13 @@ abstract contract PositionManagerAbstract is
     uint256 _amount1Min,
     address tokenIn,
     address tokenOut,
-    uint256 amountIn
+    uint256 amountIn,
+    uint24 _fee
   ) external notEmergencyPaused nonReentrant {
+    // @todo here
+    if (!externalPositionStorage.isWrappedPosition(address(_positionWrapper)))
+      revert ErrorLibrary.InvalidPositionWrapper();
+
     uint256 tokenId = _positionWrapper.tokenId();
 
     if (_positionWrapper == IPositionWrapper(address(0)))
@@ -257,7 +263,8 @@ abstract contract PositionManagerAbstract is
         _positionWrapper.token1(),
         tokenIn,
         tokenOut,
-        amountIn
+        amountIn,
+        _fee
       );
 
     // Calculate the proportionate amount of liquidity to decrease based on the total supply and withdrawal amount.
@@ -454,7 +461,8 @@ abstract contract PositionManagerAbstract is
     address _token1,
     address tokenIn,
     address tokenOut,
-    uint256 amountIn
+    uint256 amountIn,
+    uint24 _fee
   ) internal {
     // Collect all available fees for the position to this contract
     uniswapV3PositionManager.collect(
@@ -478,7 +486,8 @@ abstract contract PositionManagerAbstract is
         _tokenIn: tokenIn,
         _tokenOut: tokenOut,
         _tickLower: tickLower,
-        _tickUpper: tickUpper
+        _tickUpper: tickUpper,
+        _fee: _fee
       })
     );
 
