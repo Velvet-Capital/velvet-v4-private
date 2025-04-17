@@ -233,7 +233,6 @@ abstract contract PositionManagerAbstract is
     uint256 amountIn,
     uint24 _fee
   ) external notEmergencyPaused nonReentrant {
-    // @todo here
     if (!externalPositionStorage.isWrappedPosition(address(_positionWrapper)))
       revert ErrorLibrary.InvalidPositionWrapper();
 
