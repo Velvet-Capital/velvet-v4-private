@@ -496,6 +496,7 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
       // Handle asset snapshot and update vars
       bool shouldContinue = updateVarsWithSnapshot(asset, account, vars);
       if (shouldContinue) {
+        unchecked { ++i; }
         continue; // Skip processing if there was an error
       }
 
@@ -1243,11 +1244,11 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
     uint256 tokenLength = flashData.debtToken.length; // Get the number of debt tokens
     transactions = new MultiTransaction[](tokenLength * 2); // Initialize the transactions array
     uint256 count;
-    uint256 amountToRepay = flashData.isMaxRepayment
-      ? type(uint256).max // If it's a max repayment, repay the max amount
-      : flashData.debtRepayAmount[0]; // Otherwise, repay the debt amount
     // Loop through the debt tokens to handle repayments
     for (uint i = 0; i < tokenLength; ) {
+      uint256 amountToRepay = flashData.isMaxRepayment
+      ? type(uint256).max // If it's a max repayment, repay the max amount
+      : flashData.debtRepayAmount[i]; // Otherwise, repay the debt amount
       // Approve the debt token for the protocol
       transactions[count].to = executor;
       transactions[count].txData = abi.encodeWithSelector(
@@ -1703,5 +1704,14 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
         ++i;
       }
     }
+  }
+
+  function isCollateralEnabled(
+    address vToken,
+    address vault,
+    address controller
+  ) external view returns (bool) {
+    // Directly use checkMembership if available.
+    return IVenusComptroller(controller).checkMembership(vault, vToken);
   }
 }
