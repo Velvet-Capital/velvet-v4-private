@@ -258,10 +258,12 @@ contract AaveAssetHandler is IAssetHandler {
 
     uint256 portfolioTokensLength = portfolioTokens.length;
     for (uint i = 0; i < portfolioTokensLength; i++) {
-      try IAaveToken(portfolioTokens[i]).UNDERLYING_ASSET_ADDRESS() {
-        lendTokens[lendCount++] = portfolioTokens[i];
-      } catch {}
+      address token = portfolioTokens[i];
+      if (isValidAaveToken(token)) {
+        lendTokens[lendCount++] = token;
+      }
     }
+    
 
     for (uint i = 0; i < assetsCount; ) {
       address asset = assets[i];
@@ -385,6 +387,22 @@ contract AaveAssetHandler is IAssetHandler {
 
     return (tokenBalance * unusedCollateralPercentage) / 10 ** 18; // Calculate and return the investible balance
   }
+
+  /**
+   * @notice Checks if a token is a valid Aave token by verifying if it has an underlying asset address.
+   * @param token The address of the token to check.
+   * @return isValid True if the token is a valid Aave token, false otherwise.
+   */
+  function isValidAaveToken(address token) internal view returns (bool) {
+    (bool success, bytes memory data) = token.staticcall(
+        abi.encodeWithSelector(IAaveToken.UNDERLYING_ASSET_ADDRESS.selector)
+    );
+    if (success && data.length == 32) {
+        address underlying = address(uint160(uint256(bytes32(data))));
+        return underlying != address(0);
+    }
+    return false;
+}
 
   /// @notice Processes a loan using DEX for swaps and transfers
   /// @param vault Address of the vault holding the assets

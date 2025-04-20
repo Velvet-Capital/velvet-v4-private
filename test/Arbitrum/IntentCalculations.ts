@@ -49,7 +49,7 @@ export async function createEnsoCallDataRoute(
     slippage: 700,
     tokenIn: _tokenIn,
     tokenOut: _tokenOut,
-    routingStrategy: "delegate",
+    routingStrategy: "delegate-legacy",
   };
 
   const postUrl = "https://api.enso.finance/api/v1/shortcuts/route?";
