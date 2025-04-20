@@ -358,37 +358,6 @@ contract AaveAssetHandler is IAssetHandler {
   }
 
   /**
-   * @notice Returns the investible balance of a token for a specific vault.
-   * @param _token The address of the token.
-   * @param _vault The address of the vault.
-   * @param _controller The address of the aave pool logic address.
-   * @return The investible balance of the token.
-   */
-  function getInvestibleBalance(
-    address _token,
-    address _vault,
-    address _controller,
-    address[] memory portfolioTokens
-  ) external view returns (uint256) {
-    // Get the account data for the vault
-    (FunctionParameters.AccountData memory accountData, ) = getUserAccountData(
-      _vault,
-      _controller,
-      portfolioTokens
-    );
-
-    // Calculate the unused collateral percentage
-    uint256 unusedCollateralPercentage = accountData.totalCollateral == 0
-      ? 10 ** 18
-      : ((accountData.totalCollateral - accountData.totalDebt) * 10 ** 18) /
-        accountData.totalCollateral;
-
-    uint256 tokenBalance = IERC20Upgradeable(_token).balanceOf(_vault); // Get the balance of the token in the vault
-
-    return (tokenBalance * unusedCollateralPercentage) / 10 ** 18; // Calculate and return the investible balance
-  }
-
-  /**
    * @notice Checks if a token is a valid Aave token by verifying if it has an underlying asset address.
    * @param token The address of the token to check.
    * @return isValid True if the token is a valid Aave token, false otherwise.

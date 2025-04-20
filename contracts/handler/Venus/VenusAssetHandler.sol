@@ -695,37 +695,6 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
   }
 
   /**
-   * @notice Returns the investible balance of a token for a specific vault.
-   * @param _token The address of the token.
-   * @param _vault The address of the vault.
-   * @param _controller The address of the Venus Comptroller.
-   * @return The investible balance of the token.
-   */
-  function getInvestibleBalance(
-    address _token,
-    address _vault,
-    address _controller,
-    address[] memory portfolioTokens
-  ) external view returns (uint256) {
-    // Get the account data for the vault
-    (FunctionParameters.AccountData memory accountData, ) = getUserAccountData(
-      _vault,
-      _controller,
-      portfolioTokens
-    );
-
-    // Calculate the unused collateral percentage
-    uint256 unusedCollateralPercentage = accountData.totalCollateral == 0
-      ? 10 ** 18
-      : ((accountData.totalCollateral - accountData.totalDebt) * 10 ** 18) /
-        accountData.totalCollateral;
-
-    uint256 tokenBalance = IERC20Upgradeable(_token).balanceOf(_vault); // Get the balance of the token in the vault
-
-    return (tokenBalance * unusedCollateralPercentage) / 10 ** 18; // Calculate and return the investible balance
-  }
-
-  /**
    * @notice Calculates the debt value and the percentage to remove based on the debt repayment amount.
    * @param _debtRepayAmount The amount of debt to repay.
    * @param feeUnit The fee unit used for calculations.
