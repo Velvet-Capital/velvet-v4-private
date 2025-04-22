@@ -127,14 +127,7 @@ contract EnsoHandlerBundled is IIntentHandler, ExternalPositionManagement {
         ).isWrappedPosition(tokensIn[i])
       ) {
         _handleWrappedPositionDecrease(
-          address(
-            IAssetManagementConfig(_params._assetManagementConfig)
-              .positionManagers(
-                IPositionManager(
-                  IPositionWrapper(tokensIn[i]).parentPositionManager()
-                ).protocolId()
-              )
-          ),
+          IPositionWrapper(tokensIn[i]).parentPositionManager(),
           callDataDecreaseLiquidity[i]
         );
       }

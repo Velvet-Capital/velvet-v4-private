@@ -223,12 +223,7 @@ contract DepositBatchExternalPositions is ReentrancyGuard {
         _params,
         _swapResults,
         i,
-        IPositionManager(
-          IAssetManagementConfig(_assetManagementConfig).positionManagers(
-            IPositionManager(positionWrapper.parentPositionManager())
-              .protocolId()
-          )
-        ),
+        IPositionManager(positionWrapper.parentPositionManager()),
         positionWrapper
       );
 

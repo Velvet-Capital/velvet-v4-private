@@ -142,12 +142,7 @@ contract WithdrawBatchExternalPositions is ReentrancyGuard {
       uint256 balance = IERC20(_positionWrapper).balanceOf(address(this));
 
       IPositionManager positionManager = IPositionManager(
-        IAssetManagementConfig(IPortfolio(_target).assetManagementConfig())
-          .positionManagers(
-            IPositionManager(
-              IPositionWrapper(_positionWrapper).parentPositionManager()
-            ).protocolId()
-          )
+        IPositionWrapper(_positionWrapper).parentPositionManager()
       );
 
       positionManager.decreaseLiquidity(
