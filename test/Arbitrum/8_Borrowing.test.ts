@@ -149,9 +149,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       const ProtocolConfig = await ethers.getContractFactory("ProtocolConfig");
       const _protocolConfig = await upgrades.deployProxy(
         ProtocolConfig,
-        [
-          treasury.address,
-          priceOracle.address],
+        [treasury.address, priceOracle.address],
         { kind: "uups" }
       );
 
@@ -160,7 +158,6 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       );
       swapHandler = await UniSwapHandler.deploy(addresses.UniswapV3RouterAddress);
       await swapHandler.deployed();
-
 
       protocolConfig = ProtocolConfig.attach(_protocolConfig.address);
       await protocolConfig.setCoolDownPeriod("60");
@@ -562,8 +559,8 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            " uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -572,8 +569,8 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 
@@ -635,8 +632,8 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            " uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -645,8 +642,8 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 
@@ -922,7 +919,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
           firstSwapData: [encodedParameters],
           secondSwapData: encodedParameters1,
           isMaxRepayment: false,
-          isDexRepayment: false
+          isDexRepayment: false,
         });
 
         console.log(
@@ -1108,10 +1105,10 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             _solverHandler: ensoHandler.address, //Handler to swap
             _swapHandler: swapHandler.address,
             _flashLoanAmount: flashLoanAmount,
-            _poolFees :[],
+            _poolFees: [],
             firstSwapData: encodedParameters,
             secondSwapData: encodedParameters1,
-            isDexRepayment : false
+            isDexRepayment: false,
           },
           responses
         );

@@ -12,7 +12,7 @@ abstract contract ExternalPositionManagement is OwnableCheck, Initializable {
   event AllowedRatioDeviationBpsUpdated(uint256 indexed _newDeviationBps);
   event UpgradePositionWrapper(address indexed newImplementation);
   event UpdatedSlippageFeeReinvestment(uint256 indexed _newSlippage);
-
+  event ProtocolDisabled(bytes32 indexed protocolId);
   /// @notice The maximum allowed deviation from the target ratio for external positions, measured in basis points.
   uint256 public allowedRatioDeviationBps;
   /// @notice The accepted slippage for fee reinvestment, measured in basis points.
@@ -80,6 +80,8 @@ abstract contract ExternalPositionManagement is OwnableCheck, Initializable {
    */
   function disableProtocol(bytes32 protocolId) external onlyProtocolOwner {
     protocols[protocolId].enabled = false;
+
+    emit ProtocolDisabled(protocolId);
   }
 
   /**
