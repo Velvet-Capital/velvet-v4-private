@@ -535,7 +535,7 @@ abstract contract VaultManager is
     TokenBalanceLibrary.ControllerData[] memory controllersData
   ) private returns (uint256, uint256) {
     // Calculate the proportion of each token to return based on the burned portfolio tokens.
-    uint256 tokenBalance = TokenBalanceLibrary._getAdjustedTokenBalance(
+    (uint256 tokenBalance, ) = TokenBalanceLibrary._getAdjustedTokenBalance(
       _token,
       vault,
       _protocolConfig,
@@ -881,7 +881,7 @@ abstract contract VaultManager is
 
       _transferToken(_from, token, transferAmount, usePermit);
 
-      uint256 tokenBalanceAfter = TokenBalanceLibrary._getAdjustedTokenBalance(
+      (uint256 tokenBalanceAfter, bool isCollateralEnabled) = TokenBalanceLibrary._getAdjustedTokenBalance(
         token,
         vault,
         _protocolConfig,
@@ -891,12 +891,11 @@ abstract contract VaultManager is
         tokenBalanceAfter - tokenBalanceBefore,
         tokenBalanceAfter
       );
-      _minRatioAfterTransfer = MathUtils._min(
+      _minRatioAfterTransfer = isCollateralEnabled ? _minRatio : MathUtils._min(
         currentRatio,
         _minRatioAfterTransfer
       );
     }
-
     emit UserDepositedAmounts(depositedAmounts, portfolioTokens);
     return _minRatioAfterTransfer;
   }
