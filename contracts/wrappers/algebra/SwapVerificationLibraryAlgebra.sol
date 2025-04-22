@@ -15,7 +15,7 @@ import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC
 import { INonfungiblePositionManager } from "./INonfungiblePositionManager.sol";
 
 import { IProtocolConfig } from "../../config/protocol/IProtocolConfig.sol";
-
+import { IERC20MetadataUpgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 /**
  * @title SwapVerificationLibrary
  * @notice Library for verifying swap operations using a price oracle
@@ -184,9 +184,15 @@ library SwapVerificationLibraryAlgebra {
     balance0 = IERC20Upgradeable(_token0).balanceOf(address(this));
     balance1 = IERC20Upgradeable(_token1).balanceOf(address(this));
 
-    ratioAfterSwap = balance0 < 1_000_000 || balance1 < 1_000_000
+    uint256 normalizedBalance0 = balance0 *
+      (10 ** (18 - IERC20MetadataUpgradeable(_token0).decimals()));
+    uint256 normalizedBalance1 = balance1 *
+      (10 ** (18 - IERC20MetadataUpgradeable(_token1).decimals()));
+
+    ratioAfterSwap = normalizedBalance0 < 1_000_000 ||
+      normalizedBalance1 < 1_000_000
       ? 0
-      : (balance0 * 1e18) / balance1;
+      : (normalizedBalance0 * 1e18) / normalizedBalance1;
 
     (poolRatio, tokenZeroBalance) = LiquidityAmountsCalculations
       .getRatioForTicks(
@@ -262,8 +268,8 @@ library SwapVerificationLibraryAlgebra {
    * This function is specifically used to ensure that any fees due for reinvestment don't exceed
    * certain thresholds before proceeding with a ratio verification step.
    * @param _params Swap parameters encapsulating position and token details.
-   * @param _tokensOwed0 Tokens owed of type token0, typically fees that are ready for reinvestment.
-   * @param _tokensOwed1 Tokens owed of type token1, similarly fees that might be reinvested.
+   * @param _feeAmount0 The amount of token0 after claiming fees including previous dust.
+   * @param _feeAmount1 The amount of token1 after claiming fees including previous dust.
    * @notice Only proceeds with the verification if either of the owed token amounts exceeds
    * the minimum reinvestment threshold.
    */
@@ -271,12 +277,12 @@ library SwapVerificationLibraryAlgebra {
     IProtocolConfig protocolConfig,
     WrapperFunctionParameters.SwapParams memory _params,
     address _nftManager,
-    uint128 _tokensOwed0,
-    uint128 _tokensOwed1
+    uint256 _feeAmount0,
+    uint256 _feeAmount1
   ) external {
     if (
-      _tokensOwed0 > MIN_REINVESTMENT_AMOUNT ||
-      _tokensOwed1 > MIN_REINVESTMENT_AMOUNT
+      _feeAmount0 > MIN_REINVESTMENT_AMOUNT ||
+      _feeAmount1 > MIN_REINVESTMENT_AMOUNT
     ) {
       verifyZeroSwapAmount(protocolConfig, _params, _nftManager);
     }

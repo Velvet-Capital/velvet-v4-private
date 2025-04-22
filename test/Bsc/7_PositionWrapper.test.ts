@@ -9,6 +9,7 @@ import {
   increaseLiquidity,
   decreaseLiquidity,
   calculateSwapAmountUpdateRange,
+  calculateWithdrawSwapAmounts,
 } from "./IntentCalculations";
 
 import {
