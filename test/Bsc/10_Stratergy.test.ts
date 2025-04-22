@@ -694,6 +694,7 @@ describe.only("Tests for Deposit", () => {
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
             _deployer: zeroAddress,
+            _fee: [0, 0],
           },
           {
             value: "1000000000000000000",
@@ -778,6 +779,7 @@ describe.only("Tests for Deposit", () => {
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
             _deployer: zeroAddress,
+            _fee: [0, 0],
           }
         );
 
@@ -860,6 +862,7 @@ describe.only("Tests for Deposit", () => {
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
             _deployer: zeroAddress,
+            _fee: [0, 0],
           }
         );
 
