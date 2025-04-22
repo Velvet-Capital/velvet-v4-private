@@ -239,4 +239,6 @@ library ErrorLibrary {
   error InvalidLoanInitiator();
   // @notice Thrown when swapHandler is not correct
   error InvalidSwapHandler();
+  // @notice Thrown when position wrapper is not valid
+  error InvalidPositionWrapper();
 }

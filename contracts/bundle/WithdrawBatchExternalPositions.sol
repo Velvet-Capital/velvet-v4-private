@@ -151,7 +151,8 @@ contract WithdrawBatchExternalPositions is ReentrancyGuard {
         _params._amountsMin1[i],
         _params._tokenIn[i],
         _params._tokenOut[i],
-        _params._amountIn[i]
+        _params._amountIn[i],
+        _params._fee[i]
       );
     }
   }

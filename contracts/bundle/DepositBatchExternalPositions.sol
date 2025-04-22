@@ -99,7 +99,8 @@ contract DepositBatchExternalPositions is ReentrancyGuard {
       positionWrapperLength != _params._tokenOut.length ||
       positionWrapperLength != _params._amountIn.length ||
       positionWrapperLength != _params._amount0Min.length ||
-      positionWrapperLength != _params._amount1Min.length
+      positionWrapperLength != _params._amount1Min.length ||
+      positionWrapperLength != _params._fee.length
     ) revert ErrorLibrary.InvalidLength();
 
     address[] memory tokens = IPortfolio(data._target).getTokens();
@@ -307,7 +308,8 @@ contract DepositBatchExternalPositions is ReentrancyGuard {
           _amount1Min: _params._amount1Min[i],
           _tokenIn: _params._tokenIn[i],
           _tokenOut: _params._tokenOut[i],
-          _amountIn: _params._amountIn[i]
+          _amountIn: _params._amountIn[i],
+          _fee: _params._fee[i]
         })
       );
     }

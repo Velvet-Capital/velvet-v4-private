@@ -223,7 +223,9 @@ describe.only("Tests for Portfolio Config", () => {
       const feeModule = await FeeModule.deploy();
       await feeModule.deployed();
 
-      const BorrowManager = await ethers.getContractFactory("BorrowManagerVenus");
+      const BorrowManager = await ethers.getContractFactory(
+        "BorrowManagerVenus"
+      );
       borrowManager = await BorrowManager.deploy();
       await borrowManager.deployed();
 
@@ -571,6 +573,15 @@ describe.only("Tests for Portfolio Config", () => {
         );
       });
 
+      it("claim removed tokens at id should fail if protocol is emergency paused", async () => {
+        await expect(
+          tokenExclusionManager.claimTokenAtId(owner.address, 2)
+        ).to.be.revertedWithCustomError(
+          tokenExclusionManager,
+          "ProtocolIsPaused"
+        );
+      });
+
       it("unpause protocol when emergency paused should fail", async () => {
         await expect(
           protocolConfig.setProtocolPause(false)
@@ -755,6 +766,17 @@ describe.only("Tests for Portfolio Config", () => {
             nonOwner.address
           )
         ).to.be.true;
+      });
+
+      it("transferSuperAdminOwnership should revert if new and old admin are same", async () => {
+        await expect(
+          portfolioFactory
+            .connect(nonOwner)
+            .transferSuperAdminOwnership(
+              accessController0.address,
+              nonOwner.address
+            )
+        ).to.be.revertedWithCustomError(portfolioFactory, "InvalidAddress");
       });
 
       it("new superadmin should be able to grant ,revoke assetmanager admin role", async () => {

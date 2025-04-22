@@ -124,6 +124,7 @@ library WrapperFunctionParameters {
     address _tokenIn;
     address _tokenOut;
     uint256 _amountIn;
+    uint24 _fee;
   }
 
   /**
@@ -149,5 +150,6 @@ library WrapperFunctionParameters {
     address _tokenOut;
     int24 _tickLower;
     int24 _tickUpper;
+    uint24 _fee;
   }
 }
