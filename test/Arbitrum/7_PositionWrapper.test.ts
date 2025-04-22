@@ -345,7 +345,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       await assetManagementConfig.enableUniSwapV3Manager(uniswapV3ProtocolHash);
 
       let positionManagerAddress =
-        await assetManagementConfig.positionManager();
+        await assetManagementConfig.lastDeployedPositionManager();
 
       positionManager = PositionManager.attach(positionManagerAddress);
     });
