@@ -18,10 +18,13 @@ import "./ExponentialNoError.sol";
  * @dev Provides functions to get balances, handle markets, and process loans within the Venus protocol.
  */
 contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
-  address public constant vBNB_Address =
-    0xA07c5b74C9B40447a954e1466938b865b6BBea36;
-  address public constant WBNB_Address =
-    0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
+  address public immutable vBNB_Address;
+  address public immutable WBNB_Address;
+  
+  constructor( address _vBNB_Address, address _WBNB_Address) {
+    vBNB_Address = _vBNB_Address;
+    WBNB_Address = _WBNB_Address;
+  }
 
   /**
    * @dev Struct to hold local variables for calculating account liquidity,

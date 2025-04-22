@@ -260,7 +260,7 @@ describe.only("Tests for Deposit", () => {
       const VenusAssetHandler = await ethers.getContractFactory(
         "VenusAssetHandler"
       );
-      venusAssetHandler = await VenusAssetHandler.deploy();
+      venusAssetHandler = await VenusAssetHandler.deploy(addresses.vBNB_Address, addresses.WETH_Address);
       await venusAssetHandler.deployed();
 
       const Portfolio = await ethers.getContractFactory("Portfolio", {
