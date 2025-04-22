@@ -1119,8 +1119,9 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
         // Vault approves token to DEX
         transactions[count].to = context.executor;
         transactions[count].txData = abi.encodeWithSelector(
-          bytes4(keccak256("vaultInteraction(address,bytes)")),
+          bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
           context.flashLoanToken,
+          0,
           approve(context.router, flashData.flashLoanAmount[i])
         );
         count++;
@@ -1132,8 +1133,9 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
         // Swap tokens using swap handler
         transactions[count].to = context.executor;
         transactions[count].txData = abi.encodeWithSelector(
-          bytes4(keccak256("vaultInteraction(address,bytes)")),
+          bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
           _context.router,
+          0,
           _context.swapHandler.swapExactTokensForTokens(
             _context.flashLoanToken,
             _flashData.debtToken[i],
@@ -1252,8 +1254,9 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
       // Approve the debt token for the protocol
       transactions[count].to = executor;
       transactions[count].txData = abi.encodeWithSelector(
-        bytes4(keccak256("vaultInteraction(address,bytes)")),
+        bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
         flashData.debtToken[i],
+        0,
         approve(flashData.protocolTokens[i], amountToRepay)
       );
       count++;
@@ -1261,8 +1264,9 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
       // Repay the debt using the protocol token
       transactions[count].to = executor;
       transactions[count].txData = abi.encodeWithSelector(
-        bytes4(keccak256("vaultInteraction(address,bytes)")),
+        bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
         flashData.protocolTokens[i],
+        0,
         repay(flashData.debtToken[i], vault, amountToRepay)
       );
       count++;
@@ -1377,7 +1381,7 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
     uint256[] memory poolFees
   ) internal view returns (uint256, uint256) {
     for (uint j = 0; j < lendingTokens.length; ) {
-      address lendingToken = lendingTokens[j]; // Using index from original logic
+      address lendingToken = lendingTokens[j];
       address underlying = (lendingToken == vBNB_Address)
         ? WBNB_Address
         : IVenusPool(lendingToken).underlying();
@@ -1387,22 +1391,12 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
       // Withdraw transaction - exactly as original
       transactions[count].to = _context.executor;
       transactions[count].txData = abi.encodeWithSelector(
-        bytes4(keccak256("vaultInteraction(address,bytes)")),
+        bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
         lendingToken,
+        0,
         withdraw(underlying, _context.user, _sellAmount)
       );
       count++;
-
-      if (underlying == WBNB_Address) {
-        // Withdraw transaction - exactly as original
-        transactions[count].to = _context.executor;
-        transactions[count].txData = abi.encodeWithSelector(
-          bytes4(keccak256("vaultInteraction(address,bytes)")),
-          underlying, // WBNB contract address
-          abi.encodeWithSelector(bytes4(keccak256("deposit()")))
-        );
-        count++;
-      }
 
       uint256 underlyingAmount = getUnderlyingAmount(
         lendingToken,
@@ -1410,33 +1404,49 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
         _sellAmount
       );
 
-      // Approve transaction - exactly as original
-      transactions[count].to = _context.executor;
-      transactions[count].txData = abi.encodeWithSelector(
-        bytes4(keccak256("vaultInteraction(address,bytes)")),
-        underlying,
-        approve(_context.router, underlyingAmount)
-      );
-      count++;
-
-      uint fee = poolFees[feeCount];
-
-      // Swap transaction - exactly as original
-      transactions[count].to = _context.executor;
-      transactions[count].txData = abi.encodeWithSelector(
-        bytes4(keccak256("vaultInteraction(address,bytes)")),
-        _context.router,
-        ISwapHandler(_context.swapHandler).swapExactTokensForTokens(
-          underlying,
-          _context.flashloanToken,
-          _context.receiver,
+      if (underlying == WBNB_Address) {
+        // Withdraw transaction - exactly as original
+        transactions[count].to = _context.executor;
+        transactions[count].txData = abi.encodeWithSelector(
+          bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
+          underlying, // WBNB contract address
           underlyingAmount,
+          abi.encodeWithSelector(bytes4(keccak256("deposit()")))
+        );
+        count++;
+      }
+      
+      if(underlying != _context.flashloanToken){
+        // Approve transaction - exactly as original
+        transactions[count].to = _context.executor;
+        transactions[count].txData = abi.encodeWithSelector(
+          bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
+          underlying,
           0,
-          fee
-        )
-      );
-      count++;
-      feeCount++;
+          approve(_context.router, underlyingAmount)
+        );
+        count++;
+
+        uint fee = poolFees[feeCount];
+
+        // Swap transaction - exactly as original
+        transactions[count].to = _context.executor;
+        transactions[count].txData = abi.encodeWithSelector(
+          bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
+          _context.router,
+          0,
+          ISwapHandler(_context.swapHandler).swapExactTokensForTokens(
+            underlying,
+            _context.flashloanToken,
+            _context.receiver,
+            underlyingAmount,
+            0,
+            fee
+          )
+        );
+        count++;
+        feeCount++;
+      }
 
       unchecked {
         ++j;
@@ -1512,9 +1522,10 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
       // Pull the token from the vault
       transactions[count].to = executor;
       transactions[count].txData = abi.encodeWithSelector(
-        bytes4(keccak256("pullFromVault(address,uint256,address)")),
+        bytes4(keccak256("pullFromVault(address,uint256,uint256,address)")),
         lendingTokens[j], // The address of the lending token
         sellAmounts[j], // The amount to sell
+        0,
         flashData.solverHandler // The solver handler address
       );
       count++;

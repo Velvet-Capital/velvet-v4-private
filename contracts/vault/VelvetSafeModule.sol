@@ -33,15 +33,17 @@ contract VelvetSafeModule is Module {
   /**
    * @notice This function executes to get non derivative tokens back to vault
    * @param handlerAddresses Address of the handler to be used
+   * @param value Ether value of the transaction
    * @param encodedCalls Encoded calldata for the `executeWallet` function
    */
   function executeWallet(
     address handlerAddresses,
+    uint256 value,
     bytes calldata encodedCalls
   ) external onlyOwner returns (bool isSuccess, bytes memory data) {
     (isSuccess, data) = execAndReturnData(
       handlerAddresses,
-      0,
+      value,
       encodedCalls,
       Enum.Operation.Call
     );

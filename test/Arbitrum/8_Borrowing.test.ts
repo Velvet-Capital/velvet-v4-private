@@ -153,8 +153,10 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         { kind: "uups" }
       );
 
-      const UniSwapHandler = await ethers.getContractFactory("UniswapHandler");
-      swapHandler = await UniSwapHandler.deploy();
+      const UniSwapHandler = await ethers.getContractFactory(
+        "UniswapHandler"
+      );
+      swapHandler = await UniSwapHandler.deploy(addresses.UniswapV3RouterAddress);
       await swapHandler.deployed();
 
       protocolConfig = ProtocolConfig.attach(_protocolConfig.address);

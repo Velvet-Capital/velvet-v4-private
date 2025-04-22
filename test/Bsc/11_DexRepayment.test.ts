@@ -207,7 +207,7 @@ describe.only("Tests for Deposit", () => {
       const PancakeSwapHandler = await ethers.getContractFactory(
         "PancakeSwapHandler"
       );
-      swapHandler = await PancakeSwapHandler.deploy();
+      swapHandler = await PancakeSwapHandler.deploy(addresses.PancakeSwapV3RouterAddress);
       await swapHandler.deployed();
 
       protocolConfig = ProtocolConfig.attach(_protocolConfig.address);
@@ -1055,7 +1055,8 @@ describe.only("Tests for Deposit", () => {
             [addresses.vLINK_Address],
             vault
           );
-
+        
+        console.log("BNB balance of vault",await provider.getBalance(vault));
         console.log("balanceBorrowed after repay", balanceBorrowed);
       });
 
