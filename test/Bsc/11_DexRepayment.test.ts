@@ -163,10 +163,7 @@ describe.only("Tests for Deposit", () => {
 
       const _protocolConfig = await upgrades.deployProxy(
         ProtocolConfig,
-        [
-          treasury.address,
-          priceOracle.address
-        ],
+        [treasury.address, priceOracle.address],
         { kind: "uups" }
       );
 
@@ -210,7 +207,7 @@ describe.only("Tests for Deposit", () => {
       const PancakeSwapHandler = await ethers.getContractFactory(
         "PancakeSwapHandler"
       );
-      swapHandler = await PancakeSwapHandler.deploy();
+      swapHandler = await PancakeSwapHandler.deploy(addresses.PancakeSwapV3RouterAddress);
       await swapHandler.deployed();
 
       protocolConfig = ProtocolConfig.attach(_protocolConfig.address);
@@ -602,8 +599,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            "uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -612,8 +609,8 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 
@@ -676,8 +673,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            "uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -686,8 +683,8 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 
@@ -946,8 +943,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            "uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -956,8 +953,8 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 
@@ -1058,7 +1055,8 @@ describe.only("Tests for Deposit", () => {
             [addresses.vLINK_Address],
             vault
           );
-
+        
+        console.log("BNB balance of vault",await provider.getBalance(vault));
         console.log("balanceBorrowed after repay", balanceBorrowed);
       });
 
@@ -1180,8 +1178,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            "uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -1190,8 +1188,8 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 
@@ -1254,8 +1252,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            "uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -1264,8 +1262,8 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 

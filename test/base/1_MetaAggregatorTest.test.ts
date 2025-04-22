@@ -205,7 +205,6 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       await protocolConfig.setSupportedFactory(ensoHandler.address);
       await protocolConfig.enableSwapHandler(swapHandler.address);
 
-
       let whitelist = [owner.address];
       zeroAddress = "0x0000000000000000000000000000000000000000";
 
@@ -596,8 +595,8 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            "uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            "uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data[0].data]],
@@ -606,8 +605,8 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 

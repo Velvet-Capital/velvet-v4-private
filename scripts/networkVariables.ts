@@ -46,6 +46,7 @@ export const BSCMainNet: ChainAddresses = {
   PancakeSwapRouterAddress: "0x05fF2B0DB69458A0750badebc4f9e13aDd608C7F",
   PancakeSwapV2RouterAddress: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
   PancakeSwapV2FactoryAddress: "0xca143ce32fe78f1f7019d7d551a6402fc5350c73",
+  PancakeSwapV3RouterAddress: "0x1b81D678ffb9C0263b24A97847620C99d213eB14",
   WETH_Address: "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
   BUSD: "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
   USDT: "0x55d398326f99059fF775485246999027B3197955",
@@ -198,6 +199,7 @@ export const ArbitrumOne: ChainAddresses = {
 
   KyberSwapRouter: "0x6131B5fae19EA4f9D964eAc0408E4408b66337b5",
   SushiSwapRouterAddress: "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
+  UniswapV3RouterAddress: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
   AavePool: "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
   WETH: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
   WBTC: "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",

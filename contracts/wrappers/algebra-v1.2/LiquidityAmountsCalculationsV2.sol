@@ -11,6 +11,7 @@ import "@cryptoalgebra/integral-core/contracts/libraries/Constants.sol";
 import "@cryptoalgebra/integral-core/contracts/libraries/TickMath.sol";
 
 import { LiquidityAmounts } from "../abstract/LiquidityAmounts.sol";
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 library LiquidityAmountsCalculationsV2 {
   function _getUnderlyingAmounts(
@@ -62,7 +63,13 @@ library LiquidityAmountsCalculationsV2 {
       ratio = 0;
       tokenZeroBalance = _token1;
     } else {
-      ratio = (amount0 * 1e18) / amount1;
+      uint8 decimals0 = IERC20Metadata(_token0).decimals();
+      uint8 decimals1 = IERC20Metadata(_token1).decimals();
+
+      uint256 normalizedAmount0 = amount0 * (10 ** (18 - decimals0));
+      uint256 normalizedAmount1 = amount1 * (10 ** (18 - decimals1));
+
+      ratio = (normalizedAmount0 * 1e18) / normalizedAmount1;
     }
   }
 }

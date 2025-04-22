@@ -130,7 +130,7 @@ contract Rebalancing is
     for (uint256 i; i < sellTokenLength; i++) {
       address sellToken = _sellTokens[i];
       if (sellToken == address(0)) revert ErrorLibrary.InvalidAddress();
-      portfolio.pullFromVault(sellToken, _sellAmounts[i], _handler);
+      portfolio.pullFromVault(sellToken, _sellAmounts[i], 0, _handler);
     }
 
     // Execute the swap using the handler.
@@ -139,9 +139,10 @@ contract Rebalancing is
         FunctionParameters.EnsoRebalanceParams(
           IPositionManager(
             IAssetManagementConfig(portfolio.assetManagementConfig())
-              .positionManager()
+              .lastDeployedPositionManager() // Utilizing the last deployed position manager is sufficient for verifying the existence of external position storage
           ),
           _vault,
+          address(portfolio.assetManagementConfig()),
           _callData
         )
       );
@@ -186,7 +187,7 @@ contract Rebalancing is
 
         // Store the current balance of the token for later verification
         initialBalances[i] = _getTokenBalanceOf(token, _vault);
-        
+
         // Calculate a unique bit position for this token
         uint256 bitPos = uint256(keccak256(abi.encodePacked(token))) % 65536; // Hash to get a unique bit position in the range 0-65,535
         uint256 index = bitPos / 256; // Determine the specific uint256 slot in the array (0 to 255)
@@ -291,12 +292,14 @@ contract Rebalancing is
     // Approve the protocol token to spend the debt token
     portfolio.vaultInteraction(
       _debtToken,
+      0,
       assetHandler.approve(_repayAddress, _repayAmount)
     );
 
     // Repay the debt
     portfolio.vaultInteraction(
       _repayAddress,
+      0,
       assetHandler.repay(_debtToken, _vault, _repayAmount)
     );
 
@@ -307,6 +310,7 @@ contract Rebalancing is
     //Remove approval
     portfolio.vaultInteraction(
       _debtToken,
+      0,
       assetHandler.approve(_repayAddress, 0)
     );
 
@@ -433,7 +437,7 @@ contract Rebalancing is
     IAssetHandler assetHandler = IAssetHandler(
       protocolConfig.assetHandlers(_controller)
     );
-    portfolio.vaultInteraction(_controller, assetHandler.enterMarket(_tokens));
+    portfolio.vaultInteraction(_controller, 0, assetHandler.enterMarket(_tokens));
     emit CollateralTokensEnabled(_tokens, _controller);
   }
 
@@ -456,7 +460,7 @@ contract Rebalancing is
     );
     for (uint256 i; i < tokensLength; i++) {
       address token = _tokens[i];
-      portfolio.vaultInteraction(_controller, assetHandler.exitMarket(token));
+      portfolio.vaultInteraction(_controller, 0, assetHandler.exitMarket(token));
     }
     emit CollateralTokensDisabled(_tokens, _controller);
   }
@@ -476,7 +480,7 @@ contract Rebalancing is
     address _tokenToBorrow, // token to borrow
     address _controller, // controller address
     uint256 _amountToBorrow
-  ) external onlyAssetManager protocolNotPaused {
+  ) external onlyAssetManager protocolNotPaused nonReentrant {
     // Check for _pool address validity, prevent malicious address input
     if (
       _pool == address(0) ||
@@ -505,13 +509,13 @@ contract Rebalancing is
     ).length;
 
     // Setting token as collateral
-    portfolio.vaultInteraction(_controller, assetHandler.enterMarket(_tokens));
+    portfolio.vaultInteraction(_controller, 0, assetHandler.enterMarket(_tokens));
     // Borrow
     portfolio.vaultInteraction(
       _pool,
+      0,
       assetHandler.borrow(_pool, _tokenToBorrow, _vault, _amountToBorrow)
     );
-
 
     // Get the number of borrowed tokens after the borrow operation
     // If this number is larger than before, it means we borrowed a new token type
@@ -594,7 +598,7 @@ contract Rebalancing is
     address tokenRemovalVault = tokenExclusionManager.deployTokenRemovalVault();
 
     // Transfer the token balance from the vault to the token exclusion manager
-    portfolio.pullFromVault(_token, _tokenBalance, tokenRemovalVault);
+    portfolio.pullFromVault(_token, _tokenBalance, 0, tokenRemovalVault);
 
     // Record the removal details in the token exclusion manager
     tokenExclusionManager.setTokenAndSupplyRecord(
@@ -636,6 +640,7 @@ contract Rebalancing is
   function claimRewardTokens(
     address _tokenToBeClaimed,
     address _target,
+    uint256 _value,
     bytes memory _claimCalldata
   ) external onlyAssetManager protocolNotPaused nonReentrant {
     if (!protocolConfig.isRewardTargetEnabled(_target))
@@ -654,7 +659,7 @@ contract Rebalancing is
     );
 
     // Execute the claim operation using the provided calldata on the target contract
-    portfolio.vaultInteraction(_target, _claimCalldata);
+    portfolio.vaultInteraction(_target, _value, _claimCalldata);
 
     uint256[] memory tokenBalancesInVaultAfter = getTokenBalancesOf(
       tokens,

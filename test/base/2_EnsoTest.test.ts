@@ -596,8 +596,8 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            "uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            "uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -606,8 +606,8 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 

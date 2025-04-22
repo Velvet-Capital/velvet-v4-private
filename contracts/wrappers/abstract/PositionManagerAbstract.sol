@@ -17,6 +17,7 @@ import { IAccessController } from "../../access/IAccessController.sol";
 import { AccessRoles } from "../../access/AccessRoles.sol";
 import { IPriceOracle } from "../../oracle/IPriceOracle.sol";
 import { IExternalPositionStorage } from "./IExternalPositionStorage.sol";
+import "hardhat/console.sol";
 
 /**
  * @title PositionManagerAbstract
@@ -112,6 +113,8 @@ abstract contract PositionManagerAbstract is
   ) internal {
     __UUPSUpgradeable_init();
     __ReentrancyGuard_init();
+
+    console.log("_externalPositionStorage", _externalPositionStorage);
 
     externalPositionStorage = IExternalPositionStorage(
       _externalPositionStorage
@@ -233,7 +236,6 @@ abstract contract PositionManagerAbstract is
     uint256 amountIn,
     uint24 _fee
   ) external notEmergencyPaused nonReentrant {
-    // @todo here
     if (!externalPositionStorage.isWrappedPosition(address(_positionWrapper)))
       revert ErrorLibrary.InvalidPositionWrapper();
 
@@ -255,7 +257,7 @@ abstract contract PositionManagerAbstract is
     _positionWrapper.burn(msg.sender, _withdrawalAmount);
 
     // If there are still wrapper tokens in circulation, collect fees and reinvest them.
-    if (totalSupplyBeforeBurn > 0)
+    if (_positionWrapper.totalSupply() > 0)
       _collectFeesAndReinvest(
         _positionWrapper,
         tokenId,
@@ -510,8 +512,8 @@ abstract contract PositionManagerAbstract is
           tokenId: _tokenId,
           amount0Desired: feeCollectedT0,
           amount1Desired: feeCollectedT1,
-          amount0Min: 1,
-          amount1Min: 1,
+          amount0Min: 0,
+          amount1Min: 0,
           deadline: block.timestamp
         })
       );

@@ -154,7 +154,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       );
 
       const SwapHandler = await ethers.getContractFactory("UniswapHandler");
-      swapHandler = await SwapHandler.deploy();
+      swapHandler = await SwapHandler.deploy(addresses.UniswapV3RouterAddress);
       await swapHandler.deployed();
 
       protocolConfig = ProtocolConfig.attach(_protocolConfig.address);
@@ -557,8 +557,8 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            " uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -567,8 +567,8 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 
@@ -630,8 +630,8 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            " uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -640,8 +640,8 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 

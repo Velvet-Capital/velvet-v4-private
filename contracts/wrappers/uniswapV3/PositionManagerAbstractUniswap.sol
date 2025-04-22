@@ -369,15 +369,18 @@ abstract contract PositionManagerAbstractUniswap is PositionManagerAbstract {
     if (_params._amountIn > 0) {
       (balance0, balance1) = _swapTokenToToken(_params);
     } else {
-      (uint128 tokensOwed0, uint128 tokensOwed1) = _getTokensOwed(
-        _params._tokenId
+      uint256 feeAmount0 = IERC20Upgradeable(_params._token0).balanceOf(
+        address(this)
+      );
+      uint256 feeAmount1 = IERC20Upgradeable(_params._token1).balanceOf(
+        address(this)
       );
       SwapVerificationLibraryUniswap.verifyZeroSwapAmountForReinvestFees(
         protocolConfig,
         _params,
         address(uniswapV3PositionManager),
-        tokensOwed0,
-        tokensOwed1
+        feeAmount0,
+        feeAmount1
       );
     }
   }

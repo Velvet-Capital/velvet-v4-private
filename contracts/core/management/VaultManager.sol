@@ -199,25 +199,29 @@ abstract contract VaultManager is
    * @dev Executes a token transfer via the VelvetSafeModule, ensuring secure transaction execution.
    * @param _token The token to be pulled from the vault.
    * @param _amount The amount of the token to pull.
+   * @param _value Ether value of the transaction
    * @param _to The destination address for the tokens.
    */
   function pullFromVault(
     address _token,
     uint256 _amount,
+    uint256 _value,
     address _to
   ) external onlyRebalancerContract {
-    _pullFromVault(_token, _amount, _to);
+    _pullFromVault(_token, _amount, _value, _to);
   }
 
   /**
    * @notice Internal function to handle the withdrawal of tokens from the vault.
    * @param _token The token to be pulled from the vault.
    * @param _amount The amount of the token to pull.
+   * @param _value Ether value of the transaction
    * @param _to The destination address for the tokens.
    */
   function _pullFromVault(
     address _token,
     uint256 _amount,
+    uint256 _value,
     address _to
   ) internal {
     // Prepare the data for ERC20 token transfer
@@ -230,6 +234,7 @@ abstract contract VaultManager is
     // Execute the transfer through the safe module and check for success
     (, bytes memory data) = IVelvetSafeModule(safeModule).executeWallet(
       _token,
+      _value,
       inputData
     );
 
@@ -243,28 +248,33 @@ abstract contract VaultManager is
    * @dev Claims rewards for a target address by executing a transfer through the safe module.
    * Only the rebalancer contract is allowed to call this function.
    * @param _target The address where the rewards are claimed from
+   * @param _value Ether value of the transaction
    * @param _claimCalldata The calldata to be used for the claim.
    */
   function vaultInteraction(
     address _target,
+    uint256 _value,
     bytes memory _claimCalldata
   ) external onlyRebalancerContract {
-    _vaultInteraction(_target, _claimCalldata);
+    _vaultInteraction(_target, _value, _claimCalldata);
   }
 
   /**
    * @notice Internal function to interact with the vault.
    * @dev Executes the interaction through the safe module and checks for success.
    * @param _target The address where the interaction is targeted.
+   * @param _value Ether value of the transaction
    * @param _claimCalldata The calldata to be used for the interaction.
    */
   function _vaultInteraction(
     address _target,
+    uint256 _value,
     bytes memory _claimCalldata
   ) internal {
     // Execute the transfer through the safe module and check for success
     (bool success, ) = IVelvetSafeModule(safeModule).executeWallet(
       _target,
+      _value,
       _claimCalldata
     );
 
@@ -543,7 +553,7 @@ abstract contract VaultManager is
     );
 
     // Execute the transfer through the safe module and check for success
-    try IVelvetSafeModule(safeModule).executeWallet(_token, inputData) {
+    try IVelvetSafeModule(safeModule).executeWallet(_token, 0, inputData) {
       // Check if the token balance is zero and the current token is not an exemption token, revert with an error.
       // This check is necessary because if there is any rebase token or the protocol sets the balance to zero,
       // we need to be able to withdraw other tokens. The balance for a withdrawal should always be >0,

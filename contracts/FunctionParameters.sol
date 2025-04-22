@@ -416,6 +416,7 @@ library FunctionParameters {
   struct EnsoRebalanceParams {
     IPositionManager _positionManager;
     address _to;
+    address _assetManagementConfig;
     bytes _calldata;
   }
 
