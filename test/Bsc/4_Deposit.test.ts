@@ -2578,11 +2578,11 @@ describe.only("Tests for Deposit", () => {
             _flashLoanToken: zeroAddress, //Token to take flashlaon
             _bufferUnit: "0",
             _solverHandler: ensoHandler.address, //Handler to swap
-            _flashLoanAmount: [0],
-            firstSwapData: ["0x"],
-            secondSwapData: ["0x"],
+            _flashLoanAmount: [[0]],
+            firstSwapData: [["0x"]],
+            secondSwapData: [["0x"]],
             isDexRepayment: false,
-            _poolFees: [0, 0, 0],
+            _poolFees: [[0, 0, 0]],
             _swapHandler: swapHandler.address,
           });
 
@@ -2950,11 +2950,11 @@ describe.only("Tests for Deposit", () => {
             _flashLoanToken: zeroAddress, //Token to take flashlaon
             _bufferUnit: "0",
             _solverHandler: ensoHandler.address, //Handler to swap
-            _flashLoanAmount: [0],
-            firstSwapData: ["0x"],
-            secondSwapData: ["0x"],
+            _flashLoanAmount: [[0]],
+            firstSwapData: [["0x"]],
+            secondSwapData: [["0x"]],
             isDexRepayment: false,
-            _poolFees: [0, 0, 0],
+            _poolFees: [[0, 0, 0]],
             _swapHandler: swapHandler.address,
           });
 

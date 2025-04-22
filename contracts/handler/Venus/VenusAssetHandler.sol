@@ -1507,6 +1507,7 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
     address _receiver,
     uint256 _portfolioTokenAmount,
     uint256 _totalSupply,
+    uint256 _counter,
     address[] memory borrowedTokens,
     FunctionParameters.withdrawRepayParams calldata repayData
   ) external {
@@ -1522,7 +1523,7 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
       uint256 borrowedAmount = IVenusPool(token).borrowBalanceStored(_vault); // Get the current borrowed balance for the token
       underlying[i] = IVenusPool(token).underlying(); // Get the underlying asset for the borrowed token
       tokenBalance[i] = (borrowedAmount * _portfolioTokenAmount) / _totalSupply; // Calculate the portion of the debt to repay
-      totalFlashAmount += repayData._flashLoanAmount[i]; // Accumulate the total flash loan amount
+      totalFlashAmount += repayData._flashLoanAmount[_counter][i]; // Accumulate the total flash loan amount
       unchecked {
         ++i;
       }
@@ -1544,11 +1545,11 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
         solverHandler: repayData._solverHandler,
         swapHandler: repayData._swapHandler,
         poolAddress: _poolAddress,
-        flashLoanAmount: repayData._flashLoanAmount,
+        flashLoanAmount: repayData._flashLoanAmount[_counter],
         debtRepayAmount: tokenBalance,
-        poolFees: repayData._poolFees,
-        firstSwapData: repayData.firstSwapData,
-        secondSwapData: repayData.secondSwapData,
+        poolFees: repayData._poolFees[_counter],
+        firstSwapData: repayData.firstSwapData[_counter],
+        secondSwapData: repayData.secondSwapData[_counter],
         isMaxRepayment: false,
         isDexRepayment: repayData.isDexRepayment
       });

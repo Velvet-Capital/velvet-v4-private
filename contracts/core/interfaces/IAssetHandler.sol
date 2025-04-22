@@ -86,6 +86,7 @@ interface IAssetHandler {
     address _receiver,
     uint256 _portfolioTokenAmount,
     uint256 _totalSupply,
+    uint256 _counter,
     address[] memory borrowedTokens,
     FunctionParameters.withdrawRepayParams calldata repayData
   ) external;

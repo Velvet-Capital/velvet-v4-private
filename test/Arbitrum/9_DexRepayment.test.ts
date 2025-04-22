@@ -930,11 +930,11 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             _bufferUnit: bufferUnit, //Buffer unit for collateral amount
             _solverHandler: ensoHandler.address, //Handler to swap
             _swapHandler: swapHandler.address,
-            _poolFees: [3000, 500, 300],
+            _poolFees: [[3000, 500, 300]],
             isDexRepayment: true,
-            _flashLoanAmount: flashLoanAmount,
-            firstSwapData: [],
-            secondSwapData: [],
+            _flashLoanAmount: [flashLoanAmount],
+            firstSwapData: [[]],
+            secondSwapData: [[]],
           },
           responses
         );

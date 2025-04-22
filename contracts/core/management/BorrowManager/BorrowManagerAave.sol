@@ -19,8 +19,8 @@ contract BorrowManagerAave is AbstractBorrowManager, IFlashLoanReceiver {
   // Internal variables to store the vault, protocol configuration, and portfolio addresses
 
   function executeOperation(
-    address[] calldata assets,
-    uint256[] calldata amounts,
+    address[] calldata ,
+    uint256[] calldata ,
     uint256[] calldata premiums,
     address initiator,
     bytes calldata params

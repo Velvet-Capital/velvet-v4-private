@@ -1741,10 +1741,10 @@ describe.only("Tests for Deposit", () => {
             _bufferUnit: bufferUnit, //Buffer unit for collateral amount
             _solverHandler: ensoHandler.address, //Handler to swap
             _swapHandler: swapHandler.address,
-            _flashLoanAmount: flashLoanAmount,
-            firstSwapData: encodedParameters,
-            secondSwapData: encodedParameters1,
-            _poolFees: [],
+            _flashLoanAmount: [flashLoanAmount],
+            firstSwapData: [encodedParameters],
+            secondSwapData: [encodedParameters1],
+            _poolFees: [[]],
             isDexRepayment: false,
           },
           responses
@@ -1938,10 +1938,10 @@ describe.only("Tests for Deposit", () => {
             _bufferUnit: bufferUnit, //Buffer unit for collateral amount
             _solverHandler: ensoHandler.address, //Handler to swap
             _swapHandler: swapHandler.address,
-            _flashLoanAmount: flashLoanAmount,
-            firstSwapData: encodedParameters,
-            secondSwapData: encodedParameters1,
-            _poolFees: [],
+            _flashLoanAmount: [flashLoanAmount],
+            firstSwapData: [encodedParameters],
+            secondSwapData: [encodedParameters1],
+            _poolFees: [[]],
             isDexRepayment: false,
           },
           responses

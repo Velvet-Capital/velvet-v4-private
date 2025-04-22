@@ -227,10 +227,10 @@ library FunctionParameters {
     address _solverHandler;
     address _swapHandler;
     uint256 _bufferUnit;
-    uint256[] _flashLoanAmount;
-    uint256[] _poolFees;
-    bytes[] firstSwapData;
-    bytes[] secondSwapData;
+    uint256[][] _flashLoanAmount;
+    uint256[][] _poolFees;
+    bytes[][] firstSwapData;
+    bytes[][] secondSwapData;
     bool isDexRepayment;
   }
 
