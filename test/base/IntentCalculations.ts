@@ -49,7 +49,7 @@ export async function createEnsoCallDataRoute(
     slippage: 1000,
     tokenIn: _tokenIn,
     tokenOut: _tokenOut,
-    routingStrategy: "delegate",
+    routingStrategy: "delegate-legacy",
   };
 
   const postUrl = "https://api.enso.finance/api/v1/shortcuts/route?";
@@ -77,9 +77,9 @@ export async function createMetaAggregatorCalldata(
     tokenIn: _tokenIn,
     tokenOut: _tokenOut,
     sender: handler,
-    receiver: receiver, 
+    receiver: receiver,
     chainID: 8453,
-    isDelegate: true
+    isDelegate: true,
   };
 
   console.log(priceParams);

@@ -142,6 +142,7 @@ contract Rebalancing is
               .lastDeployedPositionManager() // Utilizing the last deployed position manager is sufficient for verifying the existence of external position storage
           ),
           _vault,
+          address(portfolio.assetManagementConfig()),
           _callData
         )
       );

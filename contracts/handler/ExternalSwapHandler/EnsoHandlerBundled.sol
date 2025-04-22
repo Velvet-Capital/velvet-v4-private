@@ -9,6 +9,8 @@ import { IPositionManager } from "../../wrappers/abstract/IPositionManager.sol";
 import { FunctionParameters } from "../../FunctionParameters.sol";
 import { ExternalPositionManagement } from "./ExternalPositionManagement.sol";
 import { IExternalPositionStorage } from "../../wrappers/abstract/IExternalPositionStorage.sol";
+import { IAssetManagementConfig } from "../../config/assetManagement/IAssetManagementConfig.sol";
+import { IPositionWrapper } from "../../wrappers/abstract/IPositionWrapper.sol";
 
 /**
  * @title EnsoHandlerBundled
@@ -125,7 +127,14 @@ contract EnsoHandlerBundled is IIntentHandler, ExternalPositionManagement {
         ).isWrappedPosition(tokensIn[i])
       ) {
         _handleWrappedPositionDecrease(
-          address(_params._positionManager),
+          address(
+            IAssetManagementConfig(_params._assetManagementConfig)
+              .positionManagers(
+                IPositionManager(
+                  IPositionWrapper(tokensIn[i]).parentPositionManager()
+                ).protocolId()
+              )
+          ),
           callDataDecreaseLiquidity[i]
         );
       }
