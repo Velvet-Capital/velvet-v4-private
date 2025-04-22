@@ -163,10 +163,7 @@ describe.only("Tests for Deposit", () => {
 
       const _protocolConfig = await upgrades.deployProxy(
         ProtocolConfig,
-        [
-          treasury.address,
-          priceOracle.address
-        ],
+        [treasury.address, priceOracle.address],
         { kind: "uups" }
       );
 
@@ -602,8 +599,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            "uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -612,8 +609,8 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 
@@ -676,8 +673,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            "uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -686,8 +683,8 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 
@@ -946,8 +943,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            "uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -956,8 +953,8 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 
@@ -1180,8 +1177,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            "uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -1190,8 +1187,8 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 
@@ -1254,8 +1251,8 @@ describe.only("Tests for Deposit", () => {
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
             "address[]", // tokensIn
-            "address[]", // tokens
-            " uint256[]", // minExpectedOutputAmounts
+            "address[][]", // tokens
+            "uint256[][]", // minExpectedOutputAmounts
           ],
           [
             [[postResponse.data.tx.data]],
@@ -1264,8 +1261,8 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [],
             [sellToken],
-            [buyToken],
-            [0],
+            [[buyToken]],
+            [[0]],
           ]
         );
 
@@ -1657,21 +1654,23 @@ describe.only("Tests for Deposit", () => {
 
         const flashLoanAmount = values[1];
 
-        await portfolio.multiTokenWithdrawal(BigNumber.from(amountPortfolioToken), {
-          _factory: addresses.thena_factory,
-          _token0: addresses.USDT, //USDT - Pool token
-          _token1: addresses.USDC_Address, //USDC - Pool token
-          _flashLoanToken: flashLoanToken, //Token to take flashlaon
-          _bufferUnit: bufferUnit,
-          _solverHandler: ensoHandler.address, //Handler to swap
-          _flashLoanAmount: flashLoanAmount,
-          firstSwapData: [],
-          secondSwapData: [],
-          isDexRepayment: true,
-          _poolFees: [500, 500, 500, 500, 500, 500, 500, 500, 500],
-          _swapHandler: swapHandler.address,
-        });
-
+        await portfolio.multiTokenWithdrawal(
+          BigNumber.from(amountPortfolioToken),
+          {
+            _factory: addresses.thena_factory,
+            _token0: addresses.USDT, //USDT - Pool token
+            _token1: addresses.USDC_Address, //USDC - Pool token
+            _flashLoanToken: flashLoanToken, //Token to take flashlaon
+            _bufferUnit: bufferUnit,
+            _solverHandler: ensoHandler.address, //Handler to swap
+            _flashLoanAmount: flashLoanAmount,
+            firstSwapData: [],
+            secondSwapData: [],
+            isDexRepayment: true,
+            _poolFees: [500, 500, 500, 500, 500, 500, 500, 500, 500],
+            _swapHandler: swapHandler.address,
+          }
+        );
 
         const supplyAfter = await portfolio.totalSupply();
         console.log("SupplyAfter", supplyAfter);
