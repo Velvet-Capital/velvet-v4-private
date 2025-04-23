@@ -224,7 +224,7 @@ abstract contract VaultManagerV3_2 is
     for (uint256 i; i < portfolioTokenLength; i++) {
       address _token = portfolioTokens[i];
       // Calculate the proportion of each token to return based on the burned portfolio tokens.
-      uint256 tokenBalance = TokenBalanceLibrary._getAdjustedTokenBalance(
+      (uint256 tokenBalance, bool isCollateralEnabled) = TokenBalanceLibrary._getAdjustedTokenBalance(
         portfolioTokens[i],
         vault,
         _protocolConfig,
@@ -370,7 +370,7 @@ abstract contract VaultManagerV3_2 is
       transferAmount = (_minRatio * tokenBalanceBefore) / ONE_ETH_IN_WEI;
       _transferToVault(_from, token, transferAmount);
 
-      uint256 tokenBalanceAfter = TokenBalanceLibrary._getAdjustedTokenBalance(
+      (uint256 tokenBalanceAfter, bool isCollateralEnabled) = TokenBalanceLibrary._getAdjustedTokenBalance(
         token,
         vault,
         _protocolConfig,

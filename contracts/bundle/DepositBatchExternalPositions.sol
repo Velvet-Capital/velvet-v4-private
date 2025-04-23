@@ -126,8 +126,7 @@ contract DepositBatchExternalPositions is ReentrancyGuard {
     for (uint256 i; i < tokenLength; i++) {
       address _token = tokens[i];
 
-      TransferHelper.safeApprove(_token, target, 0);
-      TransferHelper.safeApprove(_token, target, depositAmounts[i]);
+      _safeApprove(_token, target, depositAmounts[i]);
     }
 
     // Deposit tokens into Velvet Core
@@ -258,23 +257,14 @@ contract DepositBatchExternalPositions is ReentrancyGuard {
     IPositionManager positionManager,
     IPositionWrapper positionWrapper
   ) internal {
-    // Approve position manager to increase liqudity
-    TransferHelper.safeApprove(
-      _params._swapTokens[_params._index0[i]],
-      address(positionManager),
-      0
-    );
-    TransferHelper.safeApprove(
+
+    _safeApprove(
       _params._swapTokens[_params._index0[i]],
       address(positionManager),
       _swapResults[_params._index0[i]]
     );
-    TransferHelper.safeApprove(
-      _params._swapTokens[_params._index1[i]],
-      address(positionManager),
-      0
-    );
-    TransferHelper.safeApprove(
+
+    _safeApprove(
       _params._swapTokens[_params._index1[i]],
       address(positionManager),
       _swapResults[_params._index1[i]]
@@ -310,6 +300,17 @@ contract DepositBatchExternalPositions is ReentrancyGuard {
         })
       );
     }
+  }
+
+  /**
+   * @notice Helper function to safely approve a token for a spender.
+   * @param token The address of the token to approve.
+   * @param spender The address of the spender.
+   * @param amount The amount to approve.
+   */
+  function _safeApprove(address token, address spender, uint256 amount) internal {
+    try IERC20(token).approve(spender, 0) {} catch {}
+    TransferHelper.safeApprove(token, spender, amount);
   }
 
   /**

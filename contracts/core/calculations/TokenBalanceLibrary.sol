@@ -120,7 +120,7 @@ library TokenBalanceLibrary {
     );
 
     for (uint256 i; i < portfolioLength; ) {
-      vaultBalances[i] = _getAdjustedTokenBalance(
+      (vaultBalances[i], ) = _getAdjustedTokenBalance(
         portfolioTokens[i],
         _vault,
         _protocolConfig,
@@ -146,10 +146,11 @@ library TokenBalanceLibrary {
     address _vault,
     IProtocolConfig _protocolConfig,
     ControllerData[] memory controllersData
-  ) public view returns (uint256 tokenBalance) {
+  ) public view returns (uint256 tokenBalance, bool isCollateralEnabled) {
     if (_token == address(0) || _vault == address(0))
       revert ErrorLibrary.InvalidAddress(); // Ensures neither the token nor the vault address is zero.
     uint256 rawBalance = _getTokenBalanceOf(_token, _vault);
+    isCollateralEnabled = false;
     if (_protocolConfig.isBorrowableToken(_token)) {
       address controller = _protocolConfig.marketControllers(_token);
       ControllerData memory controllerData = findControllerData(
@@ -163,7 +164,7 @@ library TokenBalanceLibrary {
       );
 
       // Check if token is being used as collateral
-      bool isCollateralEnabled = assetHandler.isCollateralEnabled(
+      isCollateralEnabled = assetHandler.isCollateralEnabled(
         _token,
         _vault,
         controller

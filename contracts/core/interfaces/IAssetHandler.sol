@@ -66,12 +66,6 @@ interface IAssetHandler {
     address comptroller
   ) external view returns (address[] memory borrowedTokens);
 
-  function getInvestibleBalance(
-    address _token,
-    address _vault,
-    address _controller,
-    address[] memory _portfolioTokens
-  ) external view returns (uint256);
 
   function loanProcessing(
     address vault,
@@ -92,6 +86,7 @@ interface IAssetHandler {
     address _receiver,
     uint256 _portfolioTokenAmount,
     uint256 _totalSupply,
+    uint256 _counter,
     address[] memory borrowedTokens,
     FunctionParameters.withdrawRepayParams calldata repayData
   ) external;

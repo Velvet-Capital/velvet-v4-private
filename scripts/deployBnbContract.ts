@@ -108,7 +108,7 @@ async function main() {
   const VenusAssetHandler = await ethers.getContractFactory(
     "VenusAssetHandler"
   );
-  const venusAssetHandler = await VenusAssetHandler.deploy();
+  const venusAssetHandler = await VenusAssetHandler.deploy(addresses.vBNB_Address, addresses.WETH_Address);
   await venusAssetHandler.deployed();
 
   console.log("venusAssetHandler address:", venusAssetHandler.address);

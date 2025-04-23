@@ -300,22 +300,10 @@ abstract contract PositionManagerAbstract is
     uint256 _amount0,
     uint256 _amount1
   ) internal {
-    // Reset the allowance for token0 to zero before setting it to a new value
-
-    TransferHelper.safeApprove(_token0, address(uniswapV3PositionManager), 0);
-    TransferHelper.safeApprove(_token1, address(uniswapV3PositionManager), 0);
 
     // Reset the allowance for token1 to zero before setting it to a new value
-    TransferHelper.safeApprove(
-      _token0,
-      address(uniswapV3PositionManager),
-      _amount0
-    );
-    TransferHelper.safeApprove(
-      _token1,
-      address(uniswapV3PositionManager),
-      _amount1
-    );
+    _safeApprove(_token0, address(uniswapV3PositionManager), _amount0);
+    _safeApprove(_token1, address(uniswapV3PositionManager), _amount1);
   }
 
   /**
@@ -353,6 +341,17 @@ abstract contract PositionManagerAbstract is
         _amount1
       );
     }
+  }
+
+  /**
+   * @notice Helper function to safely approve a token for a spender.
+   * @param token The address of the token to approve.
+   * @param spender The address of the spender.
+   * @param amount The amount to approve.
+   */
+  function _safeApprove(address token, address spender, uint256 amount) internal {
+    try IERC20Upgradeable(token).approve(spender, 0) {} catch {}
+    TransferHelper.safeApprove(token, spender, amount);
   }
 
   /**

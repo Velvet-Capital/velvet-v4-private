@@ -615,10 +615,10 @@ describe.only("Tests for Deposit", () => {
               _flashLoanToken: zeroAddress, //Token to take flashlaon
               _bufferUnit: "0",
               _solverHandler: ensoHandler.address, //Handler to swap
-              _flashLoanAmount: [0],
-              firstSwapData: ["0x"],
-              secondSwapData: ["0x"],
-              _poolFees: [0],
+              _flashLoanAmount: [[0]],
+              firstSwapData: [["0x"]],
+              secondSwapData: [["0x"]],
+              _poolFees: [[0]],
               _swapHandler: swapHandler.address,
               isDexRepayment: false,
             },
@@ -684,11 +684,11 @@ describe.only("Tests for Deposit", () => {
               _flashLoanToken: zeroAddress, //Token to take flashlaon
               _bufferUnit: "0",
               _solverHandler: ensoHandler.address, //Handler to swap
-              _flashLoanAmount: [0],
-              firstSwapData: ["0x"],
-              secondSwapData: ["0x"],
+              _flashLoanAmount: [[0]],
+              firstSwapData: [["0x"]],
+              secondSwapData: [["0x"]],
               _swapHandler: swapHandler.address,
-              _poolFees: [0],
+              _poolFees: [[0]],
               isDexRepayment: false,
             },
             responses
@@ -716,11 +716,11 @@ describe.only("Tests for Deposit", () => {
               _flashLoanToken: zeroAddress, //Token to take flashlaon
               _bufferUnit: "0",
               _solverHandler: ensoHandler.address, //Handler to swap
-              _flashLoanAmount: [0],
-              firstSwapData: ["0x"],
-              secondSwapData: ["0x"],
+              _flashLoanAmount: [[0]],
+              firstSwapData: [["0x"]],
+              secondSwapData: [["0x"]],
               _swapHandler: swapHandler.address,
-              _poolFees: [0],
+              _poolFees: [[0]],
               isDexRepayment: false,
             },
             ["0x"]
@@ -789,11 +789,11 @@ describe.only("Tests for Deposit", () => {
             _flashLoanToken: zeroAddress, //Token to take flashlaon
             _bufferUnit: "0",
             _solverHandler: ensoHandler.address, //Handler to swap
-            _flashLoanAmount: [0],
-            firstSwapData: ["0x"],
-            secondSwapData: ["0x"],
+            _flashLoanAmount: [[0]],
+            firstSwapData: [["0x"]],
+            secondSwapData: [["0x"]],
             _swapHandler: swapHandler.address,
-            _poolFees: [0],
+            _poolFees: [[0]],
             isDexRepayment: false,
           },
           responses
@@ -872,11 +872,11 @@ describe.only("Tests for Deposit", () => {
             _flashLoanToken: zeroAddress, //Token to take flashlaon
             _bufferUnit: "0",
             _solverHandler: ensoHandler.address, //Handler to swap
-            _flashLoanAmount: [0],
-            firstSwapData: ["0x"],
-            secondSwapData: ["0x"],
+            _flashLoanAmount: [[0]],
+            firstSwapData: [["0x"]],
+            secondSwapData: [["0x"]],
             _swapHandler: swapHandler.address,
-            _poolFees: [0],
+            _poolFees: [[0]],
             isDexRepayment: false,
           },
           responses

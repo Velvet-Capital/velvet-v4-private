@@ -112,6 +112,21 @@ contract AaveAssetHandler is IAssetHandler {
     address flashLoanToken;
     ISwapHandler swapHandler;
   }
+  /// @notice Parameters for flash loan processing
+  /// @param vault Address of the vault holding the assets
+  /// @param receiver Address receiving the withdrawn assets
+  /// @param portfolioTokenAmount Amount of portfolio tokens to process
+  /// @param totalSupply Total supply of portfolio tokens
+  /// @param counter Counter for the flash loan
+  /// @param borrowedTokens Array of borrowed token addresses
+  struct FlashLoanParams {
+    address vault;
+    address receiver;
+    uint256 portfolioTokenAmount;
+    uint256 totalSupply;
+    uint256 counter;
+    address[] borrowedTokens;
+  }
 
   /**
    * @notice Returns the balance of the specified asset in the given pool.
@@ -258,10 +273,12 @@ contract AaveAssetHandler is IAssetHandler {
 
     uint256 portfolioTokensLength = portfolioTokens.length;
     for (uint i = 0; i < portfolioTokensLength; i++) {
-      try IAaveToken(portfolioTokens[i]).UNDERLYING_ASSET_ADDRESS() {
-        lendTokens[lendCount++] = portfolioTokens[i];
-      } catch {}
+      address token = portfolioTokens[i];
+      if (isValidAaveToken(token)) {
+        lendTokens[lendCount++] = token;
+      }
     }
+    
 
     for (uint i = 0; i < assetsCount; ) {
       address asset = assets[i];
@@ -356,35 +373,20 @@ contract AaveAssetHandler is IAssetHandler {
   }
 
   /**
-   * @notice Returns the investible balance of a token for a specific vault.
-   * @param _token The address of the token.
-   * @param _vault The address of the vault.
-   * @param _controller The address of the aave pool logic address.
-   * @return The investible balance of the token.
+   * @notice Checks if a token is a valid Aave token by verifying if it has an underlying asset address.
+   * @param token The address of the token to check.
+   * @return isValid True if the token is a valid Aave token, false otherwise.
    */
-  function getInvestibleBalance(
-    address _token,
-    address _vault,
-    address _controller,
-    address[] memory portfolioTokens
-  ) external view returns (uint256) {
-    // Get the account data for the vault
-    (FunctionParameters.AccountData memory accountData, ) = getUserAccountData(
-      _vault,
-      _controller,
-      portfolioTokens
+  function isValidAaveToken(address token) internal view returns (bool) {
+    (bool success, bytes memory data) = token.staticcall(
+        abi.encodeWithSelector(IAaveToken.UNDERLYING_ASSET_ADDRESS.selector)
     );
-
-    // Calculate the unused collateral percentage
-    uint256 unusedCollateralPercentage = accountData.totalCollateral == 0
-      ? 10 ** 18
-      : ((accountData.totalCollateral - accountData.totalDebt) * 10 ** 18) /
-        accountData.totalCollateral;
-
-    uint256 tokenBalance = IERC20Upgradeable(_token).balanceOf(_vault); // Get the balance of the token in the vault
-
-    return (tokenBalance * unusedCollateralPercentage) / 10 ** 18; // Calculate and return the investible balance
-  }
+    if (success && data.length == 32) {
+        address underlying = address(uint160(uint256(bytes32(data))));
+        return underlying != address(0);
+    }
+    return false;
+}
 
   /// @notice Processes a loan using DEX for swaps and transfers
   /// @param vault Address of the vault holding the assets
@@ -1238,6 +1240,7 @@ contract AaveAssetHandler is IAssetHandler {
     address _receiver,
     uint256 _portfolioTokenAmount,
     uint256 _totalSupply,
+    uint256 _counter,
     address[] memory borrowedTokens,
     FunctionParameters.withdrawRepayParams calldata repayData
   ) external override {
@@ -1245,20 +1248,19 @@ contract AaveAssetHandler is IAssetHandler {
     address[] memory underlying = new address[](borrowedLength); // Array to store underlying tokens of borrowed assets
     uint256[] memory tokenBalance = new uint256[](borrowedLength); // Array to store balances of borrowed tokens
     uint256 totalFlashAmount; // Variable to track total flash loan amount
-    underlying = new address[](borrowedLength);
-    tokenBalance = new uint256[](borrowedLength);
+
+    FlashLoanParams memory params = FlashLoanParams({
+        vault: _vault,
+        receiver: _receiver,
+        portfolioTokenAmount: _portfolioTokenAmount,
+        totalSupply: _totalSupply,
+        counter: _counter,
+        borrowedTokens: borrowedTokens
+    });
 
     for (uint256 i; i < borrowedLength; ) {
-      address _underlyingToken = IAaveToken(borrowedTokens[i])
-        .UNDERLYING_ASSET_ADDRESS();
-      (, , uint currentVariableDebt, , , , , , ) = IPoolDataProvider(
-        IPoolAddressesProvider(AAVE_ADDRESS_PROVIDER).getPoolDataProvider()
-      ).getUserReserveData(_underlyingToken, _vault);
-      underlying[i] = _underlyingToken; // Get the underlying asset for the borrowed token
-      tokenBalance[i] =
-        (currentVariableDebt * _portfolioTokenAmount) /
-        _totalSupply; // Calculate the portion of the debt to repay
-      totalFlashAmount += repayData._flashLoanAmount[i]; // Accumulate the total flash loan amount
+      (underlying[i], tokenBalance[i],) = processToken(params, i);
+      totalFlashAmount += repayData._flashLoanAmount[_counter][i]; // Accumulate the total flash loan amount
       unchecked {
         ++i;
       }
@@ -1274,11 +1276,11 @@ contract AaveAssetHandler is IAssetHandler {
         solverHandler: repayData._solverHandler,
         swapHandler: repayData._swapHandler,
         poolAddress: repayData._factory,
-        flashLoanAmount: repayData._flashLoanAmount,
+        flashLoanAmount: repayData._flashLoanAmount[_counter],
         debtRepayAmount: tokenBalance,
-        poolFees: repayData._poolFees,
-        firstSwapData: repayData.firstSwapData,
-        secondSwapData: repayData.secondSwapData,
+        poolFees: repayData._poolFees[_counter],
+        firstSwapData: repayData.firstSwapData[_counter],
+        secondSwapData: repayData.secondSwapData[_counter],
         isMaxRepayment: false,
         isDexRepayment: repayData.isDexRepayment
       });
@@ -1348,7 +1350,7 @@ contract AaveAssetHandler is IAssetHandler {
   function isCollateralEnabled(
     address token,
     address vault,
-    address controller
+    address
   ) external view returns (bool) {
     try
       IPoolDataProvider(
@@ -1372,5 +1374,31 @@ contract AaveAssetHandler is IAssetHandler {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * @notice Helper function to process a token for flash loan processing.
+   * @param params The parameters for the flash loan.
+   * @param index The index of the token to process.
+   * @return underlyingToken The underlying token address.
+   * @return tokenBal The token balance.
+   * @return flashAmount The flash loan amount.
+   */
+  function processToken(
+    FlashLoanParams memory params,
+    uint256 index
+  ) private view returns (
+    address underlyingToken,
+    uint256 tokenBal,
+    uint256 flashAmount
+  ) {
+    underlyingToken = IAaveToken(params.borrowedTokens[index]).UNDERLYING_ASSET_ADDRESS();
+    
+    (, , uint256 currentVariableDebt, , , , , , ) = IPoolDataProvider(
+        IPoolAddressesProvider(AAVE_ADDRESS_PROVIDER).getPoolDataProvider()
+    ).getUserReserveData(underlyingToken, params.vault);
+    
+    tokenBal = (currentVariableDebt * params.portfolioTokenAmount) / params.totalSupply;
+    return (underlyingToken, tokenBal, currentVariableDebt);
   }
 }

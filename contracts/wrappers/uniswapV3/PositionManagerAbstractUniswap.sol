@@ -404,12 +404,7 @@ abstract contract PositionManagerAbstractUniswap is PositionManagerAbstract {
       revert ErrorLibrary.InvalidTokenAddress();
     }
 
-    TransferHelper.safeApprove(_params._tokenIn, address(router), 0);
-    TransferHelper.safeApprove(
-      _params._tokenIn,
-      address(router),
-      _params._amountIn
-    );
+    _safeApprove(_params._tokenIn, address(router), _params._amountIn);
 
     uint256 balanceTokenInBeforeSwap = IERC20Upgradeable(_params._tokenIn)
       .balanceOf(address(this));
@@ -456,6 +451,17 @@ abstract contract PositionManagerAbstractUniswap is PositionManagerAbstract {
       balanceTokenInBeforeSwap,
       balanceTokenInAfterSwap
     );
+  }
+
+  /**
+   * @notice Helper function to safely approve a token for a spender.
+   * @param token The address of the token to approve.
+   * @param spender The address of the spender.
+   * @param amount The amount to approve.
+   */
+  function _safeApprove(address token, address spender, uint256 amount) internal {
+    try IERC20Upgradeable(token).approve(spender, 0) {} catch {}
+    TransferHelper.safeApprove(token, spender, amount);
   }
 
   function _verifyZeroSwapAmount(
