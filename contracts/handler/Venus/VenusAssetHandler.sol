@@ -523,35 +523,51 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
   }
 
   /**
-   * @notice Internal function to update liquidity variables with asset snapshot data.
-   * @param asset The Venus pool asset to process.
+   * @notice Safely updates liquidity calculation variables with the latest available snapshot data.
+   * @dev Tries to get a fresh exchange rate via staticcall to `exchangeRateCurrent()`, 
+   *      and falls back to the stored rate if that fails. 
+   *      Keeps the function pure `view` for compatibility.
+   * @param asset The Venus vToken asset to process.
    * @param account The address of the user account.
    * @param vars The struct holding liquidity calculation variables.
-   * @return shouldContinue Boolean indicating whether to continue the loop.
+   * @return shouldContinue Boolean indicating whether to skip processing this asset.
    */
   function updateVarsWithSnapshot(
     IVenusPool asset,
     address account,
     AccountLiquidityLocalVars memory vars
   ) internal view returns (bool shouldContinue) {
+    // Get snapshot values (includes vToken balance, borrow balance, and exchangeRateStored)
     (
       uint oErr,
       uint vTokenBalance,
       uint borrowBalance,
-      uint exchangeRateMantissa
-    ) = asset.getAccountSnapshot(account); // Get the snapshot of the account in the asset
+      uint storedExchangeRate
+    ) = asset.getAccountSnapshot(account);
 
+    // If error from Venus, skip this asset
     if (oErr != 0) {
-      return true; // Indicate that the loop should continue and skip this asset if there was an error
+      return true;
     }
 
-    // Update the variables with the snapshot data
+    // Try to get the latest exchange rate using staticcall (non-reverting and gas-capped)
+    uint exchangeRateMantissa = storedExchangeRate;
+    (bool success, bytes memory result) = address(asset).staticcall{gas: 100_000}(
+      abi.encodeWithSelector(asset.exchangeRateCurrent.selector)
+    );
+
+    if (success && result.length == 32) {
+      exchangeRateMantissa = abi.decode(result, (uint256));
+    }
+
+    // Update the vars struct with current values
     vars.vTokenBalance = vTokenBalance;
     vars.borrowBalance = borrowBalance;
     vars.exchangeRateMantissa = exchangeRateMantissa;
 
-    return false; // No error, proceed with processing this asset
+    return false; // All good — continue with this asset
   }
+
 
   /**
    * @notice Internal function to process token balances and update liquidity variables.
