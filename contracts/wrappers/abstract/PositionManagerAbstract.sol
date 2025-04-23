@@ -302,8 +302,8 @@ abstract contract PositionManagerAbstract is
   ) internal {
 
     // Reset the allowance for token1 to zero before setting it to a new value
-    _safeApprove(_token0, address(uniswapV3PositionManager), _amount0);
-    _safeApprove(_token1, address(uniswapV3PositionManager), _amount1);
+    _safeApproveInternal(_token0, address(uniswapV3PositionManager), _amount0);
+    _safeApproveInternal(_token1, address(uniswapV3PositionManager), _amount1);
   }
 
   /**
@@ -349,7 +349,7 @@ abstract contract PositionManagerAbstract is
    * @param spender The address of the spender.
    * @param amount The amount to approve.
    */
-  function _safeApprove(address token, address spender, uint256 amount) internal {
+  function _safeApproveInternal(address token, address spender, uint256 amount) internal {
     try IERC20Upgradeable(token).approve(spender, 0) {} catch {}
     TransferHelper.safeApprove(token, spender, amount);
   }
