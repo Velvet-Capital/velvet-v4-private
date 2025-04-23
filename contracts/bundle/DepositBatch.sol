@@ -123,7 +123,6 @@ contract DepositBatch is ReentrancyGuard {
     TransferHelper.safeApprove(token, spender, amount);
   }
 
-
   /**
    * @notice Helper function to get balance of any token for any user.
    * @param _token Address of token to get balance.

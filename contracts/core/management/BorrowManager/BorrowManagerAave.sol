@@ -75,7 +75,7 @@ contract BorrowManagerAave is AbstractBorrowManager, IFlashLoanReceiver {
     // Calculate the amount owed including the fee
     uint256 amountOwed = totalFlashAmount + premiums[0];
 
-    TransferHelper.safeApprove(
+    _safeApprove(
       flashData.flashLoanToken,
       controller,
       amountOwed
@@ -84,5 +84,16 @@ contract BorrowManagerAave is AbstractBorrowManager, IFlashLoanReceiver {
     //Reset the flash loan state to prevent subsequent unauthorized callbacks
     _isFlashLoanActive = false;
     return true;
+  }
+
+  /**
+   * @notice Helper function to safely approve a token for a spender.
+   * @param token The address of the token to approve.
+   * @param spender The address of the spender.
+   * @param amount The amount to approve.
+   */
+  function _safeApprove(address token, address spender, uint256 amount) internal {
+    try IERC20Upgradeable(token).approve(spender, 0) {} catch {}
+    TransferHelper.safeApprove(token, spender, amount);
   }
 }

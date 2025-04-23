@@ -257,23 +257,14 @@ contract DepositBatchExternalPositions is ReentrancyGuard {
     IPositionManager positionManager,
     IPositionWrapper positionWrapper
   ) internal {
-    // Approve position manager to increase liqudity
-    TransferHelper.safeApprove(
-      _params._swapTokens[_params._index0[i]],
-      address(positionManager),
-      0
-    );
-    TransferHelper.safeApprove(
+
+    _safeApprove(
       _params._swapTokens[_params._index0[i]],
       address(positionManager),
       _swapResults[_params._index0[i]]
     );
-    TransferHelper.safeApprove(
-      _params._swapTokens[_params._index1[i]],
-      address(positionManager),
-      0
-    );
-    TransferHelper.safeApprove(
+
+    _safeApprove(
       _params._swapTokens[_params._index1[i]],
       address(positionManager),
       _swapResults[_params._index1[i]]
