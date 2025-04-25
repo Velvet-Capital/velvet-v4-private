@@ -366,6 +366,11 @@ describe.only("Tests for Deposit", () => {
         portfolioFactoryInstance.address
       );
 
+      await portfolioFactory.setPositionManagerAddresses(
+        "0xbf77b742eE1c0a6883c009Ce590A832DeBe74064",
+        "0x76689a9Be4759F9cEcb5a1d86d4f371b6DB4C7a6"
+      );
+
       await withdrawManager.initialize(
         withdrawBatch.address,
         portfolioFactory.address
@@ -466,7 +471,7 @@ describe.only("Tests for Deposit", () => {
       await protocolConfig.enableProtocol(
         thenaProtocolHash,
         "0xbf77b742eE1c0a6883c009Ce590A832DeBe74064",
-        "0x327dd3208f0bcf590a66110acb6e5e6941a4efa0",
+        "0x76689a9Be4759F9cEcb5a1d86d4f371b6DB4C7a6",
         positionWrapperBaseAddress.address
       );
 
@@ -1403,8 +1408,6 @@ describe.only("Tests for Deposit", () => {
           newTickLower,
           newTickUpper
         );
-
-        console.log("updateRangeData", updateRangeData);
 
         await positionManager.updateRange({
           _positionWrapper: position1,
