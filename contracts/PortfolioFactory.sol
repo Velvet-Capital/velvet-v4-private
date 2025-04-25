@@ -44,9 +44,6 @@ contract PortfolioFactory is
   address public gnosisMultisendLibrary;
   address public gnosisSafeProxyFactory;
 
-  address public nftManagerAddress;
-  address public swapRouterV3Address;
-
   uint256 public portfolioId;
 
   // The mapping is used to track the deployed portfolio addresses.
@@ -151,20 +148,6 @@ contract PortfolioFactory is
     gnosisFallbackLibrary = initData._gnosisFallbackLibrary;
     gnosisMultisendLibrary = initData._gnosisMultisendLibrary;
     gnosisSafeProxyFactory = initData._gnosisSafeProxyFactory;
-  }
-
-  /**
-   * @notice Sets the addresses for NFT manager and swap router used by position managers
-   * @dev Can only be called by contract owner
-   * @param _nftManager Address of the Uniswap V3 NFT position manager contract
-   * @param _swapRouterV3 Address of the Uniswap V3 swap router contract
-   */
-  function setPositionManagerAddresses(
-    address _nftManager,
-    address _swapRouterV3
-  ) external onlyOwner {
-    nftManagerAddress = _nftManager;
-    swapRouterV3Address = _swapRouterV3;
   }
 
   /**

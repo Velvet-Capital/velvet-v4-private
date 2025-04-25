@@ -473,11 +473,6 @@ describe.only("Tests for Deposit", () => {
         portfolioFactoryInstance.address
       );
 
-      await portfolioFactory.setPositionManagerAddresses(
-        "0xa51adb08cbe6ae398046a23bec013979816b77ab",
-        "0x327dd3208f0bcf590a66110acb6e5e6941a4efa0"
-      );
-
       await withdrawManager.initialize(
         withdrawBatch.address,
         portfolioFactory.address

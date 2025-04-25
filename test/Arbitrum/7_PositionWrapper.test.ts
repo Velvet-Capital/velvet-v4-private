@@ -306,11 +306,6 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         portfolioFactoryInstance.address
       );
 
-      await portfolioFactory.setPositionManagerAddresses(
-        "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
-        "0xE592427A0AEce92De3Edee1F18E0157C05861564"
-      );
-
       console.log("portfolioFactory address:", portfolioFactory.address);
       const portfolioFactoryCreate =
         await portfolioFactory.createPortfolioNonCustodial({
