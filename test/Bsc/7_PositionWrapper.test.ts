@@ -755,6 +755,7 @@ describe.only("Tests for Deposit", () => {
             _amount1Desired: 1000,
             _amount0Min: 0,
             _amount1Min: 0,
+            _swapDeployer: zeroAddress,
             _tokenIn: await positionWrapper.token0(),
             _tokenOut: await positionWrapper.token1(),
             _amountIn: 0,
@@ -774,6 +775,7 @@ describe.only("Tests for Deposit", () => {
             10000,
             0,
             0,
+            zeroAddress,
             await positionWrapper.token0(),
             await positionWrapper.token1(),
             0,
@@ -794,6 +796,7 @@ describe.only("Tests for Deposit", () => {
             10000,
             0,
             0,
+            zeroAddress,
             await positionWrapper.token0(),
             await positionWrapper.token1(),
             0,
@@ -814,6 +817,7 @@ describe.only("Tests for Deposit", () => {
         await expect(
           positionManager.updateRange({
             _positionWrapper: position1,
+            _swapDeployer: zeroAddress,
             _tokenIn: token0,
             _tokenOut: token1,
             _deployer: zeroAddress,
@@ -1311,6 +1315,7 @@ describe.only("Tests for Deposit", () => {
         await expect(
           positionManager.connect(nonOwner).updateRange({
             _positionWrapper: position1,
+            _swapDeployer: zeroAddress,
             _tokenIn: token0,
             _tokenOut: token1,
             _deployer: zeroAddress,
@@ -1339,6 +1344,7 @@ describe.only("Tests for Deposit", () => {
         await expect(
           positionManager.updateRange({
             _positionWrapper: position1,
+            _swapDeployer: zeroAddress,
             _tokenIn: token0,
             _tokenOut: token1,
             _deployer: zeroAddress,
@@ -1370,6 +1376,7 @@ describe.only("Tests for Deposit", () => {
         await expect(
           positionManager.updateRange({
             _positionWrapper: position1,
+            _swapDeployer: zeroAddress,
             _tokenIn: token0,
             _tokenOut: token1,
             _deployer: zeroAddress,
@@ -1404,6 +1411,7 @@ describe.only("Tests for Deposit", () => {
 
         await positionManager.updateRange({
           _positionWrapper: position1,
+          _swapDeployer: zeroAddress,
           _tokenIn: updateRangeData.tokenIn,
           _tokenOut: updateRangeData.tokenOut,
           _deployer: zeroAddress,

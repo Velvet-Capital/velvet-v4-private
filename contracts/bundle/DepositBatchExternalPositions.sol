@@ -257,7 +257,6 @@ contract DepositBatchExternalPositions is ReentrancyGuard {
     IPositionManager positionManager,
     IPositionWrapper positionWrapper
   ) internal {
-
     _safeApprove(
       _params._swapTokens[_params._index0[i]],
       address(positionManager),
@@ -293,6 +292,7 @@ contract DepositBatchExternalPositions is ReentrancyGuard {
           _amount1Desired: _swapResults[_params._index1[i]],
           _amount0Min: _params._amount0Min[i],
           _amount1Min: _params._amount1Min[i],
+          _swapDeployer: _params._swapDeployer[i],
           _tokenIn: _params._tokenIn[i],
           _tokenOut: _params._tokenOut[i],
           _amountIn: _params._amountIn[i],
@@ -308,7 +308,11 @@ contract DepositBatchExternalPositions is ReentrancyGuard {
    * @param spender The address of the spender.
    * @param amount The amount to approve.
    */
-  function _safeApprove(address token, address spender, uint256 amount) internal {
+  function _safeApprove(
+    address token,
+    address spender,
+    uint256 amount
+  ) internal {
     try IERC20(token).approve(spender, 0) {} catch {}
     TransferHelper.safeApprove(token, spender, amount);
   }

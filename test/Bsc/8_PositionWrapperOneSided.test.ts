@@ -260,7 +260,10 @@ describe.only("Tests for Deposit", () => {
       const VenusAssetHandler = await ethers.getContractFactory(
         "VenusAssetHandler"
       );
-      venusAssetHandler = await VenusAssetHandler.deploy(addresses.vBNB_Address, addresses.WETH_Address);
+      venusAssetHandler = await VenusAssetHandler.deploy(
+        addresses.vBNB_Address,
+        addresses.WETH_Address
+      );
       await venusAssetHandler.deployed();
 
       const Portfolio = await ethers.getContractFactory("Portfolio", {
@@ -1073,6 +1076,7 @@ describe.only("Tests for Deposit", () => {
 
         await positionManager.updateRange({
           _positionWrapper: position1,
+          _swapDeployer: zeroAddress,
           _tokenIn: updateRangeData.tokenIn,
           _tokenOut: updateRangeData.tokenOut,
           _deployer: zeroAddress,
@@ -1103,6 +1107,7 @@ describe.only("Tests for Deposit", () => {
 
         await positionManager.updateRange({
           _positionWrapper: position1,
+          _swapDeployer: zeroAddress,
           _tokenIn: updateRangeData.tokenIn,
           _tokenOut: updateRangeData.tokenOut,
           _deployer: zeroAddress,
@@ -1133,6 +1138,7 @@ describe.only("Tests for Deposit", () => {
 
         await positionManager.updateRange({
           _positionWrapper: position1,
+          _swapDeployer: zeroAddress,
           _tokenIn: updateRangeData.tokenIn,
           _tokenOut: updateRangeData.tokenOut,
           _deployer: zeroAddress,

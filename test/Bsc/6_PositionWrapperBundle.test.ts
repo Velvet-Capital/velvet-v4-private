@@ -596,6 +596,7 @@ describe.only("Tests for Deposit", () => {
             _amount0Min: [0, 0],
             _amount1Min: [0, 0],
             _isExternalPosition: isExternalPosition,
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
@@ -681,6 +682,7 @@ describe.only("Tests for Deposit", () => {
             _amount0Min: [0, 0],
             _amount1Min: [0, 0],
             _isExternalPosition: isExternalPosition,
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
@@ -764,6 +766,7 @@ describe.only("Tests for Deposit", () => {
             _amount0Min: [0, 0],
             _amount1Min: [0, 0],
             _isExternalPosition: isExternalPosition,
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
@@ -862,12 +865,22 @@ describe.only("Tests for Deposit", () => {
         const callDataDecreaseLiquidity: any = [];
         // Encode the function call
         let ABI = [
-          "function decreaseLiquidity(address _positionWrapper, uint256 _withdrawalAmount, uint256 _amount0Min, uint256 _amount1Min, address tokenIn, address tokenOut, uint256 amountIn, uint24 _fee)",
+          "function decreaseLiquidity(address _positionWrapper, uint256 _withdrawalAmount, uint256 _amount0Min, uint256 _amount1Min, address _swapDeployer, address tokenIn, address tokenOut, uint256 amountIn, uint24 _fee)",
         ];
         let abiEncode = new ethers.utils.Interface(ABI);
         callDataDecreaseLiquidity[0] = abiEncode.encodeFunctionData(
           "decreaseLiquidity",
-          [sellToken, sellTokenBalance, 0, 0, token0, token1, 0, 100]
+          [
+            sellToken,
+            sellTokenBalance,
+            0,
+            0,
+            ZERO_ADDRESS,
+            token0,
+            token1,
+            0,
+            100,
+          ]
         );
 
         const encodedParameters = ethers.utils.defaultAbiCoder.encode(
@@ -1190,6 +1203,7 @@ describe.only("Tests for Deposit", () => {
             _positionWrappers: positionWrappers,
             _amountsMin0: [0, 0],
             _amountsMin1: [0, 0],
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
@@ -1313,6 +1327,7 @@ describe.only("Tests for Deposit", () => {
             _positionWrappers: positionWrappers,
             _amountsMin0: [0, 0],
             _amountsMin1: [0, 0],
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
@@ -1401,6 +1416,7 @@ describe.only("Tests for Deposit", () => {
             _amount0Min: [0, 0],
             _amount1Min: [0, 0],
             _isExternalPosition: isExternalPosition,
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
@@ -1497,6 +1513,7 @@ describe.only("Tests for Deposit", () => {
             _amount0Min: [0, 0],
             _amount1Min: [0, 0],
             _isExternalPosition: isExternalPosition,
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
@@ -1628,6 +1645,7 @@ describe.only("Tests for Deposit", () => {
             _positionWrappers: positionWrappers,
             _amountsMin0: [0, 0],
             _amountsMin1: [0, 0],
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],

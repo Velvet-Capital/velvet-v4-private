@@ -322,6 +322,7 @@ export async function decreaseLiquidity(
       balance,
       0,
       0,
+      ethers.constants.AddressZero,
       token0,
       token1,
       0,

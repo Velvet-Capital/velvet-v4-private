@@ -70,6 +70,7 @@ interface IPositionManager {
     uint256 _withdrawalAmount,
     uint256 _amount0Min,
     uint256 _amount1Min,
+    address _swapDeployer,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,

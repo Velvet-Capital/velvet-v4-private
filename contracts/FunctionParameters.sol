@@ -378,6 +378,7 @@ library FunctionParameters {
     uint256[] _amount0Min;
     uint256[] _amount1Min;
     bool[] _isExternalPosition;
+    address[] _swapDeployer;
     address[] _tokenIn;
     address[] _tokenOut;
     uint256[] _amountIn;
@@ -400,6 +401,7 @@ library FunctionParameters {
     address[] _positionWrappers;
     uint256[] _amountsMin0;
     uint256[] _amountsMin1;
+    address[] _swapDeployer;
     address[] _tokenIn;
     address[] _tokenOut;
     uint256[] _amountIn;
@@ -422,6 +424,7 @@ library FunctionParameters {
 
   struct ExternalPositionUpdateRangeParamsAlgebra {
     IPositionWrapper _positionWrapper;
+    address _swapDeployer;
     address _tokenIn;
     address _tokenOut;
     address _deployer;

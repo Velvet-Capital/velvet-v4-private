@@ -370,7 +370,7 @@ describe.only("Tests for Deposit", () => {
 
       await portfolioFactory.setPositionManagerAddresses(
         "0xbf77b742eE1c0a6883c009Ce590A832DeBe74064",
-        "0x327dd3208f0bcf590a66110acb6e5e6941a4efa0"
+        "0x76689a9Be4759F9cEcb5a1d86d4f371b6DB4C7a6"
       );
 
       await withdrawManager.initialize(
@@ -597,6 +597,7 @@ describe.only("Tests for Deposit", () => {
             _amount0Min: [0, 0],
             _amount1Min: [0, 0],
             _isExternalPosition: isExternalPosition,
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
@@ -682,6 +683,7 @@ describe.only("Tests for Deposit", () => {
             _amount0Min: [0, 0],
             _amount1Min: [0, 0],
             _isExternalPosition: isExternalPosition,
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
@@ -765,6 +767,7 @@ describe.only("Tests for Deposit", () => {
             _amount0Min: [0, 0],
             _amount1Min: [0, 0],
             _isExternalPosition: isExternalPosition,
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
@@ -867,12 +870,22 @@ describe.only("Tests for Deposit", () => {
         const callDataDecreaseLiquidity: any = [];
         // Encode the function call
         let ABI = [
-          "function decreaseLiquidity(address _positionWrapper, uint256 _withdrawalAmount, uint256 _amount0Min, uint256 _amount1Min, address tokenIn, address tokenOut, uint256 amountIn, uint24 _fee)",
+          "function decreaseLiquidity(address _positionWrapper, uint256 _withdrawalAmount, uint256 _amount0Min, uint256 _amount1Min, address _swapDeployer, address tokenIn, address tokenOut, uint256 amountIn, uint24 _fee)",
         ];
         let abiEncode = new ethers.utils.Interface(ABI);
         callDataDecreaseLiquidity[0] = abiEncode.encodeFunctionData(
           "decreaseLiquidity",
-          [sellToken, sellTokenBalance, 0, 0, token0, token1, 0, 100]
+          [
+            sellToken,
+            sellTokenBalance,
+            0,
+            0,
+            ZERO_ADDRESS,
+            token0,
+            token1,
+            0,
+            100,
+          ]
         );
 
         const encodedParameters = ethers.utils.defaultAbiCoder.encode(
@@ -1039,6 +1052,7 @@ describe.only("Tests for Deposit", () => {
             _positionWrappers: positionWrappers,
             _amountsMin0: [0, 0],
             _amountsMin1: [0, 0],
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
@@ -1162,6 +1176,7 @@ describe.only("Tests for Deposit", () => {
             _positionWrappers: positionWrappers,
             _amountsMin0: [0, 0],
             _amountsMin1: [0, 0],
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
@@ -1250,6 +1265,7 @@ describe.only("Tests for Deposit", () => {
             _amount0Min: [0],
             _amount1Min: [0],
             _isExternalPosition: isExternalPosition,
+            _swapDeployer: [ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS],
             _amountIn: ["0"],
@@ -1346,6 +1362,7 @@ describe.only("Tests for Deposit", () => {
             _amount0Min: [0],
             _amount1Min: [0],
             _isExternalPosition: isExternalPosition,
+            _swapDeployer: [ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS],
             _amountIn: ["0"],
@@ -1473,6 +1490,7 @@ describe.only("Tests for Deposit", () => {
             _positionWrappers: positionWrappers,
             _amountsMin0: [0, 0],
             _amountsMin1: [0, 0],
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
