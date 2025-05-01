@@ -788,7 +788,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         )[2];
 
         console.log("before getUserAccountData");
-        const userData = await aaveAssetHandler.getUserAccountData(
+        const userData = await aaveAssetHandler.callStatic.getUserAccountData(
           vault,
           addresses.aavePool,
           await portfolio.getTokens()
@@ -875,7 +875,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         console.log("amountPortfolioToken", amountPortfolioToken);
 
         let withdrawalAmounts =
-          await portfolioCalculations.getWithdrawalAmounts(
+          await portfolioCalculations.callStatic.getWithdrawalAmounts(
             amountPortfolioToken,
             portfolio.address
           );

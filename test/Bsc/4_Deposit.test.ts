@@ -1000,7 +1000,7 @@ describe.only("Tests for Deposit", () => {
       //   const signature = await owner._signTypedData(domain, types, values);
 
       //   // Calculation to make minimum amount value for user---------------------------------
-      //   let result = await portfolioCalculations.getUserAmountToDeposit(
+      //   let result = await portfolioCalculations.callStatic.getUserAmountToDeposit(
       //     amounts,
       //   );
       //   //-----------------------------------------------------------------------------------
@@ -1218,7 +1218,7 @@ describe.only("Tests for Deposit", () => {
         const signature = await nonOwner._signTypedData(domain, types, values);
 
         // Calculation to make minimum amount value for user---------------------------------
-        let result = await portfolioCalculations.getUserAmountToDeposit(
+        let result = await portfolioCalculations.callStatic.getUserAmountToDeposit(
           amounts,
           portfolio.address
         );
@@ -1310,7 +1310,7 @@ describe.only("Tests for Deposit", () => {
       //   const signature = await nonOwner._signTypedData(domain, types, values);
 
       //   // Calculation to make minimum amount value for user---------------------------------
-      //   let result = await portfolioCalculations.getUserAmountToDeposit(
+      //   let result = await portfolioCalculations.callStatic.getUserAmountToDeposit(
       //     amounts,
       //   );
       //   //-----------------------------------------------------------------------------------
@@ -1518,7 +1518,7 @@ describe.only("Tests for Deposit", () => {
         const signature = await nonOwner._signTypedData(domain, types, values);
 
         // Calculation to make minimum amount value for user---------------------------------
-        let result = await portfolioCalculations1.getUserAmountToDeposit(
+        let result = await portfolioCalculations1.callStatic.getUserAmountToDeposit(
           amounts,
           portfolio.address
         );
@@ -3128,6 +3128,7 @@ describe.only("Tests for Deposit", () => {
             .claimRewardTokens(
               addresses.venus_RewardToken,
               "0xfD36E2c2a6789Db23113685031d7F16329158384",
+              "0",
               txData
             )
         ).to.be.revertedWithCustomError(rebalancing, "CallerNotAssetManager");
@@ -3152,7 +3153,7 @@ describe.only("Tests for Deposit", () => {
         await protocolConfig.enableRewardTarget(token);
 
         await expect(
-          rebalancing.claimRewardTokens(token, token, txData)
+          rebalancing.claimRewardTokens(token, token,0, txData)
         ).to.be.revertedWithCustomError(rebalancing, "ClaimFailed");
       });
     });

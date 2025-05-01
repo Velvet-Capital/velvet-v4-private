@@ -349,7 +349,7 @@ abstract contract PositionManagerAbstract is
    * @param spender The address of the spender.
    * @param amount The amount to approve.
    */
-  function _safeApprove(address token, address spender, uint256 amount) internal {
+  function _safeApprove(address token, address spender, uint256 amount) internal virtual{
     try IERC20Upgradeable(token).approve(spender, 0) {} catch {}
     TransferHelper.safeApprove(token, spender, amount);
   }

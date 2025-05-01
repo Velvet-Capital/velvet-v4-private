@@ -1098,7 +1098,7 @@ describe.only("Tests for Deposit", () => {
         const tokens = await portfolio.getTokens();
 
         let withdrawalAmounts =
-          await portfolioCalculations.getWithdrawalAmounts(
+          await portfolioCalculations.callStatic.getWithdrawalAmounts(
             amountPortfolioToken,
             portfolio.address
           );
@@ -1225,7 +1225,7 @@ describe.only("Tests for Deposit", () => {
         const tokens = await portfolio.getTokens();
 
         let withdrawalAmounts =
-          await portfolioCalculations.getWithdrawalAmounts(
+          await portfolioCalculations.callStatic.getWithdrawalAmounts(
             amountPortfolioToken,
             portfolio.address
           );
@@ -1540,7 +1540,7 @@ describe.only("Tests for Deposit", () => {
         const tokens = await portfolio.getTokens();
 
         let withdrawalAmounts =
-          await portfolioCalculations.getWithdrawalAmounts(
+          await portfolioCalculations.callStatic.getWithdrawalAmounts(
             amountPortfolioToken,
             portfolio.address
           );

@@ -786,7 +786,7 @@ describe.only("Tests for Deposit", () => {
         const signature = await owner._signTypedData(domain, types, values);
 
         // Calculation to make minimum amount value for user---------------------------------
-        let result = await portfolioCalculations.getUserAmountToDeposit(
+        let result = await portfolioCalculations.callStatic.getUserAmountToDeposit(
           amounts,
           portfolio.address
         );
@@ -900,7 +900,7 @@ describe.only("Tests for Deposit", () => {
         const signature = await owner._signTypedData(domain, types, values);
 
         // Calculation to make minimum amount value for user---------------------------------
-        let result = await portfolioCalculations.getUserAmountToDeposit(
+        let result = await portfolioCalculations.callStatic.getUserAmountToDeposit(
           amounts,
           portfolio.address
         );
@@ -1022,7 +1022,7 @@ describe.only("Tests for Deposit", () => {
         const signature = await nonOwner._signTypedData(domain, types, values);
 
         // Calculation to make minimum amount value for user---------------------------------
-        let result = await portfolioCalculations.getUserAmountToDeposit(
+        let result = await portfolioCalculations.callStatic.getUserAmountToDeposit(
           amounts,
           portfolio.address
         );

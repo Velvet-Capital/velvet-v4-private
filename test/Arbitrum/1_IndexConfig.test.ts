@@ -895,7 +895,7 @@ describe.only("Tests for Portfolio Config", () => {
 
       it("claiming reward tokens should fail if protocol is paused", async () => {
         await expect(
-          rebalancing.claimRewardTokens(addresses.WETH, addresses.WETH, "0x")
+          rebalancing.claimRewardTokens(addresses.WETH, addresses.WETH,0, "0x")
         ).to.be.revertedWithCustomError(rebalancing, "ProtocolIsPaused");
       });
 
@@ -947,7 +947,7 @@ describe.only("Tests for Portfolio Config", () => {
 
       it("claiming reward tokens should fail if reward target is not enabled", async () => {
         await expect(
-          rebalancing.claimRewardTokens(addresses.WETH, addresses.WETH, "0x")
+          rebalancing.claimRewardTokens(addresses.WETH, addresses.WETH,0,  "0x")
         ).to.be.revertedWithCustomError(rebalancing, "RewardTargetNotEnabled");
       });
 
@@ -980,7 +980,7 @@ describe.only("Tests for Portfolio Config", () => {
       it("reward token target should be usable to claim after enabling", async () => {
         // empty calldata is passed, test case with calldata in file 4
         await expect(
-          rebalancing.claimRewardTokens(addresses.WETH, addresses.WETH, "0x")
+          rebalancing.claimRewardTokens(addresses.WETH, addresses.WETH,0, "0x")
         ).to.be.revertedWithCustomError(rebalancing, "ClaimFailed");
       });
 

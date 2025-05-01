@@ -55,7 +55,6 @@ interface IAssetHandler {
     address[] memory portfolioTokens
   )
     external
-    view
     returns (
       FunctionParameters.AccountData memory accountData,
       FunctionParameters.TokenAddresses memory tokenBalances

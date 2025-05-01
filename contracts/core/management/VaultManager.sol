@@ -700,7 +700,6 @@ abstract contract VaultManager is
     uint256[] calldata depositAmounts
   )
     internal
-    view
     returns (
       uint256,
       address[] memory,
