@@ -147,6 +147,7 @@ abstract contract PositionManagerAbstractUniswap is PositionManagerAbstract {
         _positionWrapper: params._positionWrapper,
         _tokenId: tokenId,
         _amountIn: params._amountIn,
+        _swapDeployer: address(0),
         _token0: token0,
         _token1: token1,
         _tokenIn: params._tokenIn,
@@ -459,7 +460,11 @@ abstract contract PositionManagerAbstractUniswap is PositionManagerAbstract {
    * @param spender The address of the spender.
    * @param amount The amount to approve.
    */
-  function _safeApprove(address token, address spender, uint256 amount) internal {
+  function _safeApprove(
+    address token,
+    address spender,
+    uint256 amount
+  ) internal override {
     try IERC20Upgradeable(token).approve(spender, 0) {} catch {}
     TransferHelper.safeApprove(token, spender, amount);
   }

@@ -121,6 +121,7 @@ library WrapperFunctionParameters {
     uint256 _amount1Desired;
     uint256 _amount0Min;
     uint256 _amount1Min;
+    address _swapDeployer;
     address _tokenIn;
     address _tokenOut;
     uint256 _amountIn;
@@ -144,6 +145,7 @@ library WrapperFunctionParameters {
     IPositionWrapper _positionWrapper;
     uint256 _tokenId;
     uint256 _amountIn;
+    address _swapDeployer;
     address _token0;
     address _token1;
     address _tokenIn;

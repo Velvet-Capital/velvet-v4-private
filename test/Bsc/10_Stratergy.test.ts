@@ -269,7 +269,9 @@ describe.only("Tests for Deposit", () => {
       const PancakeswapHandler = await ethers.getContractFactory(
         "PancakeSwapHandler"
       );
-      pancakeSwapHandler = await PancakeswapHandler.deploy(addresses.PancakeSwapV3RouterAddress);
+      pancakeSwapHandler = await PancakeswapHandler.deploy(
+        addresses.PancakeSwapV3RouterAddress
+      );
       await pancakeSwapHandler.deployed();
 
       protocolConfig = ProtocolConfig.attach(_protocolConfig.address);
@@ -318,7 +320,10 @@ describe.only("Tests for Deposit", () => {
       const VenusAssetHandler = await ethers.getContractFactory(
         "VenusAssetHandler"
       );
-      venusAssetHandler = await VenusAssetHandler.deploy(addresses.vBNB_Address, addresses.WETH_Address);
+      venusAssetHandler = await VenusAssetHandler.deploy(
+        addresses.vBNB_Address,
+        addresses.WETH_Address
+      );
       await venusAssetHandler.deployed();
 
       const PancakeSwapHandler = await ethers.getContractFactory(
@@ -466,11 +471,6 @@ describe.only("Tests for Deposit", () => {
 
       portfolioFactory = PortfolioFactory.attach(
         portfolioFactoryInstance.address
-      );
-
-      await portfolioFactory.setPositionManagerAddresses(
-        "0xa51adb08cbe6ae398046a23bec013979816b77ab",
-        "0x327dd3208f0bcf590a66110acb6e5e6941a4efa0"
       );
 
       await withdrawManager.initialize(
@@ -690,6 +690,7 @@ describe.only("Tests for Deposit", () => {
             _amount0Min: [1, 1],
             _amount1Min: [1, 1],
             _isExternalPosition: isExternalPosition,
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
@@ -775,6 +776,7 @@ describe.only("Tests for Deposit", () => {
             _amount0Min: [1, 1],
             _amount1Min: [1, 1],
             _isExternalPosition: isExternalPosition,
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],
@@ -858,6 +860,7 @@ describe.only("Tests for Deposit", () => {
             _amount0Min: [1, 1],
             _amount1Min: [1, 1],
             _isExternalPosition: isExternalPosition,
+            _swapDeployer: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenIn: [ZERO_ADDRESS, ZERO_ADDRESS],
             _tokenOut: [ZERO_ADDRESS, ZERO_ADDRESS],
             _amountIn: ["0", "0"],

@@ -7,6 +7,7 @@ import { INonfungiblePositionManager } from "./INonfungiblePositionManager.sol";
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import { SwapVerificationLibraryAlgebraV2 } from "./SwapVerificationLibraryAlgebraV2.sol";
 import { FunctionParameters } from "../../FunctionParameters.sol";
+import { ISwapRouter } from "./ISwapRouter.sol";
 
 /**
  * @title PositionManagerAbstractAlgebra
@@ -110,6 +111,7 @@ abstract contract PositionManagerAbstractAlgebraV1_2 is
         _positionWrapper: params._positionWrapper,
         _tokenId: tokenId,
         _amountIn: params._amountIn,
+        _swapDeployer: params._swapDeployer,
         _token0: token0,
         _token1: token1,
         _tokenIn: params._tokenIn,
@@ -377,7 +379,7 @@ abstract contract PositionManagerAbstractAlgebraV1_2 is
     address _tokenIn,
     address _tokenOut,
     address _uniswapV3PositionManager
-  ) internal override {
+  ) internal {
     SwapVerificationLibraryAlgebraV2.verifySwap(
       _tokenIn,
       _tokenOut,
@@ -394,7 +396,7 @@ abstract contract PositionManagerAbstractAlgebraV1_2 is
     uint256 _balanceTokenInBeforeSwap,
     address _tokenIn,
     address _uniswapV3PositionManager
-  ) internal override returns (uint256 balance0, uint256 balance1) {
+  ) internal returns (uint256 balance0, uint256 balance1) {
     (balance0, balance1) = SwapVerificationLibraryAlgebraV2
       .verifyRatioAfterSwap(
         protocolConfig,
@@ -417,6 +419,66 @@ abstract contract PositionManagerAbstractAlgebraV1_2 is
     SwapVerificationLibraryAlgebraV2.verifyZeroSwapAmount(
       protocolConfig,
       _params,
+      address(uniswapV3PositionManager)
+    );
+  }
+
+  /**
+   * @dev Executes a token swap via a router.
+   * @param _params Swap parameters including input and output tokens and amounts.
+   * @return balance0 New balance of token0 after swap.
+   * @return balance1 New balance of token1 after swap.
+   */
+  function _swapTokenToToken(
+    WrapperFunctionParameters.SwapParams memory _params
+  ) internal override returns (uint256 balance0, uint256 balance1) {
+    address tokenIn = _params._tokenIn;
+    address tokenOut = _params._tokenOut;
+
+    if (
+      tokenIn == tokenOut ||
+      !(tokenOut == _params._token0 || tokenOut == _params._token1) ||
+      !(tokenIn == _params._token0 || tokenIn == _params._token1)
+    ) {
+      revert ErrorLibrary.InvalidTokenAddress();
+    }
+
+    IERC20Upgradeable(tokenIn).approve(router, _params._amountIn);
+
+    uint256 balanceTokenInBeforeSwap = IERC20Upgradeable(tokenIn).balanceOf(
+      address(this)
+    );
+    uint256 balanceTokenOutBeforeSwap = IERC20Upgradeable(tokenOut).balanceOf(
+      address(this)
+    );
+
+    ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+      .ExactInputSingleParams({
+        tokenIn: tokenIn,
+        tokenOut: tokenOut,
+        deployer: _params._swapDeployer,
+        recipient: address(this),
+        deadline: block.timestamp,
+        amountIn: _params._amountIn,
+        amountOutMinimum: 0,
+        limitSqrtPrice: 0
+      });
+
+    ISwapRouter(router).exactInputSingle(params);
+
+    _verifySwap(
+      _params._amountIn,
+      balanceTokenInBeforeSwap,
+      balanceTokenOutBeforeSwap,
+      tokenIn,
+      tokenOut,
+      address(uniswapV3PositionManager)
+    );
+
+    (balance0, balance1) = _verifyRatioAfterSwap(
+      _params,
+      balanceTokenInBeforeSwap,
+      tokenIn,
       address(uniswapV3PositionManager)
     );
   }
