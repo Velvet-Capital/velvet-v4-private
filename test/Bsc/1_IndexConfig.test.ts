@@ -495,6 +495,7 @@ describe.only("Tests for Portfolio Config", () => {
           rebalancing.claimRewardTokens(
             addresses.WETH_Address,
             addresses.WETH_Address,
+            0,
             "0x"
           )
         ).to.be.revertedWithCustomError(rebalancing, "ProtocolIsPaused");
@@ -1168,6 +1169,7 @@ describe.only("Tests for Portfolio Config", () => {
           rebalancing.claimRewardTokens(
             addresses.WETH_Address,
             addresses.WETH_Address,
+            0,
             "0x"
           )
         ).to.be.revertedWithCustomError(rebalancing, "RewardTargetNotEnabled");
@@ -1211,6 +1213,7 @@ describe.only("Tests for Portfolio Config", () => {
           rebalancing.claimRewardTokens(
             addresses.WETH_Address,
             addresses.WETH_Address,
+            0,
             "0x"
           )
         ).to.be.revertedWithCustomError(rebalancing, "ClaimFailed");

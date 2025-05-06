@@ -831,7 +831,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         )[2];
 
         console.log("before getUserAccountData");
-        const userData = await aaveAssetHandler.getUserAccountData(
+        const userData = await aaveAssetHandler.callStatic.getUserAccountData(
           vault,
           addresses.aavePool,
           tokens
@@ -871,7 +871,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         console.log("flashLoanFee", flashLoanFee);
         //Because repay(rebalance) is one borrow token at a time
         const amounToSell =
-          await portfolioCalculations.getAaveCollateralAmountToSell(
+          await portfolioCalculations.callStatic.getAaveCollateralAmountToSell(
             vault,
             addresses.aavePool,
             aaveAssetHandler.address,
@@ -958,7 +958,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         console.log("amountPortfolioToken", amountPortfolioToken);
 
         let withdrawalAmounts =
-          await portfolioCalculations.getWithdrawalAmounts(
+          await portfolioCalculations.callStatic.getWithdrawalAmounts(
             amountPortfolioToken,
             portfolio.address
           );
@@ -1003,7 +1003,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         const underlyings = values[2];
         const borrowedTokens = values[3];
 
-        const userData = await aaveAssetHandler.getUserAccountData(
+        const userData = await aaveAssetHandler.callStatic.getUserAccountData(
           vault,
           addresses.aavePool,
           await portfolio.getTokens()
@@ -1063,7 +1063,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         }
 
         const amounToSell =
-          await portfolioCalculations.getAaveCollateralAmountToSell(
+          await portfolioCalculations.callStatic.getAaveCollateralAmountToSell(
             vault,
             addresses.aavePool,
             aaveAssetHandler.address,

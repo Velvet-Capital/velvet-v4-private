@@ -363,7 +363,6 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
     address[] memory
   )
     public
-    view
     returns (
       FunctionParameters.AccountData memory accountData,
       FunctionParameters.TokenAddresses memory tokenAddresses
@@ -403,7 +402,6 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
     address account
   )
     internal
-    view
     returns (
       uint totalCollateral,
       uint totalDebt,
@@ -485,7 +483,6 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
     TokenInfo memory borrowInfo
   )
     internal
-    view
     returns (
       AccountLiquidityLocalVars memory,
       TokenInfo memory,
@@ -536,28 +533,22 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
     IVenusPool asset,
     address account,
     AccountLiquidityLocalVars memory vars
-  ) internal view returns (bool shouldContinue) {
+  ) internal returns (bool shouldContinue) {
+
+    //Update the exchange rate
+    asset.exchangeRateCurrent();
+
     // Get snapshot values (includes vToken balance, borrow balance, and exchangeRateStored)
     (
       uint oErr,
       uint vTokenBalance,
       uint borrowBalance,
-      uint storedExchangeRate
+      uint exchangeRateMantissa
     ) = asset.getAccountSnapshot(account);
 
     // If error from Venus, skip this asset
     if (oErr != 0) {
       return true;
-    }
-
-    // Try to get the latest exchange rate using staticcall (non-reverting and gas-capped)
-    uint exchangeRateMantissa = storedExchangeRate;
-    (bool success, bytes memory result) = address(asset).staticcall{gas: 100_000}(
-      abi.encodeWithSelector(asset.exchangeRateCurrent.selector)
-    );
-
-    if (success && result.length == 32) {
-      exchangeRateMantissa = abi.decode(result, (uint256));
     }
 
     // Update the vars struct with current values

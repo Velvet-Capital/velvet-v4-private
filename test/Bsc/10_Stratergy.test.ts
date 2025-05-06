@@ -1267,7 +1267,7 @@ describe.only("Tests for Deposit", () => {
             [addresses.vDAI_Address],
             vault
           );
-        const userData = await venusAssetHandler.getUserAccountData(
+        const userData = await venusAssetHandler.callStatic.getUserAccountData(
           vault,
           addresses.corePool_controller,
           tokens
@@ -1307,7 +1307,7 @@ describe.only("Tests for Deposit", () => {
         let encodedParameters1 = [];
         //Because repay(rebalance) is one borrow token at a time
         const amounToSell =
-          await portfolioCalculations.getCollateralAmountToSell(
+          await portfolioCalculations.callStatic.getCollateralAmountToSell(
             vault,
             addresses.corePool_controller,
             venusAssetHandler.address,

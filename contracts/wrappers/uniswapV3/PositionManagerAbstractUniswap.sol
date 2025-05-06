@@ -454,21 +454,6 @@ abstract contract PositionManagerAbstractUniswap is PositionManagerAbstract {
     );
   }
 
-  /**
-   * @notice Helper function to safely approve a token for a spender.
-   * @param token The address of the token to approve.
-   * @param spender The address of the spender.
-   * @param amount The amount to approve.
-   */
-  function _safeApprove(
-    address token,
-    address spender,
-    uint256 amount
-  ) internal override {
-    try IERC20Upgradeable(token).approve(spender, 0) {} catch {}
-    TransferHelper.safeApprove(token, spender, amount);
-  }
-
   function _verifyZeroSwapAmount(
     IProtocolConfig protocolConfig,
     WrapperFunctionParameters.SwapParams memory _params

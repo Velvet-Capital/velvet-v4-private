@@ -545,6 +545,9 @@ abstract contract VaultManager is
       (tokenBalance * _portfolioTokenAmount) /
       totalSupplyPortfolio;
 
+    
+
+    // Execute the transfer through the safe module and check for success
     // Prepare the data for ERC20 token transfer
     bytes memory inputData = abi.encodeWithSelector(
       IERC20Upgradeable.transfer.selector,
@@ -552,24 +555,30 @@ abstract contract VaultManager is
       tokenBalance
     );
 
-    // Execute the transfer through the safe module and check for success
-    try IVelvetSafeModule(safeModule).executeWallet(_token, 0, inputData) {
-      // Check if the token balance is zero and the current token is not an exemption token, revert with an error.
-      // This check is necessary because if there is any rebase token or the protocol sets the balance to zero,
-      // we need to be able to withdraw other tokens. The balance for a withdrawal should always be >0,
-      // except when the user accepts to lose this token.
-      if (tokenBalance == 0) {
+    // Manually perform the call and decode the result
+    (bool success, bytes memory returnData) = IVelvetSafeModule(safeModule).executeWallet(
+        _token,
+        0,
+        inputData
+    );
+
+    // Confirm the call succeeded and returnData indicates success
+    bool transferSucceeded = success && (returnData.length == 0 || abi.decode(returnData, (bool)));
+
+    if (!transferSucceeded) {
+        if (_exemptionTokens[exemptionIndex] != _token) {
+            revert ErrorLibrary.InvalidExemptionTokens();
+        }
+        return (0, exemptionIndex + 1);
+    }
+
+    // Optionally still check for 0 balance (as in your old logic)
+    if (tokenBalance == 0) {
         if (_exemptionTokens[exemptionIndex] == _token) exemptionIndex += 1;
         else revert ErrorLibrary.WithdrawalAmountIsSmall();
-      }
-      return (tokenBalance, exemptionIndex);
-    } catch {
-      // Checking if exception token was mentioned in exceptionToken array
-      if (_exemptionTokens[exemptionIndex] != _token) {
-        revert ErrorLibrary.InvalidExemptionTokens();
-      }
-      return (0, exemptionIndex + 1);
     }
+
+    return (tokenBalance, exemptionIndex);
   }
 
   /**
@@ -700,7 +709,6 @@ abstract contract VaultManager is
     uint256[] calldata depositAmounts
   )
     internal
-    view
     returns (
       uint256,
       address[] memory,

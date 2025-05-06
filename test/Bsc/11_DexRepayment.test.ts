@@ -992,7 +992,7 @@ describe.only("Tests for Deposit", () => {
             vault
           );
         console.log("balanceBorrowed before repay", balanceBorrowed);
-        const userData = await venusAssetHandler.getUserAccountData(
+        const userData = await venusAssetHandler.callStatic.getUserAccountData(
           vault,
           addresses.corePool_controller,
           tokens
@@ -1018,7 +1018,7 @@ describe.only("Tests for Deposit", () => {
 
         //Because repay(rebalance) is one borrow token at a time
         const amounToSell =
-          await portfolioCalculations.getCollateralAmountToSell(
+          await portfolioCalculations.callStatic.getCollateralAmountToSell(
             vault,
             addresses.corePool_controller,
             venusAssetHandler.address,
@@ -1518,7 +1518,7 @@ describe.only("Tests for Deposit", () => {
         console.log("amountPortfolioToken", amountPortfolioToken);
 
         let withdrawalAmounts =
-          await portfolioCalculations.getWithdrawalAmounts(
+          await portfolioCalculations.callStatic.getWithdrawalAmounts(
             amountPortfolioToken,
             portfolio.address
           );
@@ -1624,7 +1624,7 @@ describe.only("Tests for Deposit", () => {
         console.log("amountPortfolioToken", amountPortfolioToken);
 
         let withdrawalAmounts =
-          await portfolioCalculations.getWithdrawalAmounts(
+          await portfolioCalculations.callStatic.getWithdrawalAmounts(
             amountPortfolioToken,
             portfolio.address
           );

@@ -34,7 +34,7 @@ library TokenBalanceLibrary {
     address vault,
     address[] memory portfolioTokens,
     IProtocolConfig _protocolConfig
-  ) public view returns (ControllerData[] memory controllersData) {
+  ) public returns (ControllerData[] memory controllersData) {
     address[] memory controllers = _protocolConfig.getSupportedControllers();
     controllersData = new ControllerData[](controllers.length);
 
@@ -104,7 +104,6 @@ library TokenBalanceLibrary {
     IProtocolConfig _protocolConfig
   )
     public
-    view
     returns (
       uint256[] memory vaultBalances,
       ControllerData[] memory controllersData
@@ -112,7 +111,7 @@ library TokenBalanceLibrary {
   {
     uint256 portfolioLength = portfolioTokens.length;
     vaultBalances = new uint256[](portfolioLength); // Initializes the array to hold fetched balances.
-
+    
     controllersData = getControllersData(
       _vault,
       portfolioTokens,
@@ -150,7 +149,6 @@ library TokenBalanceLibrary {
     if (_token == address(0) || _vault == address(0))
       revert ErrorLibrary.InvalidAddress(); // Ensures neither the token nor the vault address is zero.
     uint256 rawBalance = _getTokenBalanceOf(_token, _vault);
-    isCollateralEnabled = false;
     if (_protocolConfig.isBorrowableToken(_token)) {
       address controller = _protocolConfig.marketControllers(_token);
       ControllerData memory controllerData = findControllerData(

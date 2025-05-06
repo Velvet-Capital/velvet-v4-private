@@ -140,7 +140,7 @@ contract PortfolioCalculations is ExponentialNoError {
   function getUserAmountToDeposit(
     uint256[] memory userAmounts,
     address _portfolio
-  ) external view returns (uint256[] memory, uint256 _desiredShare) {
+  ) external returns (uint256[] memory, uint256 _desiredShare) {
     IPortfolio portfolio = IPortfolio(_portfolio);
     IProtocolConfig _protocolConfig = IProtocolConfig(
       portfolio.protocolConfig()
@@ -191,7 +191,7 @@ contract PortfolioCalculations is ExponentialNoError {
   function getWithdrawalAmounts(
     uint256 _portfolioTokenAmount,
     address _portfolio
-  ) external view returns (uint256[] memory) {
+  ) external returns (uint256[] memory) {
     IPortfolio portfolio = IPortfolio(_portfolio);
 
     address[] memory tokens = portfolio.getTokens();
@@ -666,7 +666,7 @@ contract PortfolioCalculations is ExponentialNoError {
     uint256[] memory _debtRepayAmount,
     uint256 feeUnit, //Flash loan fee unit
     uint256 bufferUnit //Buffer unit is the buffer percentage in terms of 1/100000
-  ) external view returns (uint256[] memory amounts) {
+  ) external returns (uint256[] memory amounts) {
     // Use the new struct-based return for getUserAccountData
     (
       FunctionParameters.AccountData memory accountData,
@@ -745,7 +745,7 @@ contract PortfolioCalculations is ExponentialNoError {
     uint256[] memory _debtRepayAmount,
     uint256 feeUnit, //Flash loan fee unit
     uint256 bufferUnit
-  ) public view returns (uint256[] memory amounts) {
+  ) public returns (uint256[] memory amounts) {
     (
       FunctionParameters.AccountData memory accountData,
       FunctionParameters.TokenAddresses memory tokenAddresses
