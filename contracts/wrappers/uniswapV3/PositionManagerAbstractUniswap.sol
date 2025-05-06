@@ -147,6 +147,7 @@ abstract contract PositionManagerAbstractUniswap is PositionManagerAbstract {
         _positionWrapper: params._positionWrapper,
         _tokenId: tokenId,
         _amountIn: params._amountIn,
+        _swapDeployer: address(0),
         _token0: token0,
         _token1: token1,
         _tokenIn: params._tokenIn,

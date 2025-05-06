@@ -17,7 +17,6 @@ import { IAccessController } from "../../access/IAccessController.sol";
 import { AccessRoles } from "../../access/AccessRoles.sol";
 import { IPriceOracle } from "../../oracle/IPriceOracle.sol";
 import { IExternalPositionStorage } from "./IExternalPositionStorage.sol";
-import "hardhat/console.sol";
 
 /**
  * @title PositionManagerAbstract
@@ -114,8 +113,6 @@ abstract contract PositionManagerAbstract is
     __UUPSUpgradeable_init();
     __ReentrancyGuard_init();
 
-    console.log("_externalPositionStorage", _externalPositionStorage);
-
     externalPositionStorage = IExternalPositionStorage(
       _externalPositionStorage
     );
@@ -150,6 +147,7 @@ abstract contract PositionManagerAbstract is
     _collectFeesAndReinvest(
       _params._positionWrapper,
       tokenId,
+      _params._swapDeployer,
       token0,
       token1,
       _params._tokenIn,
@@ -231,6 +229,7 @@ abstract contract PositionManagerAbstract is
     uint256 _withdrawalAmount,
     uint256 _amount0Min,
     uint256 _amount1Min,
+    address _swapDeployer,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
@@ -261,6 +260,7 @@ abstract contract PositionManagerAbstract is
       _collectFeesAndReinvest(
         _positionWrapper,
         tokenId,
+        _swapDeployer,
         _positionWrapper.token0(),
         _positionWrapper.token1(),
         tokenIn,
@@ -300,7 +300,6 @@ abstract contract PositionManagerAbstract is
     uint256 _amount0,
     uint256 _amount1
   ) internal {
-
     // Reset the allowance for token1 to zero before setting it to a new value
     _safeApprove(_token0, address(uniswapV3PositionManager), _amount0);
     _safeApprove(_token1, address(uniswapV3PositionManager), _amount1);
@@ -349,7 +348,11 @@ abstract contract PositionManagerAbstract is
    * @param spender The address of the spender.
    * @param amount The amount to approve.
    */
-  function _safeApprove(address token, address spender, uint256 amount) internal virtual{
+  function _safeApprove(
+    address token,
+    address spender,
+    uint256 amount
+  ) internal virtual {
     try IERC20Upgradeable(token).approve(spender, 0) {} catch {}
     TransferHelper.safeApprove(token, spender, amount);
   }
@@ -458,6 +461,7 @@ abstract contract PositionManagerAbstract is
   function _collectFeesAndReinvest(
     IPositionWrapper _positionWrapper,
     uint256 _tokenId,
+    address _deployer,
     address _token0,
     address _token1,
     address tokenIn,
@@ -482,6 +486,7 @@ abstract contract PositionManagerAbstract is
         _positionWrapper: _positionWrapper,
         _tokenId: _tokenId,
         _amountIn: amountIn,
+        _swapDeployer: _deployer,
         _token0: _token0,
         _token1: _token1,
         _tokenIn: tokenIn,

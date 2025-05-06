@@ -150,6 +150,7 @@ contract WithdrawBatchExternalPositions is ReentrancyGuard {
         MathUtils.safe128(balance),
         _params._amountsMin0[i],
         _params._amountsMin1[i],
+        _params._swapDeployer[i],
         _params._tokenIn[i],
         _params._tokenOut[i],
         _params._amountIn[i],
