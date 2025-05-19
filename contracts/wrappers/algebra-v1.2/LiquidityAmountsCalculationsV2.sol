@@ -26,8 +26,7 @@ library LiquidityAmountsCalculationsV2 {
       factory.poolByPair(_positionWrapper.token0(), _positionWrapper.token1())
     );
 
-    int24 tick = pool.globalState().tick;
-    uint160 sqrtRatioX96 = TickMath.getSqrtRatioAtTick(tick);
+    uint160 sqrtRatioX96 = pool.globalState().price;
 
     (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
       sqrtRatioX96,

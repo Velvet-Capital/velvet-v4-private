@@ -31,8 +31,7 @@ library LiquidityAmountsCalculations {
       )
     );
 
-    int24 tick = pool.slot0().tick;
-    uint160 sqrtRatioX96 = TickMath.getSqrtRatioAtTick(tick);
+    uint160 sqrtRatioX96 = pool.slot0().sqrtPriceX96;
 
     (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
       sqrtRatioX96,
