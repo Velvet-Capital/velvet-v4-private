@@ -12,6 +12,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  */
 contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
     address constant nativeToken = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE; // Represent native ETH token
+    address constant zeroAddress = 0x0000000000000000000000000000000000000000; // Represent zero address
     address immutable SWAP_TARGET; // Address of the swap target for delegatecall operations
     address immutable _this; // Address of this contract instance
     uint256 private constant _NOT_ENTERED = 1;
@@ -132,7 +133,7 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
             address(params.tokenIn),
             address(params.receiver),
             address(params.tokenOut),
-            params.feeRecipient,
+            fee > 0 ? params.feeRecipient : zeroAddress,
             params.aggregator,
             params.amountIn,
             amountOut,
@@ -153,7 +154,7 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
             address(params.tokenIn),
             address(params.receiver),
             address(params.tokenOut),
-            params.feeRecipient,
+            fee > 0 ? params.feeRecipient : zeroAddress,
             params.aggregator,
             params.amountIn,
             amountOut,
@@ -231,9 +232,11 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
         uint256 fee;
         if (feeRecipient != address(0) && feeBps != 0) {
             fee = (amountIn * feeBps) / 10000;
-            amountIn -= fee;
-            (bool success, ) = payable(feeRecipient).call{value: fee}("");
-            if (!success) revert FeeTransferFailed();
+            if (fee > 0) {
+                amountIn -= fee;
+                (bool success, ) = payable(feeRecipient).call{value: fee}("");
+                if (!success) revert FeeTransferFailed();
+            }
         }
 
         uint256 balanceBefore = tokenOut.balanceOf(address(this));
@@ -280,8 +283,14 @@ contract MetaAggregatorSwapContract is IMetaAggregatorSwapContract, Ownable {
         uint256 fee;
         if (feeRecipient != address(0) && feeBps != 0) {
             fee = (amountIn * feeBps) / 10000;
-            amountIn -= fee;
-            TransferHelper.safeTransfer(address(tokenIn), feeRecipient, fee);
+            if (fee > 0) {
+                amountIn -= fee;
+                TransferHelper.safeTransfer(
+                    address(tokenIn),
+                    feeRecipient,
+                    fee
+                );
+            }
         }
 
         if (!isDelegate) {
