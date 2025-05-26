@@ -123,6 +123,21 @@ describe.only("Tests for Deposit + Withdrawal", () => {
   function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
+
+  // Utility to get the length of deployedPositionWrappers
+  async function getDeployedPositionWrappersLength(positionManager: any) {
+    let length = 0;
+    while (true) {
+      try {
+        await positionManager.deployedPositionWrappers(length);
+        length++;
+      } catch (e) {
+        break;
+      }
+    }
+    return length;
+  }
+
   describe.only("Tests for Deposit + Withdrawal", () => {
     before(async () => {
       accounts = await ethers.getSigners();
@@ -455,6 +470,11 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         const token0 = addresses.USDT;
         const token1 = addresses.USDC;
 
+        // Get current length before creating new position
+        const lengthBefore = await getDeployedPositionWrappersLength(
+          positionManager
+        );
+
         await positionManager.createNewWrapperPosition(
           token0,
           token1,
@@ -465,7 +485,10 @@ describe.only("Tests for Deposit + Withdrawal", () => {
           MAX_TICK
         );
 
-        position1 = await positionManager.deployedPositionWrappers(0);
+        // Get the latest position (at index lengthBefore)
+        position1 = await positionManager.deployedPositionWrappers(
+          lengthBefore
+        );
 
         const PositionWrapper = await ethers.getContractFactory(
           "PositionWrapper"
@@ -478,6 +501,11 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         const token0 = addresses.USDC;
         const token1 = addresses.USDT;
 
+        // Get current length before creating new position
+        const lengthBefore = await getDeployedPositionWrappersLength(
+          positionManager
+        );
+
         await positionManager.createNewWrapperPosition(
           token0,
           token1,
@@ -488,7 +516,10 @@ describe.only("Tests for Deposit + Withdrawal", () => {
           MAX_TICK
         );
 
-        position2 = await positionManager.deployedPositionWrappers(1);
+        // Get the latest position (at index lengthBefore)
+        position2 = await positionManager.deployedPositionWrappers(
+          lengthBefore
+        );
       });
 
       it("should init tokens", async () => {

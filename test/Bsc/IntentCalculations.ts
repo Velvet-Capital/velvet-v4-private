@@ -10,6 +10,7 @@ import {
 } from "../../typechain";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Sign } from "crypto";
+import { priceOracle } from "./Deployments.test";
 
 const axios = require("axios");
 const qs = require("qs");
@@ -622,6 +623,24 @@ export async function calculateDepositAmounts(
     );
 
   // Convert amount0, amount1 to USD (here we use stable coins for testing so we can skip)
+  const PositionWrapper = await ethers.getContractFactory("PositionWrapper");
+  const positionWrapper = PositionWrapper.attach(position);
+  const token0 = await positionWrapper.token0();
+  const token1 = await positionWrapper.token1();
+
+  let token0Price = await priceOracle.convertToUSD18Decimals(
+    token0,
+    amounts.amount0
+  );
+  let token1Price = await priceOracle.convertToUSD18Decimals(
+    token1,
+    amounts.amount1
+  );
+
+  console.log("AMOUNT0", amounts.amount0);
+  console.log("token0Price", token0Price);
+  console.log("AMOUNT1", amounts.amount1);
+  console.log("token1Price", token1Price);
 
   // Get the ratios the tokens should be swapped to
   let ratio0 =
@@ -639,6 +658,61 @@ export async function calculateDepositAmounts(
   let amount1 = (Number(BigNumber.from(inputAmount)) * ratio1).toFixed(0);
 
   return { amount0, amount1 };
+}
+
+export async function calculateDepositRatio(
+  position: string,
+  newTickLower: any,
+  newTickUpper: any
+): Promise<any> {
+  const AmountCalculationsAlgebra = await ethers.getContractFactory(
+    "AmountCalculationsAlgebra"
+  );
+  const amountCalculationsAlgebra = await AmountCalculationsAlgebra.deploy();
+  await amountCalculationsAlgebra.deployed();
+
+  // Get amounts for new price range (to calculate the ratio)
+  let amounts =
+    await amountCalculationsAlgebra.callStatic.getRatioAmountsForTicks(
+      position,
+      newTickLower,
+      newTickUpper
+    );
+
+  // Convert amount0, amount1 to USD (here we use stable coins for testing so we can skip)
+  const PositionWrapper = await ethers.getContractFactory("PositionWrapper");
+  const positionWrapper = PositionWrapper.attach(position);
+  const token0 = await positionWrapper.token0();
+  const token1 = await positionWrapper.token1();
+
+  let token0Price = await priceOracle.convertToUSD18Decimals(
+    token0,
+    amounts.amount0
+  );
+  let token1Price = await priceOracle.convertToUSD18Decimals(
+    token1,
+    amounts.amount1
+  );
+
+  console.log("AMOUNT0", amounts.amount0);
+  console.log("token0Price", token0Price);
+  console.log("token0", token1);
+  console.log("AMOUNT1", amounts.amount1);
+  console.log("token1Price", token1Price);
+
+  // Get the ratios the tokens should be swapped to
+  let ratio0 =
+    Number(BigNumber.from(amounts.amount0)) /
+    Number(
+      BigNumber.from(amounts.amount0).add(BigNumber.from(amounts.amount1))
+    );
+  let ratio1 =
+    Number(BigNumber.from(amounts.amount1)) /
+    Number(
+      BigNumber.from(amounts.amount0).add(BigNumber.from(amounts.amount1))
+    );
+
+  return { ratio0, ratio1 };
 }
 
 // for deposit/withdraw same as function before but with fee amounts

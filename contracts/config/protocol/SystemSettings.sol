@@ -65,7 +65,7 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
   function __SystemSettings_init() internal onlyInitializing {
     minPortfolioTokenHoldingAmount = 1e14; // 0.0001 ETH or equivalent
     minInitialPortfolioAmount = 1e14; // 0.0001 ETH or equivalent
-    cooldownPeriod = 1 days;
+    cooldownPeriod = 0;
     assetLimit = 15;
     whitelistLimit = 300;
     allowedDustTolerance = 10; // equivalent to 0.01%
@@ -80,8 +80,6 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
   function setCoolDownPeriod(
     uint256 _newCooldownPeriod
   ) external onlyProtocolOwner {
-    if (_newCooldownPeriod < 1 minutes || _newCooldownPeriod > 14 days)
-      revert ErrorLibrary.InvalidCooldownPeriod();
     cooldownPeriod = _newCooldownPeriod;
     emit CooldownPeriodUpdated(_newCooldownPeriod);
   }
