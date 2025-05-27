@@ -1946,6 +1946,30 @@ describe.only("Tests for Portfolio Config", () => {
           positionWrapperBaseAddress.address
         );
       });
+
+      it("should fail if repay is paused", async () => {
+        await protocolConfig.setRepayPause(true);
+        await expect(
+           rebalancing.repay(addresses.corePool_controller, {
+            _factory: addresses.thena_factory,
+            _token0: addresses.USDT, //USDT - Pool token
+            _token1: addresses.USDC_Address, //USDC - Pool token
+            _flashLoanToken: addresses.USDT, //Token to take flashlaon
+            _debtToken: [addresses.USDT], //Token to pay debt of
+            _protocolToken: [addresses.USDT], // lending token in case of venus
+            _solverHandler: addresses.USDT, //Handler to swap
+            _bufferUnit: 0, //Buffer unit for collateral amount
+            _swapHandler: swapHandler.address,
+            _flashLoanAmount: [0],
+            _debtRepayAmount: [0],
+            firstSwapData: [],
+            secondSwapData: [],
+            isMaxRepayment: true,
+            _poolFees: [500, 500, 500],
+            isDexRepayment: false,
+          })
+        ).to.be.revertedWithCustomError(rebalancing, "RepayIsPaused");
+      });
     });
   });
 });

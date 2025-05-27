@@ -29,6 +29,7 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
   address[] public supportedControllers;
 
   bool public isProtocolPaused;
+  bool public isRepayPaused;
   bool public isProtocolEmergencyPaused;
 
   // Mapping to track the token with their respective controller address
@@ -47,6 +48,7 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
   mapping(address => bool) public isSupportedFactory;
 
   event ProtocolPaused(bool indexed paused);
+  event RepayPauseSet(bool indexed paused);
   event EmergencyPauseSet(bool indexed state, bool indexed unpauseProtocol);
   event MinPortfolioTokenHoldingAmountUpdated(uint256 indexed newAmount);
   event CooldownPeriodUpdated(uint256 indexed newPeriod);
@@ -95,6 +97,15 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
       revert ErrorLibrary.ProtocolEmergencyPaused();
     isProtocolPaused = _paused;
     emit ProtocolPaused(_paused);
+  }
+
+  /**
+   * @notice Sets the repay pause state.
+   * @param _paused The new pause state.
+   */
+  function setRepayPause(bool _paused) public onlyProtocolOwner {
+    isRepayPaused = _paused;
+    emit RepayPauseSet(_paused);
   }
 
   /**
