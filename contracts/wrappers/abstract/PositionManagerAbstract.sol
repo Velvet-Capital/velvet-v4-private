@@ -256,7 +256,7 @@ abstract contract PositionManagerAbstract is
     _positionWrapper.burn(msg.sender, _withdrawalAmount);
 
     // If there are still wrapper tokens in circulation, collect fees and reinvest them.
-    if (_positionWrapper.totalSupply() > 0)
+    if (totalSupplyBeforeBurn > 0)
       _collectFeesAndReinvest(
         _positionWrapper,
         tokenId,
@@ -479,48 +479,50 @@ abstract contract PositionManagerAbstract is
       })
     );
 
-    (int24 tickLower, int24 tickUpper) = _getTicksFromPosition(_tokenId);
+    if (_positionWrapper.totalSupply() > 0) {
+      (int24 tickLower, int24 tickUpper) = _getTicksFromPosition(_tokenId);
 
-    (uint256 feeCollectedT0, uint256 feeCollectedT1) = _swapTokensForAmount(
-      WrapperFunctionParameters.SwapParams({
-        _positionWrapper: _positionWrapper,
-        _tokenId: _tokenId,
-        _amountIn: amountIn,
-        _swapDeployer: _deployer,
-        _token0: _token0,
-        _token1: _token1,
-        _tokenIn: tokenIn,
-        _tokenOut: tokenOut,
-        _tickLower: tickLower,
-        _tickUpper: tickUpper,
-        _fee: _fee
-      })
-    );
-
-    // Reinvest fees if they exceed the minimum threshold for reinvestment
-    if (
-      feeCollectedT0 > MIN_REINVESTMENT_AMOUNT &&
-      feeCollectedT1 > MIN_REINVESTMENT_AMOUNT
-    ) {
-      // Approve the Uniswap manager to use the tokens for liquidity.
-      _approveNonFungiblePositionManager(
-        _token0,
-        _token1,
-        feeCollectedT0,
-        feeCollectedT1
-      );
-
-      // Increase liquidity using all collected fees
-      uniswapV3PositionManager.increaseLiquidity(
-        INonfungiblePositionManager.IncreaseLiquidityParams({
-          tokenId: _tokenId,
-          amount0Desired: feeCollectedT0,
-          amount1Desired: feeCollectedT1,
-          amount0Min: 0,
-          amount1Min: 0,
-          deadline: block.timestamp
+      (uint256 feeCollectedT0, uint256 feeCollectedT1) = _swapTokensForAmount(
+        WrapperFunctionParameters.SwapParams({
+          _positionWrapper: _positionWrapper,
+          _tokenId: _tokenId,
+          _amountIn: amountIn,
+          _swapDeployer: _deployer,
+          _token0: _token0,
+          _token1: _token1,
+          _tokenIn: tokenIn,
+          _tokenOut: tokenOut,
+          _tickLower: tickLower,
+          _tickUpper: tickUpper,
+          _fee: _fee
         })
       );
+
+      // Reinvest fees if they exceed the minimum threshold for reinvestment
+      if (
+        feeCollectedT0 > MIN_REINVESTMENT_AMOUNT &&
+        feeCollectedT1 > MIN_REINVESTMENT_AMOUNT
+      ) {
+        // Approve the Uniswap manager to use the tokens for liquidity.
+        _approveNonFungiblePositionManager(
+          _token0,
+          _token1,
+          feeCollectedT0,
+          feeCollectedT1
+        );
+
+        // Increase liquidity using all collected fees
+        uniswapV3PositionManager.increaseLiquidity(
+          INonfungiblePositionManager.IncreaseLiquidityParams({
+            tokenId: _tokenId,
+            amount0Desired: feeCollectedT0,
+            amount1Desired: feeCollectedT1,
+            amount0Min: 0,
+            amount1Min: 0,
+            deadline: block.timestamp
+          })
+        );
+      }
     }
   }
 
