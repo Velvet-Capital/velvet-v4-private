@@ -53,6 +53,8 @@ library ErrorLibrary {
   error ProtocolNotPaused();
   /// @notice Thrown when protocol is paused
   error ProtocolIsPaused();
+  /// @notice Thrown when repay is paused
+  error RepayIsPaused();
   /// @notice Thrown when token is not enabled
   error TokenNotEnabled();
   /// @notice Thrown when portfolio creation is paused

@@ -1784,6 +1784,31 @@ describe.only("Tests for Portfolio Config", () => {
       it("owner should be able to update the token removal vault module base address", async () => {
         await portfolioFactory.setTokenRemovalVaultModule(addr1.address);
       });
+
+
+      it("should fail if repay is paused", async () => {
+        await protocolConfig.setRepayPause(true);
+        await expect(
+           rebalancing.repay(addresses.aavePool, {
+            _factory: addresses.aavePool,
+            _token0: addresses.aavePool, //USDT - Pool token
+            _token1: addresses.aavePool, //USDC - Pool token
+            _flashLoanToken: addresses.ARB, //Token to take flashlaon
+            _debtToken: [addresses.ARB], //Token to pay debt of
+            _protocolToken: [addresses.aArbARB], // lending token in case of venus
+            _bufferUnit: 0, //Buffer unit for collateral amount
+            _solverHandler: addresses.aavePool, //Handler to swap
+            _swapHandler: addresses.aavePool,
+            _flashLoanAmount: [0],
+            _debtRepayAmount: [0],
+            _poolFees: [],
+            firstSwapData: [],
+            secondSwapData: [],
+            isMaxRepayment: false,
+            isDexRepayment: false,
+          })
+        ).to.be.revertedWithCustomError(rebalancing, "RepayIsPaused");
+      });
     });
   });
 });

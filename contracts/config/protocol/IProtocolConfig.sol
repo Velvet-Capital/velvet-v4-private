@@ -66,6 +66,12 @@ interface IProtocolConfig {
    */
   function isProtocolPaused() external view returns (bool);
 
+  /** 
+   * @notice Returns whether the repay is currently paused.
+   * @return True if the repay is paused, false otherwise.
+   */
+  function isRepayPaused() external view returns (bool);
+
   /**
    * @notice Returns whether the protocol is currently in an emergency paused state.
    * @return True if the protocol is in an emergency paused state, false otherwise.
@@ -89,6 +95,12 @@ interface IProtocolConfig {
    * @param _paused The new pause state.
    */
   function setProtocolPause(bool _paused) external;
+
+  /**
+   * @notice Sets the repay pause state of the protocol.
+   * @param _paused The new repay pause state.
+   */
+  function setRepayPause(bool _paused) external;
 
   /**
    * @notice Sets the emergency pause state of the protocol.

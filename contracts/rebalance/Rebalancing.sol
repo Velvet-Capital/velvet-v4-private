@@ -257,7 +257,7 @@ contract Rebalancing is
   function repay(
     address _controller,
     FunctionParameters.RepayParams calldata repayData
-  ) external onlyAssetManager nonReentrant protocolNotPaused {
+  ) external onlyAssetManager nonReentrant repayNotPaused {
     // Attempt to repay the debt through the borrowManager
     // Returns true if the token's debt is fully repaid, false if partial repayment
     bool isTokenFullyRepaid = borrowManager.repayVault(_controller, repayData);
@@ -280,7 +280,7 @@ contract Rebalancing is
     address _debtToken, // Address of the debt token
     address _repayAddress, // Address of the contract that will repay the debt
     uint256 _repayAmount // Amount of debt token to be repaid and type(uint256).max for full repayment
-  ) external onlyAssetManager nonReentrant protocolNotPaused {
+  ) external onlyAssetManager nonReentrant repayNotPaused {
     if (_debtToken == address(0) || _repayAddress == address(0))
       revert ErrorLibrary.InvalidAddress();
     if (_repayAmount == 0) revert ErrorLibrary.AmountCannotBeZero();
@@ -708,5 +708,16 @@ contract Rebalancing is
     if (protocolConfig.isProtocolPaused())
       revert ErrorLibrary.ProtocolIsPaused();
     _; // Continues function execution if the protocol is not paused
+  }
+
+  /**
+   * @notice Modifier to restrict function if repay is paused.
+   * Uses the `isRepayPaused` function to determine the repay pause status.
+   * @dev Reverts with a RepayIsPaused error if the repay is paused.
+   */
+  modifier repayNotPaused() {
+    if (protocolConfig.isRepayPaused())
+      revert ErrorLibrary.RepayIsPaused();
+    _; // Continues function execution if the repay is not paused
   }
 }
