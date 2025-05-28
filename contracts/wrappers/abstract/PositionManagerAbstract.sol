@@ -256,18 +256,17 @@ abstract contract PositionManagerAbstract is
     _positionWrapper.burn(msg.sender, _withdrawalAmount);
 
     // If there are still wrapper tokens in circulation, collect fees and reinvest them.
-    if (totalSupplyBeforeBurn > 0)
-      _collectFeesAndReinvest(
-        _positionWrapper,
-        tokenId,
-        _swapDeployer,
-        _positionWrapper.token0(),
-        _positionWrapper.token1(),
-        tokenIn,
-        tokenOut,
-        amountIn,
-        _fee
-      );
+    _collectFeesAndReinvest(
+      _positionWrapper,
+      tokenId,
+      _swapDeployer,
+      _positionWrapper.token0(),
+      _positionWrapper.token1(),
+      tokenIn,
+      tokenOut,
+      amountIn,
+      _fee
+    );
 
     // Calculate the proportionate amount of liquidity to decrease based on the total supply and withdrawal amount.
     uint128 liquidityToDecrease = MathUtils.safe128(
