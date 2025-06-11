@@ -325,7 +325,7 @@ contract Rebalancing is
     // Check if the token is still in the borrowed list
     bool isTokenBorrowed = false;
     for (uint i = 0; i < borrowedTokensAfter.length; i++) {
-      address token = IVenusPool(borrowedTokensAfter[i]).underlying();
+      address token = assetHandler.getUnderlyingToken(borrowedTokensAfter[i]);
       if (token == _debtToken) {
         isTokenBorrowed = true;
         break;

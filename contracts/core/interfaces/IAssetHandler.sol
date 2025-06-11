@@ -114,4 +114,6 @@ interface IAssetHandler {
    * @return True if the token is enabled as collateral; otherwise false.
    */
   function isCollateralEnabled(address token, address vault, address controller) external view returns (bool);
+
+  function getUnderlyingToken(address token) external view returns (address);
 }

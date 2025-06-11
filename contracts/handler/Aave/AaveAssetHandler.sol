@@ -249,6 +249,15 @@ contract AaveAssetHandler is IAssetHandler {
   }
 
   /**
+   * @notice Returns the underlying token of a Aave token.
+   * @param token The address of the Aave token.
+   * @return underlyingToken The address of the underlying token.
+   */
+  function getUnderlyingToken(address token) external pure override returns (address) {
+    return IAaveToken(token).UNDERLYING_ASSET_ADDRESS();
+  }
+
+  /**
    * @notice Retrieves all protocol assets (both lent and borrowed) for a specific account.
    * @param account The address of the user account.
    * @param comptroller The address of the Venus Comptroller.
