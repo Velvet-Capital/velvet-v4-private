@@ -269,6 +269,16 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
     );
   }
 
+
+  /**
+   * @notice Returns the underlying token of a Venus pool.
+   * @param token The address of the Venus pool.
+   * @return underlyingToken The address of the underlying token.
+   */
+  function getUnderlyingToken(address token) external view override returns (address) {
+    return IVenusPool(token).underlying();
+  }
+
   function swapTokens(
     address tokenIn,
     address tokenOut,

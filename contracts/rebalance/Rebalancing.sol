@@ -13,6 +13,7 @@ import { IBorrowManager } from "../core/interfaces/IBorrowManager.sol";
 import { IAssetManagementConfig } from "../config/assetManagement/IAssetManagementConfig.sol";
 import { FunctionParameters } from "../FunctionParameters.sol";
 import { IPositionManager } from "../wrappers/abstract/IPositionManager.sol";
+import { IVenusPool } from "../core/interfaces/IVenusPool.sol";
 
 /**
  * @title RebalancingCore
@@ -320,10 +321,12 @@ contract Rebalancing is
       protocolConfig.marketControllers(_repayAddress)
     );
 
+
     // Check if the token is still in the borrowed list
     bool isTokenBorrowed = false;
     for (uint i = 0; i < borrowedTokensAfter.length; i++) {
-      if (borrowedTokensAfter[i] == _debtToken) {
+      address token = assetHandler.getUnderlyingToken(borrowedTokensAfter[i]);
+      if (token == _debtToken) {
         isTokenBorrowed = true;
         break;
       }
@@ -507,6 +510,7 @@ contract Rebalancing is
     uint256 borrowedLengthBefore = (
       assetHandler.getBorrowedTokens(_vault, _controller)
     ).length;
+
 
     // Setting token as collateral
     portfolio.vaultInteraction(_controller, 0, assetHandler.enterMarket(_tokens));

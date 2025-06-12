@@ -4,6 +4,7 @@ import "@nomicfoundation/hardhat-chai-matchers";
 import { ethers, network, upgrades } from "hardhat";
 import { BigNumber, Contract } from "ethers";
 import VENUS_CHAINLINK_ORACLE_ABI from "../abi/venus_chainlink_oracle.json";
+import BINANCE_ORACLE_ABI from "../abi/binance_oracle.json";
 
 import {
   createEnsoCallData,
@@ -168,6 +169,7 @@ describe.only("Tests for Deposit", () => {
       );
 
       const chainLinkOracle = "0x1B2103441A0A108daD8848D8F5d790e4D402921F";
+      const binanceOracle = "0x594810b741d136f1960141C0d8Fb4a91bE78A820";
 
       let oracle = new ethers.Contract(
         chainLinkOracle,
@@ -175,15 +177,26 @@ describe.only("Tests for Deposit", () => {
         owner.provider
       );
 
-      console.log("oracle", oracle.address);
+      let binance_Oracle = new ethers.Contract(
+        binanceOracle,
+        BINANCE_ORACLE_ABI,
+        owner.provider
+      );
 
       let oracleOwner = await oracle.owner();
+      let binance_OracleOwner = await binance_Oracle.owner();
 
       await network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [oracleOwner],
       });
       const oracleSigner = await ethers.getSigner(oracleOwner);
+
+      await network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [binance_OracleOwner],
+      });
+      const binance_OracleSigner = await ethers.getSigner(binance_OracleOwner);
 
       const tx = await oracle.connect(oracleSigner).setTokenConfigs([
         {
@@ -201,8 +214,15 @@ describe.only("Tests for Deposit", () => {
           feed: "0x264990fbd0A4796A3E3d8E37C4d5F87a3aCa5Ebf",
           maxStalePeriod: "31536000",
         },
+        {
+          asset: "0x55d398326f99059fF775485246999027B3197955",
+          feed: "0xb97ad0e74fa7d920791e90258a6e2085088b4320",
+          maxStalePeriod: "31536000",
+        }
       ]);
       await tx.wait();
+
+      await binance_Oracle.connect(binance_OracleSigner).setMaxStalePeriod("BNB", "31536000");
 
       const PancakeSwapHandler = await ethers.getContractFactory(
         "PancakeSwapHandler"
