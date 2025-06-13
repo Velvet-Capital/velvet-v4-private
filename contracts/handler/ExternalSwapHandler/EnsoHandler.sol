@@ -108,7 +108,7 @@ contract EnsoHandler is IIntentHandler, ExternalPositionManagement {
       // Two-dimensional to match the structure of callDataIncreaseLiquidity
       address[] memory underlyingTokensDecreaseLiquidity, // Array of underlying tokens for decreasing liquidity
       // One-dimensional as it's a flat list of tokens
-      address[] memory tokensIn, // Array of input token addresses
+      address[][] memory tokensIn, // Array of input token addresses, two-dimensional to match output structure
       address[][] memory tokensOut, // Array of output token addresses
       uint256[][] memory minExpectedOutputAmounts // Array of minimum expected output amounts
     ) = abi.decode(
@@ -119,7 +119,7 @@ contract EnsoHandler is IIntentHandler, ExternalPositionManagement {
           bytes[][],
           address[][],
           address[],
-          address[],
+          address[][],
           address[][],
           uint256[][]
         )
@@ -153,10 +153,10 @@ contract EnsoHandler is IIntentHandler, ExternalPositionManagement {
         address(_params._positionManager) != address(0) && // PositionManager has not been initialized
         IExternalPositionStorage(
           IPositionManager(_params._positionManager).externalPositionStorage()
-        ).isWrappedPosition(tokensIn[i])
+        ).isWrappedPosition(tokensIn[i][0])
       ) {
         _handleWrappedPositionDecrease(
-          IPositionWrapper(tokensIn[i]).parentPositionManager(),
+          IPositionWrapper(tokensIn[i][0]).parentPositionManager(),
           callDataDecreaseLiquidity[i]
         );
       }

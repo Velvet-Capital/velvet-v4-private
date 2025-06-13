@@ -153,10 +153,10 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         { kind: "uups" }
       );
 
-      const UniSwapHandler = await ethers.getContractFactory(
-        "UniswapHandler"
+      const UniSwapHandler = await ethers.getContractFactory("UniswapHandler");
+      swapHandler = await UniSwapHandler.deploy(
+        addresses.UniswapV3RouterAddress
       );
-      swapHandler = await UniSwapHandler.deploy(addresses.UniswapV3RouterAddress);
       await swapHandler.deployed();
 
       protocolConfig = ProtocolConfig.attach(_protocolConfig.address);
@@ -558,7 +558,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             "bytes[][]", // callDataIncreaseLiquidity
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
-            "address[]", // tokensIn
+            "address[][]", // tokensIn
             "address[][]", // tokens
             " uint256[][]", // minExpectedOutputAmounts
           ],
@@ -568,7 +568,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             [[]],
             [[]],
             [],
-            [sellToken],
+            [[sellToken]],
             [[buyToken]],
             [[0]],
           ]
@@ -631,7 +631,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             "bytes[][]", // callDataIncreaseLiquidity
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
-            "address[]", // tokensIn
+            "address[][]", // tokensIn
             "address[][]", // tokens
             " uint256[][]", // minExpectedOutputAmounts
           ],
@@ -641,7 +641,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             [[]],
             [[]],
             [],
-            [sellToken],
+            [[sellToken]],
             [[buyToken]],
             [[0]],
           ]
@@ -1105,10 +1105,10 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             _solverHandler: ensoHandler.address, //Handler to swap
             _swapHandler: swapHandler.address,
             _flashLoanAmount: [flashLoanAmount],
-            _poolFees :[[]],
+            _poolFees: [[]],
             firstSwapData: [encodedParameters],
             secondSwapData: [encodedParameters1],
-            isDexRepayment : false
+            isDexRepayment: false,
           },
           responses
         );
