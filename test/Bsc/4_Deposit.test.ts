@@ -1218,10 +1218,11 @@ describe.only("Tests for Deposit", () => {
         const signature = await nonOwner._signTypedData(domain, types, values);
 
         // Calculation to make minimum amount value for user---------------------------------
-        let result = await portfolioCalculations.callStatic.getUserAmountToDeposit(
-          amounts,
-          portfolio.address
-        );
+        let result =
+          await portfolioCalculations.callStatic.getUserAmountToDeposit(
+            amounts,
+            portfolio.address
+          );
         //-----------------------------------------------------------------------------------
 
         newAmounts = result[0];
@@ -1518,10 +1519,11 @@ describe.only("Tests for Deposit", () => {
         const signature = await nonOwner._signTypedData(domain, types, values);
 
         // Calculation to make minimum amount value for user---------------------------------
-        let result = await portfolioCalculations1.callStatic.getUserAmountToDeposit(
-          amounts,
-          portfolio.address
-        );
+        let result =
+          await portfolioCalculations1.callStatic.getUserAmountToDeposit(
+            amounts,
+            portfolio.address
+          );
         //-----------------------------------------------------------------------------------
 
         newAmounts = result[0];
@@ -1630,11 +1632,11 @@ describe.only("Tests for Deposit", () => {
             "bytes[][]", // callDataIncreaseLiquidity
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
-            "address[]", // tokensIn
+            "address[][]", // tokensIn
             "address[][]", // tokens
             " uint256[][]", // minExpectedOutputAmounts
           ],
-          [[["0x"]], [], [[]], [[]], [], [sellToken], [[buyToken]], [[0]]]
+          [[["0x"]], [], [[]], [[]], [], [[sellToken]], [[buyToken]], [[0]]]
         );
 
         await expect(
@@ -1733,11 +1735,11 @@ describe.only("Tests for Deposit", () => {
             "bytes[][]", // callDataIncreaseLiquidity
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
-            "address[]", // tokensIn
+            "address[][]", // tokensIn
             "address[][]", // tokens
             " uint256[][]", // minExpectedOutputAmounts
           ],
-          [[["0x"]], [], [[]], [[]], [], [sellToken], [[buyToken]], [[0]]]
+          [[["0x"]], [], [[]], [[]], [], [[sellToken]], [[buyToken]], [[0]]]
         );
 
         await expect(
@@ -1785,7 +1787,7 @@ describe.only("Tests for Deposit", () => {
             "bytes[][]", // callDataIncreaseLiquidity
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
-            "address[]", // tokensIn
+            "address[][]", // tokensIn
             "address[][]", // tokens
             "uint256[][]", // minExpectedOutputAmounts
           ],
@@ -1795,7 +1797,7 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [[]],
             [],
-            [sellToken],
+            [[sellToken]],
             [[buyToken]],
             [[0]],
           ]
@@ -1845,7 +1847,7 @@ describe.only("Tests for Deposit", () => {
             "bytes[][]", // callDataIncreaseLiquidity
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
-            "address[]", // tokensIn
+            "address[][]", // tokensIn
             "address[][]", // tokens
             " uint256[][]", // minExpectedOutputAmounts
           ],
@@ -1923,7 +1925,7 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [[]],
             [],
-            [sellToken],
+            [[sellToken]],
             [[buyToken]],
             [[0]],
           ]
@@ -1964,7 +1966,7 @@ describe.only("Tests for Deposit", () => {
             "bytes[][]", // callDataIncreaseLiquidity
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
-            "address[]", // tokensIn
+            "address[][]", // tokensIn
             "address[][]", // tokens
             "uint256[][]", // minExpectedOutputAmounts
           ],
@@ -2013,7 +2015,7 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [[]],
             [],
-            [sellToken],
+            [[sellToken]],
             [[buyToken]],
             [[0]],
           ]
@@ -2051,7 +2053,7 @@ describe.only("Tests for Deposit", () => {
             "bytes[][]", // callDataIncreaseLiquidity
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
-            "address[]", // tokensIn
+            "address[][]", // tokensIn
             "address[][]", // tokens
             " uint256[][]", // minExpectedOutputAmounts
           ],
@@ -2109,7 +2111,7 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [[]],
             [],
-            [sellToken],
+            [[sellToken]],
             [[buyToken]],
             [[0]],
           ]
@@ -2159,7 +2161,7 @@ describe.only("Tests for Deposit", () => {
             "bytes[][]", // callDataIncreaseLiquidity
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
-            "address[]", // tokensIn
+            "address[][]", // tokensIn
             "address[][]", // tokens
             " uint256[][]", // minExpectedOutputAmounts
           ],
@@ -2269,11 +2271,11 @@ describe.only("Tests for Deposit", () => {
             "bytes[][]", // callDataIncreaseLiquidity
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
-            "address[]", // tokensIn
+            "address[][]", // tokensIn
             "address[][]", // tokens
             " uint256[][]", // minExpectedOutputAmounts
           ],
-          [[["0x"]], [], [[]], [[]], [], [sellToken], [[buyToken]], [[0]]]
+          [[["0x"]], [], [[]], [[]], [], [[sellToken]], [[buyToken]], [[0]]]
         );
 
         await expect(
@@ -2307,11 +2309,11 @@ describe.only("Tests for Deposit", () => {
             "bytes[][]", // callDataIncreaseLiquidity
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
-            "address[]", // tokensIn
+            "address[][]", // tokensIn
             "address[][]", // tokens
             " uint256[][]", // minExpectedOutputAmounts
           ],
-          [[["0x"]], [], [[]], [[]], [], [sellToken], [[buyToken]], [[0]]]
+          [[["0x"]], [], [[]], [[]], [], [[sellToken]], [[buyToken]], [[0]]]
         );
 
         await expect(
@@ -2347,11 +2349,11 @@ describe.only("Tests for Deposit", () => {
             "bytes[][]", // callDataIncreaseLiquidity
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
-            "address[]", // tokensIn
+            "address[][]", // tokensIn
             "address[][]", // tokens
             " uint256[][]", // minExpectedOutputAmounts
           ],
-          [[["0x"]], [], [[]], [[]], [], [sellToken], [[buyToken]], [[0]]]
+          [[["0x"]], [], [[]], [[]], [], [[sellToken]], [[buyToken]], [[0]]]
         );
 
         await expect(
@@ -2395,7 +2397,7 @@ describe.only("Tests for Deposit", () => {
             "bytes[][]", // callDataIncreaseLiquidity
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
-            "address[]", // tokensIn
+            "address[][]", // tokensIn
             "address[][]", // tokens
             " uint256[][]", // minExpectedOutputAmounts
           ],
@@ -2405,7 +2407,7 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [[]],
             [],
-            [sellToken],
+            [[sellToken]],
             [[buyToken]],
             [[0]],
           ]
@@ -2474,7 +2476,7 @@ describe.only("Tests for Deposit", () => {
             "bytes[][]", // callDataIncreaseLiquidity
             "address[][]", // increaseLiquidityTarget
             "address[]", // underlyingTokensDecreaseLiquidity
-            "address[]", // tokensIn
+            "address[][]", // tokensIn
             "address[][]", // tokens
             " uint256[][]", // minExpectedOutputAmounts
           ],
@@ -2484,7 +2486,7 @@ describe.only("Tests for Deposit", () => {
             [[]],
             [[]],
             [],
-            sellToken,
+            [[sellToken]],
             buyTokenArray,
             outputAmountsArray,
           ]
@@ -3153,7 +3155,7 @@ describe.only("Tests for Deposit", () => {
         await protocolConfig.enableRewardTarget(token);
 
         await expect(
-          rebalancing.claimRewardTokens(token, token,0, txData)
+          rebalancing.claimRewardTokens(token, token, 0, txData)
         ).to.be.revertedWithCustomError(rebalancing, "ClaimFailed");
       });
     });
