@@ -1275,6 +1275,8 @@ contract AaveAssetHandler is IAssetHandler {
       }
     }
 
+    bool isMaxRepayment = _portfolioTokenAmount == _totalSupply;
+
     // Prepare the flash loan data to be used in the flash loan callback
     FunctionParameters.FlashLoanData memory flashData = FunctionParameters
       .FlashLoanData({
@@ -1290,7 +1292,7 @@ contract AaveAssetHandler is IAssetHandler {
         poolFees: repayData._poolFees[_counter],
         firstSwapData: repayData.firstSwapData[_counter],
         secondSwapData: repayData.secondSwapData[_counter],
-        isMaxRepayment: false,
+        isMaxRepayment: isMaxRepayment,
         isDexRepayment: repayData.isDexRepayment
       });
 
