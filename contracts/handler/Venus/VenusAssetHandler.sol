@@ -1549,6 +1549,7 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
     underlying = new address[](borrowedLength);
     tokenBalance = new uint256[](borrowedLength);
 
+
     for (uint256 i; i < borrowedLength; ) {
       address token = borrowedTokens[i];
       uint256 borrowedAmount = IVenusPool(token).borrowBalanceStored(_vault); // Get the current borrowed balance for the token
@@ -1566,6 +1567,8 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
       repayData._token1
     );
 
+    bool isMaxRepayment = _portfolioTokenAmount == _totalSupply;
+
     // Prepare the flash loan data to be used in the flash loan callback
     FunctionParameters.FlashLoanData memory flashData = FunctionParameters
       .FlashLoanData({
@@ -1581,7 +1584,7 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
         poolFees: repayData._poolFees[_counter],
         firstSwapData: repayData.firstSwapData[_counter],
         secondSwapData: repayData.secondSwapData[_counter],
-        isMaxRepayment: false,
+        isMaxRepayment: isMaxRepayment,
         isDexRepayment: repayData.isDexRepayment
       });
     // Initiate the flash loan from the Algebra pool
