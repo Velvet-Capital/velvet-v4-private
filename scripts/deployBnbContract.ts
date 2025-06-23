@@ -6,7 +6,8 @@
 const { ethers, upgrades, tenderly } = require("hardhat");
 import { chainIdToAddresses } from "../scripts/networkVariables";
 
-const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 async function main(): Promise<void> {
   let owner;
@@ -14,18 +15,21 @@ async function main(): Promise<void> {
   let accounts = await ethers.getSigners();
   [owner, treasury] = accounts;
 
+  const ETH_ADDRESS = "0x2170Ed0880ac9A755fd29B2688956BD959F933F8";
+  const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
+
   const chainId: any = process.env.CHAIN_ID;
   const addresses = chainIdToAddresses[chainId];
 
   // Set maximum gas fee (in Gwei)
-  const MAX_GAS_FEE_GWEI = 10; // Adjust this value as needed
+  const MAX_GAS_FEE_GWEI = 3; // Adjust this value as needed
 
   // Get the current base fee
   const feeData = await ethers.provider.getFeeData();
   const baseFee = feeData.lastBaseFeePerGas;
 
   // Calculate priority fee (tip)
-  const priorityFee = ethers.utils.parseUnits("1.5", "gwei");
+  const priorityFee = ethers.utils.parseUnits("1", "gwei");
 
   // Ensure the priority fee is at least 1 Gwei
   const minPriorityFee = ethers.utils.parseUnits("1", "gwei");
@@ -69,8 +73,16 @@ async function main(): Promise<void> {
   console.log("priceOracle address:", priceOracle.address);
 
   await priceOracle.setFeeds(
-    [addresses.WETH_Address, addresses.USDC_Address, addresses.DAI_Address],
     [
+      addresses.WETH_Address,
+      addresses.USDC_Address,
+      addresses.DAI_Address,
+      ETH_ADDRESS,
+      USDT_ADDRESS,
+    ],
+    [
+      "0x0000000000000000000000000000000000000348",
+      "0x0000000000000000000000000000000000000348",
       "0x0000000000000000000000000000000000000348",
       "0x0000000000000000000000000000000000000348",
       "0x0000000000000000000000000000000000000348",
@@ -79,6 +91,8 @@ async function main(): Promise<void> {
       "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE", //chainlink price feed
       "0x51597f405303C4377E36123cBc172b13269EA163",
       "0x132d3C0B1D2cEa0BC552588063bdBb210FDeecfA",
+      "0x9ef1B8c0E4F7dc8bF5719Ea496883DC6401d5b2e",
+      "0xB97Ad0E74fa7d920791E90258A6E2085088b4320"
     ]
   );
 
@@ -89,7 +103,7 @@ async function main(): Promise<void> {
 
   const EnsoHandler = await ethers.getContractFactory("EnsoHandler");
   const ensoHandler = await EnsoHandler.deploy(
-    "0x38147794ff247e5fc179edbae6c37fff88f68c52"
+    "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
   );
   await ensoHandler.deployed();
 
@@ -122,7 +136,10 @@ async function main(): Promise<void> {
   const swapVerificationLibrary = await SwapVerificationLibrary.deploy();
   await swapVerificationLibrary.deployed();
 
-  console.log("swapVerificationLibrary address:", swapVerificationLibrary.address);
+  console.log(
+    "swapVerificationLibrary address:",
+    swapVerificationLibrary.address
+  );
 
   await tenderly.verify({
     name: "SwapVerificationLibraryAlgebra",
@@ -132,7 +149,10 @@ async function main(): Promise<void> {
   const VenusAssetHandler = await ethers.getContractFactory(
     "VenusAssetHandler"
   );
-  const venusAssetHandler = await VenusAssetHandler.deploy(addresses.vBNB_Address, addresses.WETH_Address);
+  const venusAssetHandler = await VenusAssetHandler.deploy(
+    addresses.vBNB_Address,
+    addresses.WETH_Address
+  );
   await venusAssetHandler.deployed();
 
   console.log("venusAssetHandler address:", venusAssetHandler.address);
@@ -170,6 +190,22 @@ async function main(): Promise<void> {
 
   swapHandler.init(addresses.PancakeSwapRouterAddress);
 
+  const PancakeSwapV3Handler = await ethers.getContractFactory(
+    "PancakeSwapHandler"
+  );
+  const swapHandlerV3 = await PancakeSwapV3Handler.deploy(
+    addresses.PancakeSwapV3RouterAddress
+  );
+
+  console.log("swapHandlerV3 address:", swapHandlerV3.address);
+
+  await tenderly.verify({
+    name: "PancakeSwapHandler",
+    address: swapHandlerV3.address,
+  });
+
+  await swapHandlerV3.deployed();
+
   await sleep(2000); // 2 seconds
   const ProtocolConfig = await ethers.getContractFactory("ProtocolConfig");
   const protocolConfig = await upgrades.deployProxy(
@@ -202,17 +238,20 @@ async function main(): Promise<void> {
     addresses.WETH_Address,
     addresses.USDC_Address,
     addresses.DAI_Address,
+    ETH_ADDRESS,
+    USDT_ADDRESS,
   ]);
 
   await protocolConfig.updateProtocolFee(0);
   await protocolConfig.updateProtocolStreamingFee(0);
+  await protocolConfig.updateAllowedRatioDeviationBps(1000);
 
   await protocolConfig.setCoolDownPeriod("60");
 
   await protocolConfig.enableSolverHandler(ensoHandler.address);
 
   await protocolConfig.enableSwapHandler(swapHandler.address);
-
+  await protocolConfig.enableSwapHandler(swapHandlerV3.address);
 
   await protocolConfig.setAssetHandlers(
     [
@@ -220,9 +259,11 @@ async function main(): Promise<void> {
       addresses.vBTC_Address,
       addresses.vDAI_Address,
       addresses.vUSDT_Address,
+      addresses.vETH_Address,
       addresses.corePool_controller,
     ],
     [
+      venusAssetHandler.address,
       venusAssetHandler.address,
       venusAssetHandler.address,
       venusAssetHandler.address,
@@ -241,8 +282,10 @@ async function main(): Promise<void> {
       addresses.vBTC_Address,
       addresses.vDAI_Address,
       addresses.vUSDT_Address,
+      addresses.vETH_Address,
     ],
     [
+      addresses.corePool_controller,
       addresses.corePool_controller,
       addresses.corePool_controller,
       addresses.corePool_controller,
@@ -287,7 +330,10 @@ async function main(): Promise<void> {
   const externalPositionStorage = await ExternalPositionStorage.deploy();
   await externalPositionStorage.deployed();
 
-  console.log("externalPositionStorage address:", externalPositionStorage.address);
+  console.log(
+    "externalPositionStorage address:",
+    externalPositionStorage.address
+  );
 
   await tenderly.verify({
     name: "ExternalPositionStorage",
@@ -302,7 +348,10 @@ async function main(): Promise<void> {
   const amountCalculationsAlgebra = await AmountCalculationsAlgebra.deploy();
   await amountCalculationsAlgebra.deployed();
 
-  console.log("amountCalculationsAlgebra address:", amountCalculationsAlgebra.address);
+  console.log(
+    "amountCalculationsAlgebra address:",
+    amountCalculationsAlgebra.address
+  );
 
   await tenderly.verify({
     name: "AmountCalculationsAlgebra",
@@ -407,7 +456,7 @@ async function main(): Promise<void> {
     "DepositBatchExternalPositions"
   );
   const depositBatch = await DepositBatch.deploy(
-    "0x38147794ff247e5fc179edbae6c37fff88f68c52"
+    "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
   );
   await depositBatch.deployed();
 
@@ -437,7 +486,7 @@ async function main(): Promise<void> {
     "WithdrawBatchExternalPositions"
   );
   const withdrawBatch = await WithdrawBatch.deploy(
-    "0x38147794ff247e5fc179edbae6c37fff88f68c52"
+    "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
   );
   await withdrawBatch.deployed();
 
@@ -479,11 +528,9 @@ async function main(): Promise<void> {
     [
       {
         _basePortfolioAddress: portfolioContract.address,
-        _baseTokenExclusionManagerAddress:
-        tokenExclusionManager.address,
+        _baseTokenExclusionManagerAddress: tokenExclusionManager.address,
         _baseRebalancingAddres: rebalancingDefault.address,
-        _baseAssetManagementConfigAddress:
-          assetManagementConfig.address,
+        _baseAssetManagementConfigAddress: assetManagementConfig.address,
         _feeModuleImplementationAddress: feeModule.address,
         _baseTokenRemovalVaultImplementation: tokenRemovalVault.address,
         _baseVelvetGnosisSafeModuleAddress: velvetSafeModule.address,
