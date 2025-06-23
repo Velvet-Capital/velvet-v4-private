@@ -206,7 +206,7 @@ abstract contract VaultManagerV3_4 is
     for (uint256 i; i < portfolioTokenLength; i++) {
       address _token = portfolioTokens[i];
       // Calculate the proportion of each token to return based on the burned portfolio tokens.
-      (uint256 tokenBalance, bool isCollateralEnabled) = TokenBalanceLibrary._getAdjustedTokenBalance(
+      uint256 tokenBalance = TokenBalanceLibrary._getAdjustedTokenBalance(
         portfolioTokens[i],
         vault,
         _protocolConfig,
@@ -308,8 +308,7 @@ abstract contract VaultManagerV3_4 is
 
     // Get current token balances in the vault for ratio calculations
     (
-      uint256[] memory tokenBalancesBefore,
-      TokenBalanceLibrary.ControllerData[] memory controllersData
+      uint256[] memory tokenBalancesBefore
     ) = TokenBalanceLibrary.getTokenBalancesOf(
         portfolioTokens,
         vault,
@@ -344,12 +343,7 @@ abstract contract VaultManagerV3_4 is
       address token = portfolioTokens[i];
       transferAmount = (_minRatio * tokenBalancesBefore[i]) / ONE_ETH_IN_WEI;
       _transferToVault(_from, token, transferAmount);
-      (uint256 tokenBalanceAfter, bool isCollateralEnabled) = TokenBalanceLibrary._getAdjustedTokenBalance(
-        token,
-        vault,
-        _protocolConfig,
-        controllersData
-      );
+      uint256 tokenBalanceAfter = IERC20Upgradeable(token).balanceOf(vault);
       uint256 currentRatio = _getDepositToVaultBalanceRatio(
         tokenBalanceAfter - tokenBalanceAfter,
         tokenBalanceAfter

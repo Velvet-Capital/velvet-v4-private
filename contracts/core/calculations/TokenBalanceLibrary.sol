@@ -105,21 +105,20 @@ library TokenBalanceLibrary {
   )
     public
     returns (
-      uint256[] memory vaultBalances,
-      ControllerData[] memory controllersData
+      uint256[] memory vaultBalances
     )
   {
     uint256 portfolioLength = portfolioTokens.length;
     vaultBalances = new uint256[](portfolioLength); // Initializes the array to hold fetched balances.
     
-    controllersData = getControllersData(
+    ControllerData[] memory controllersData = getControllersData(
       _vault,
       portfolioTokens,
       _protocolConfig
     );
 
     for (uint256 i; i < portfolioLength; ) {
-      (vaultBalances[i], ) = _getAdjustedTokenBalance(
+      vaultBalances[i] = _getAdjustedTokenBalance(
         portfolioTokens[i],
         _vault,
         _protocolConfig,
@@ -145,7 +144,7 @@ library TokenBalanceLibrary {
     address _vault,
     IProtocolConfig _protocolConfig,
     ControllerData[] memory controllersData
-  ) public view returns (uint256 tokenBalance, bool isCollateralEnabled) {
+  ) public view returns (uint256 tokenBalance) {
     if (_token == address(0) || _vault == address(0))
       revert ErrorLibrary.InvalidAddress(); // Ensures neither the token nor the vault address is zero.
     uint256 rawBalance = _getTokenBalanceOf(_token, _vault);
@@ -162,14 +161,14 @@ library TokenBalanceLibrary {
       );
 
       // Check if token is being used as collateral
-      isCollateralEnabled = assetHandler.isCollateralEnabled(
+      bool isCollateral = assetHandler.isCollateralEnabled(
         _token,
         _vault,
         controller
       );
 
       // If token is being used as collateral, adjust the balance by the unused collateral percentage
-      if (isCollateralEnabled) {
+      if (isCollateral) {
         tokenBalance =
         (rawBalance * controllerData.unusedCollateralPercentage) /
         1e18;
@@ -179,6 +178,25 @@ library TokenBalanceLibrary {
       }
     } else {
       tokenBalance = rawBalance;
+    }
+  }
+
+  function isCollateralEnabled(
+    address _token,
+    address _vault,
+    IProtocolConfig _protocolConfig
+  ) public view returns (bool isCollateral) {
+    isCollateral = false;
+    if (_protocolConfig.isBorrowableToken(_token)) {
+      address controller = _protocolConfig.marketControllers(_token);
+      IAssetHandler assetHandler = IAssetHandler(
+        _protocolConfig.assetHandlers(controller)
+      );
+       isCollateral = assetHandler.isCollateralEnabled(
+        _token,
+        _vault,
+        controller
+      );
     }
   }
 

@@ -535,7 +535,7 @@ abstract contract VaultManager is
     TokenBalanceLibrary.ControllerData[] memory controllersData
   ) private returns (uint256, uint256) {
     // Calculate the proportion of each token to return based on the burned portfolio tokens.
-    (uint256 tokenBalance, ) = TokenBalanceLibrary._getAdjustedTokenBalance(
+    uint256 tokenBalance = TokenBalanceLibrary._getAdjustedTokenBalance(
       _token,
       vault,
       _protocolConfig,
@@ -634,8 +634,7 @@ abstract contract VaultManager is
     (
       uint256 amountLength,
       address[] memory portfolioTokens,
-      uint256[] memory tokenBalancesBefore,
-      TokenBalanceLibrary.ControllerData[] memory controllersData
+      uint256[] memory tokenBalancesBefore
     ) = _validateAndGetBalances(depositAmounts);
 
     try permit2.permit(msg.sender, _permit, _signature) {
@@ -661,8 +660,7 @@ abstract contract VaultManager is
         depositAmounts,
         portfolioTokens,
         tokenBalancesBefore,
-        true,
-        controllersData
+        true
       );
   }
 
@@ -681,8 +679,7 @@ abstract contract VaultManager is
     (
       uint256 amountLength,
       address[] memory portfolioTokens,
-      uint256[] memory tokenBalancesBefore,
-      TokenBalanceLibrary.ControllerData[] memory controllersData
+      uint256[] memory tokenBalancesBefore
     ) = _validateAndGetBalances(depositAmounts);
 
     // Handles the token transfer and minRatio calculations
@@ -693,8 +690,7 @@ abstract contract VaultManager is
         depositAmounts,
         portfolioTokens,
         tokenBalancesBefore,
-        false,
-        controllersData
+        false
       );
   }
 
@@ -712,8 +708,7 @@ abstract contract VaultManager is
     returns (
       uint256,
       address[] memory,
-      uint256[] memory,
-      TokenBalanceLibrary.ControllerData[] memory
+      uint256[] memory
     )
   {
     uint256 amountLength = depositAmounts.length;
@@ -726,8 +721,7 @@ abstract contract VaultManager is
 
     // Get current token balances in the vault for ratio calculations
     (
-      uint256[] memory tokenBalancesBefore,
-      TokenBalanceLibrary.ControllerData[] memory controllersData
+      uint256[] memory tokenBalancesBefore
     ) = TokenBalanceLibrary.getTokenBalancesOf(
         portfolioTokens,
         vault,
@@ -737,8 +731,7 @@ abstract contract VaultManager is
     return (
       amountLength,
       portfolioTokens,
-      tokenBalancesBefore,
-      controllersData
+      tokenBalancesBefore
     );
   }
 
@@ -758,8 +751,7 @@ abstract contract VaultManager is
     uint256[] calldata depositAmounts,
     address[] memory portfolioTokens,
     uint256[] memory tokenBalancesBefore,
-    bool usePermit,
-    TokenBalanceLibrary.ControllerData[] memory controllersData
+    bool usePermit
   ) internal returns (uint256) {
     if (totalSupply() == 0) {
       return
@@ -785,8 +777,7 @@ abstract contract VaultManager is
         portfolioTokens,
         tokenBalancesBefore,
         _minRatio,
-        usePermit,
-        controllersData
+        usePermit
       );
   }
 
@@ -865,7 +856,6 @@ abstract contract VaultManager is
    * @param tokenBalancesBefore An array of token balances before the transfer.
    * @param _minRatio The minimum ratio calculated before transfers.
    * @param usePermit A boolean indicating whether to use permit for transfers.
-   * @param controllersData An array of controller data for balance calculations.
    * @return uint256 The new minimum ratio after all transfers are completed.
    */
   function _executeTransfers(
@@ -874,8 +864,7 @@ abstract contract VaultManager is
     address[] memory portfolioTokens,
     uint256[] memory tokenBalancesBefore,
     uint256 _minRatio,
-    bool usePermit,
-    TokenBalanceLibrary.ControllerData[] memory controllersData
+    bool usePermit
   ) private returns (uint256) {
     uint256[] memory depositedAmounts = new uint256[](amountLength);
     uint256 _minRatioAfterTransfer = type(uint256).max;
@@ -889,17 +878,36 @@ abstract contract VaultManager is
 
       _transferToken(_from, token, transferAmount, usePermit);
 
-      (uint256 tokenBalanceAfter, bool isCollateralEnabled) = TokenBalanceLibrary._getAdjustedTokenBalance(
+      // (uint256 tokenBalanceAfter) = TokenBalanceLibrary._getAdjustedTokenBalance(
+      //   token,
+      //   vault,
+      //   _protocolConfig,
+      //   controllersData
+      // );
+
+      uint256 tokenBalanceAfter = IERC20Upgradeable(token).balanceOf(vault);
+      uint256 tokenBalanceDiff = tokenBalanceAfter - tokenBalanceBefore;
+
+      bool isCollateralEnabled = TokenBalanceLibrary.isCollateralEnabled(
         token,
         vault,
-        _protocolConfig,
-        controllersData
+        _protocolConfig
       );
+
+      if (isCollateralEnabled) {
+        tokenBalanceDiff = transferAmount;
+        tokenBalanceAfter = tokenBalanceBefore + transferAmount;
+      }
+
+      if(tokenBalanceDiff == 0) {
+        revert ErrorLibrary.TransferFailed();
+      }
+      
       uint256 currentRatio = _getDepositToVaultBalanceRatio(
-        tokenBalanceAfter - tokenBalanceBefore,
+        tokenBalanceDiff,
         tokenBalanceAfter
       );
-      _minRatioAfterTransfer = isCollateralEnabled ? _minRatio : MathUtils._min(
+      _minRatioAfterTransfer = MathUtils._min(
         currentRatio,
         _minRatioAfterTransfer
       );
