@@ -1275,6 +1275,8 @@ contract AaveAssetHandler is IAssetHandler {
       }
     }
 
+    bool isMaxRepayment = _portfolioTokenAmount == _totalSupply;
+
     // Prepare the flash loan data to be used in the flash loan callback
     FunctionParameters.FlashLoanData memory flashData = FunctionParameters
       .FlashLoanData({
@@ -1290,10 +1292,12 @@ contract AaveAssetHandler is IAssetHandler {
         poolFees: repayData._poolFees[_counter],
         firstSwapData: repayData.firstSwapData[_counter],
         secondSwapData: repayData.secondSwapData[_counter],
-        isMaxRepayment: false,
+        isMaxRepayment: isMaxRepayment,
         isDexRepayment: repayData.isDexRepayment
       });
 
+
+    address receiver = _receiver;
     // Initiate the flash loan from the Algebra pool
     address[] memory assets = new address[](1);
     assets[0] = repayData._flashLoanToken;
@@ -1301,8 +1305,6 @@ contract AaveAssetHandler is IAssetHandler {
     amounts[0] = totalFlashAmount;
     uint256[] memory interestRateModes = new uint256[](1);
     interestRateModes[0] = 0;
-
-    address receiver = _receiver;
 
     IAavePool(repayData._token0).flashLoan(
       receiver,
