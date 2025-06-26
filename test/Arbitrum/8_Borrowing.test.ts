@@ -164,6 +164,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       await protocolConfig.enableSolverHandler(ensoHandler.address);
       await protocolConfig.enableSwapHandler(swapHandler.address);
       await protocolConfig.setSupportedFactory(addresses.aavePool);
+      await protocolConfig.addSupportedCallbackCaller(addresses.aavePool);
 
       const Rebalancing = await ethers.getContractFactory("Rebalancing");
       const rebalancingDefult = await Rebalancing.deploy();

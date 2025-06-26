@@ -47,6 +47,9 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
   // Mapping to track the supported factories of flashLoan provider protocol
   mapping(address => bool) public isSupportedFactory;
 
+  // Mapping to track the supported callback callers of flashLoan provider protocol
+  mapping(address => bool) public isSupportedCallbackCaller;
+
   event ProtocolPaused(bool indexed paused);
   event RepayPauseSet(bool indexed paused);
   event EmergencyPauseSet(bool indexed state, bool indexed unpauseProtocol);
@@ -389,5 +392,24 @@ abstract contract SystemSettings is OwnableCheck, Initializable {
   ) external onlyProtocolOwner {
     if (_newBorrowTokenLimit > 20) revert ErrorLibrary.ExceedsBorrowLimit();
     MAX_BORROW_TOKEN_LIMIT = _newBorrowTokenLimit;
+  }
+
+
+  /**
+   * @notice Adds a supported callback caller to the protocol.
+   * @param _callbackCaller The address of the callback caller to add.
+   */
+  function addSupportedCallbackCaller(address _callbackCaller) external onlyProtocolOwner {
+    if (_callbackCaller == address(0)) revert ErrorLibrary.InvalidAddress();
+    isSupportedCallbackCaller[_callbackCaller] = true;
+  }
+
+
+  /**
+   * @notice Removes a supported callback caller from the protocol.
+   * @param _callbackCaller The address of the callback caller to remove.
+   */
+  function removeSupportedCallbackCaller(address _callbackCaller) external onlyProtocolOwner {
+    delete isSupportedCallbackCaller[_callbackCaller];
   }
 }

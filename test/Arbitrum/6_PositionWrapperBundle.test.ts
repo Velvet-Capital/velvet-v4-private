@@ -205,6 +205,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       protocolConfig = ProtocolConfig.attach(_protocolConfig.address);
       await protocolConfig.setCoolDownPeriod("60");
       await protocolConfig.enableSolverHandler(ensoHandler.address);
+      await protocolConfig.addSupportedCallbackCaller(addresses.aavePool);
 
       await protocolConfig.enableTokens([
         addresses.USDT,

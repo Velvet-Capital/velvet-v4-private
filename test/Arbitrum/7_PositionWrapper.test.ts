@@ -189,6 +189,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       await protocolConfig.setCoolDownPeriod("70");
       await protocolConfig.enableSolverHandler(ensoHandler.address);
       await protocolConfig.setSupportedFactory(ensoHandler.address);
+      await protocolConfig.addSupportedCallbackCaller(addresses.aavePool);
 
       await protocolConfig.enableProtocol(
         uniswapV3ProtocolHash,
