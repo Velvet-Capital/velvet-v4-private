@@ -1117,883 +1117,883 @@ describe.only("Tests for Deposit", () => {
         console.log("balanceBorrowed after repay", balanceBorrowed);
       });
 
-      it("should swap tokens for user using native token", async () => {
-        let tokens = await portfolio.getTokens();
-
-        console.log("SupplyBefore", await portfolio.totalSupply());
-
-        let postResponse = [];
-
-        for (let i = 0; i < tokens.length; i++) {
-          let response = await createEnsoCallDataRoute(
-            depositBatch.address,
-            depositBatch.address,
-            "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-            tokens[i],
-            "100000000000000000"
-          );
-          postResponse.push(response.data.tx.data);
-        }
-
-        const data = await depositBatch
-          .connect(nonOwner)
-          .multiTokenSwapETHAndTransfer(
-            {
-              _minMintAmount: 0,
-              _depositAmount: "1000000000000000000",
-              _target: portfolio.address,
-              _depositToken: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-              _callData: postResponse,
-            },
-            {
-              value: "1000000000000000000",
-            }
-          );
-
-        console.log("SupplyAfter", await portfolio.totalSupply());
-      });
-
-      it("borrowed token limit should decrease after complete repayment", async () => {
-        expect(await rebalancing.tokensBorrowed()).to.be.equal(2);
-      });
-
-      it("Repay half of borrowed amount directly using vault token", async () => {
-        let vault = await portfolio.vault();
-        let ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
-
-        let balanceBorrowed =
-          await portfolioCalculations.getVenusTokenBorrowedBalance(
-            [addresses.vUSDT_Address],
-            vault
-          );
-
-        console.log("balanceBorrowed before repay", balanceBorrowed);
-
-        const balanceToRepay = (balanceBorrowed[0] / 2).toString();
-
-        console.log("balanceToRepay", balanceToRepay);
-
-        await rebalancing.directDebtRepayment(
-          addresses.USDT,
-          addresses.vUSDT_Address,
-          balanceToRepay
-        );
-
-        let vaultBalanceAfter = await ERC20.attach(addresses.USDT).balanceOf(
-          vault
-        );
-
-        balanceBorrowed =
-          await portfolioCalculations.getVenusTokenBorrowedBalance(
-            [addresses.vUSDT_Address],
-            vault
-          );
-
-        expect(vaultBalanceAfter).to.be.greaterThan(0);
-        console.log("balanceBorrowed after repay", balanceBorrowed);
-      });
-
-      it("should rebalance borrowed DAI", async () => {
-        let tokens = await portfolio.getTokens();
-        let sellToken = tokens[7];
-        let buyToken = iaddress.usdcAddress;
-
-        let newTokens = [
-          tokens[0],
-          tokens[1],
-          tokens[2],
-          tokens[3],
-          tokens[4],
-          tokens[5],
-          tokens[6],
-        ];
-
-        let vault = await portfolio.vault();
-
-        let ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
-        let balance = BigNumber.from(
-          await ERC20.attach(sellToken).balanceOf(vault)
-        ).toString();
-
-        let balanceToSwap = BigNumber.from(balance).toString();
-
-        console.log("Balance to rebalance", balanceToSwap);
-
-        const postResponse = await createEnsoCallDataRoute(
-          ensoHandler.address,
-          ensoHandler.address,
-          sellToken,
-          buyToken,
-          balanceToSwap
-        );
-
-        const encodedParameters = ethers.utils.defaultAbiCoder.encode(
-          [
-            " bytes[][]", // callDataEnso
-            "bytes[]", // callDataDecreaseLiquidity
-            "bytes[][]", // callDataIncreaseLiquidity
-            "address[][]", // increaseLiquidityTarget
-            "address[]", // underlyingTokensDecreaseLiquidity
-            "address[][]", // tokensIn
-            "address[][]", // tokens
-            " uint256[][]", // minExpectedOutputAmounts
-          ],
-          [
-            [[postResponse.data.tx.data]],
-            [],
-            [[]],
-            [[]],
-            [],
-            [[sellToken]],
-            [[buyToken]],
-            [[0]],
-          ]
-        );
-
-        await rebalancing.updateTokens({
-          _newTokens: newTokens,
-          _sellTokens: [sellToken],
-          _sellAmounts: [balanceToSwap],
-          _handler: ensoHandler.address,
-          _callData: encodedParameters,
-        });
-
-        console.log(
-          "balance after sell",
-          await ERC20.attach(sellToken).balanceOf(vault)
-        );
-        console.log(
-          "balance after buy",
-          await ERC20.attach(buyToken).balanceOf(vault)
-        );
-      });
-
-      it("should rebalance borrowed USDT", async () => {
-        let tokens = await portfolio.getTokens();
-        let sellToken = tokens[6];
-        let buyToken = iaddress.usdcAddress;
-
-        let newTokens = [
-          tokens[0],
-          tokens[1],
-          tokens[2],
-          tokens[3],
-          tokens[4],
-          tokens[5],
-        ];
-
-        let vault = await portfolio.vault();
-
-        let ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
-        let balance = BigNumber.from(
-          await ERC20.attach(sellToken).balanceOf(vault)
-        ).toString();
-
-        let balanceToSwap = BigNumber.from(balance).toString();
-
-        console.log("Balance to rebalance", balanceToSwap);
-
-        const postResponse = await createEnsoCallDataRoute(
-          ensoHandler.address,
-          ensoHandler.address,
-          sellToken,
-          buyToken,
-          balanceToSwap
-        );
-
-        const encodedParameters = ethers.utils.defaultAbiCoder.encode(
-          [
-            " bytes[][]", // callDataEnso
-            "bytes[]", // callDataDecreaseLiquidity
-            "bytes[][]", // callDataIncreaseLiquidity
-            "address[][]", // increaseLiquidityTarget
-            "address[]", // underlyingTokensDecreaseLiquidity
-            "address[][]", // tokensIn
-            "address[][]", // tokens
-            " uint256[][]", // minExpectedOutputAmounts
-          ],
-          [
-            [[postResponse.data.tx.data]],
-            [],
-            [[]],
-            [[]],
-            [],
-            [[sellToken]],
-            [[buyToken]],
-            [[0]],
-          ]
-        );
-
-        await rebalancing.updateTokens({
-          _newTokens: newTokens,
-          _sellTokens: [sellToken],
-          _sellAmounts: [balanceToSwap],
-          _handler: ensoHandler.address,
-          _callData: encodedParameters,
-        });
-
-        console.log(
-          "balance after sell",
-          await ERC20.attach(sellToken).balanceOf(vault)
-        );
-        console.log(
-          "balance after buy",
-          await ERC20.attach(buyToken).balanceOf(vault)
-        );
-      });
-
-      it("should revert, if new buffer unit is more 10%", async () => {
-        await expect(
-          protocolConfig.updateMaxCollateralBufferUnit(11000)
-        ).to.be.revertedWithCustomError(protocolConfig, "InvalidNewBufferUnit");
-      });
-
-      it("repay should revert if wrong flashloan provider factory if provided", async () => {
-        let flashloanBufferUnit = 20; //Flashloan buffer unit in 1/10000.This value is used slightly increase the amount of flashLoanAmount, for any priceImpact (10000 = 100%)
-        let bufferUnit = 160; //The buffer unit used to slightly increase the amount of collateral to sell, expressed in 0.001% (100000 = 100%)
-
-        await expect(
-          rebalancing.repay(addresses.corePool_controller, {
-            _factory: addresses.USDT,
-            _token0: addresses.USDT, //USDT - Pool token
-            _token1: addresses.USDC_Address, //USDC - Pool token
-            _flashLoanToken: addresses.USDT, //Token to take flashlaon
-            _debtToken: [addresses.DAI_Address], //Token to pay debt of
-            _protocolToken: [addresses.vDAI_Address], // lending token in case of venus
-            _bufferUnit: bufferUnit, //Buffer unit for collateral amount
-            _solverHandler: ensoHandler.address, //Handler to swap
-            _swapHandler: swapHandler.address,
-            _flashLoanAmount: [],
-            _debtRepayAmount: [],
-            firstSwapData: [],
-            secondSwapData: [],
-            isMaxRepayment: false,
-            _poolFees: [3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000],
-            isDexRepayment: false,
-          })
-        ).to.be.revertedWithCustomError(borrowManager, "InvalidFactoryAddress");
-      });
-
-      it("repay should revert if wrong solver handler is incorrect", async () => {
-        let flashloanBufferUnit = 20; //Flashloan buffer unit in 1/10000
-        let bufferUnit = 160; //Buffer unit for collateral amount in 1/100000
-
-        await expect(
-          rebalancing.repay(addresses.corePool_controller, {
-            _factory: addresses.thena_factory,
-            _token0: addresses.USDT, //USDT - Pool token
-            _token1: addresses.USDC_Address, //USDC - Pool token
-            _flashLoanToken: addresses.USDT, //Token to take flashlaon
-            _debtToken: [addresses.DAI_Address], //Token to pay debt of
-            _protocolToken: [addresses.vDAI_Address], // lending token in case of venus
-            _bufferUnit: bufferUnit, //Buffer unit for collateral amount
-            _solverHandler: addresses.USDT, //Handler to swap
-            _swapHandler: swapHandler.address,
-            _flashLoanAmount: [],
-            _debtRepayAmount: [],
-            firstSwapData: [],
-            secondSwapData: [],
-            isMaxRepayment: false,
-            _poolFees: [3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000],
-            isDexRepayment: false,
-          })
-        ).to.be.revertedWithCustomError(borrowManager, "InvalidSolver");
-      });
-
-      it("repay should revert if wrong solver handler is incorrect", async () => {
-        let bufferUnit = 140; //Buffer unit for collateral amount in 1/100000
-
-        await expect(
-          rebalancing.repay(addresses.corePool_controller, {
-            _factory: addresses.thena_factory,
-            _token0: addresses.USDT, //USDT - Pool token
-            _token1: addresses.USDC_Address, //USDC - Pool token
-            _flashLoanToken: addresses.USDT, //Token to take flashlaon
-            _debtToken: [addresses.DAI_Address], //Token to pay debt of
-            _protocolToken: [addresses.vDAI_Address], // lending token in case of venus
-            _bufferUnit: bufferUnit, //Buffer unit for collateral amount
-            _solverHandler: addresses.USDT, //Handler to swap
-            _swapHandler: swapHandler.address,
-            _flashLoanAmount: [],
-            _debtRepayAmount: [],
-            firstSwapData: [],
-            secondSwapData: [],
-            isMaxRepayment: false,
-            _poolFees: [],
-            isDexRepayment: false,
-          })
-        ).to.be.revertedWithCustomError(borrowManager, "InvalidSolver");
-      });
-
-      it("repay should revert if buffer unit execeeds acceptable buffer unit", async () => {
-        let bufferUnit = 1000; //Buffer unit for collateral amount in 1/100000
-
-        await expect(
-          rebalancing.repay(addresses.corePool_controller, {
-            _factory: addresses.thena_factory,
-            _token0: addresses.USDT, //USDT - Pool token
-            _token1: addresses.USDC_Address, //USDC - Pool token
-            _flashLoanToken: addresses.USDT, //Token to take flashlaon
-            _debtToken: [addresses.DAI_Address], //Token to pay debt of
-            _protocolToken: [addresses.vDAI_Address], // lending token in case of venus
-            _bufferUnit: bufferUnit, //Buffer unit for collateral amount
-            _solverHandler: ensoHandler.address, //Handler to swap
-            _swapHandler: swapHandler.address,
-            _flashLoanAmount: [],
-            _debtRepayAmount: [],
-            firstSwapData: [],
-            secondSwapData: [],
-            isMaxRepayment: false,
-            _poolFees: [],
-            isDexRepayment: false,
-          })
-        ).to.be.revertedWithCustomError(borrowManager, "InvalidBufferUnit");
-      });
-
-      it("repay should revert if flashLoan is not active", async () => {
-        let bufferUnit = 100; //Buffer unit for collateral amount in 1/100000
-
-        const types = [
-          "address", // flashLoanToken
-          "address[]", // debtToken
-          "address[]", // protocolToken
-          "uint256", // bufferUnit
-          "address", // solverHandler
-          "address", // poolAddress
-          "uint256[]", // flashLoanAmount
-          "uint256[]", // debtRepayAmount
-          "bytes[]", // firstSwapData
-          "bytes[]", // secondSwapData
-          "bool", // isMaxRepayment
-        ];
-
-        const values = [
-          addresses.USDT,
-          [addresses.DAI_Address],
-          [addresses.vDAI_Address],
-          bufferUnit,
-          ensoHandler.address,
-          ensoHandler.address,
-          [],
-          [],
-          [],
-          [],
-          false,
-        ];
-
-        const calldata = ethers.utils.defaultAbiCoder.encode(types, values);
-
-        await expect(
-          borrowManager.algebraFlashCallback("100", "100", calldata)
-        ).to.be.revertedWithCustomError(borrowManager, "FlashLoanIsInactive");
-      });
-
-      it("should repay half of borrowed dai using flashLoan", async () => {
-        let vault = await portfolio.vault();
-        let ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
-        let tokens = await portfolio.getTokens();
-
-        let flashloanBufferUnit = 30; //Flashloan buffer unit in 1/10000
-        let bufferUnit = 320; //Buffer unit for collateral amount in 1/100000
-
-        let balanceBorrowed =
-          await portfolioCalculations.getVenusTokenBorrowedBalance(
-            [addresses.vDAI_Address],
-            vault
-          );
-        const userData = await venusAssetHandler.callStatic.getUserAccountData(
-          vault,
-          addresses.corePool_controller,
-          tokens
-        );
-        const lendTokens = userData[1].lendTokens;
-
-        console.log("balanceBorrowed before repay", balanceBorrowed);
-
-        const balanceToRepay = (balanceBorrowed[0] / 2).toString();
-
-        const balanceToSwap = (
-          await portfolioCalculations.calculateFlashLoanAmountForRepayment(
-            addresses.vDAI_Address,
-            addresses.vUSDT_Address,
-            addresses.corePool_controller,
-            balanceToRepay,
-            flashloanBufferUnit
-          )
-        ).toString();
-
-        console.log("balanceToRepay", balanceToRepay);
-        console.log("balanceToSwap", balanceToSwap);
-
-        const postResponse = await createEnsoCallDataRoute(
-          ensoHandler.address,
-          ensoHandler.address,
-          addresses.USDT,
-          addresses.DAI_Address,
-          balanceToSwap
-        );
-
-        const encodedParameters = ethers.utils.defaultAbiCoder.encode(
-          ["bytes[]", "address[]", "uint256[]"],
-          [[postResponse.data.tx.data], [addresses.DAI_Address], [0]]
-        );
-
-        let encodedParameters1 = [];
-        //Because repay(rebalance) is one borrow token at a time
-        const amounToSell =
-          await portfolioCalculations.callStatic.getCollateralAmountToSell(
-            vault,
-            addresses.corePool_controller,
-            venusAssetHandler.address,
-            [addresses.vDAI_Address],
-            tokens,
-            [balanceToRepay],
-            "10", //Flash loan fee
-            bufferUnit //Buffer unit for collateral amount
-          );
-        console.log("amounToSell", amounToSell);
-        console.log("lendTokens", lendTokens);
-
-        for (let j = 0; j < lendTokens.length; j++) {
-          const postResponse1 = await createEnsoCallDataRoute(
-            ensoHandler.address,
-            ensoHandler.address,
-            lendTokens[j],
-            addresses.USDT,
-            amounToSell[j].toString() //Need calculation here
-          );
-
-          encodedParameters1.push(
-            ethers.utils.defaultAbiCoder.encode(
-              ["bytes[]", "address[]", "uint256[]"],
-              [[postResponse1.data.tx.data], [addresses.USDT], [0]]
-            )
-          );
-        }
-
-        await rebalancing.repay(addresses.corePool_controller, {
-          _factory: addresses.thena_factory,
-          _token0: addresses.USDT, //USDT - Pool token
-          _token1: addresses.USDC_Address, //USDC - Pool token
-          _flashLoanToken: addresses.USDT, //Token to take flashlaon
-          _debtToken: [addresses.DAI_Address], //Token to pay debt of
-          _protocolToken: [addresses.vDAI_Address], // lending token in case of venus
-          _bufferUnit: bufferUnit, //Buffer unit for collateral amount
-          _solverHandler: ensoHandler.address, //Handler to swap
-          _swapHandler: swapHandler.address,
-          _flashLoanAmount: [balanceToSwap],
-          _debtRepayAmount: [balanceToRepay],
-          firstSwapData: [encodedParameters],
-          secondSwapData: encodedParameters1,
-          isMaxRepayment: false,
-          _poolFees: [],
-          isDexRepayment: false,
-        });
-
-        console.log(
-          "Balance of vToken After",
-          await ERC20.attach(addresses.vBNB_Address).balanceOf(vault)
-        );
-
-        balanceBorrowed =
-          await portfolioCalculations.getVenusTokenBorrowedBalance(
-            [addresses.vUSDT_Address],
-            vault
-          );
-
-        console.log("balanceBorrowed after repay", balanceBorrowed);
-      });
-
-      it("should withdraw in BTC by owner(user1)", async () => {
-        await ethers.provider.send("evm_increaseTime", [70]);
-
-        const supplyBefore = await portfolio.totalSupply();
-        const tokenToSwapInto = iaddress.btcAddress;
-
-        const user = owner;
-
-        const ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
-        const tokens = await portfolio.getTokens();
-
-        let vault = await portfolio.vault();
-
-        let flashloanBufferUnit = 11; //Flashloan buffer unit in 1/10000
-        let bufferUnit = 300; //Buffer unit for collateral amount in 1/100000
-
-        let flashLoanToken = addresses.USDT;
-        let flashLoanProtocolToken = addresses.vUSDT_Address;
-
-        const amountPortfolioToken = await portfolio.balanceOf(user.address);
-
-        console.log("amountPortfolioToken", amountPortfolioToken);
-
-        let withdrawalAmounts =
-          await portfolioCalculations.callStatic.getWithdrawalAmounts(
-            amountPortfolioToken,
-            portfolio.address
-          );
-
-        await portfolio.approve(
-          withdrawManager.address,
-          BigNumber.from(amountPortfolioToken)
-        );
-        let responses = [];
-        let userBalanceBefore = [];
-        for (let i = 0; i < tokens.length; i++) {
-          if (tokens[i] == tokenToSwapInto) {
-            responses.push("0x");
-          } else {
-            let response = await createEnsoCallDataRoute(
-              withdrawBatch.address,
-              user.address,
-              tokens[i],
-              tokenToSwapInto,
-              (withdrawalAmounts[i] * 0.993).toFixed(0)
-            );
-            responses.push(response.data.tx.data);
-          }
-          userBalanceBefore.push(
-            await ERC20.attach(tokens[i]).balanceOf(user.address)
-          );
-        }
-
-        const values =
-          await portfolioCalculations.calculateBorrowedPortionAndFlashLoanDetails(
-            portfolio.address,
-            flashLoanProtocolToken,
-            vault,
-            addresses.corePool_controller,
-            venusAssetHandler.address,
-            amountPortfolioToken,
-            flashloanBufferUnit
-          );
-
-        const borrowedPortion = values[0];
-        const flashLoanAmount = values[1];
-        const underlyings = values[2];
-        const borrowedTokens = values[3];
-
-        const userData = await venusAssetHandler.callStatic.getUserAccountData(
-          vault,
-          addresses.corePool_controller,
-          tokens
-        );
-        const lendTokens = userData[1].lendTokens;
-
-        let balanceBorrowed =
-          await portfolioCalculations.getVenusTokenBorrowedBalance(
-            [addresses.vUSDT_Address],
-            vault
-          );
-
-        console.log("balanceBorrowed before withdraw", balanceBorrowed);
-
-        console.log(
-          "Balance of vToken before",
-          await ERC20.attach(addresses.vBNB_Address).balanceOf(vault)
-        );
-
-        let tokenBalanceBefore: any = [];
-        for (let i = 0; i < tokens.length; i++) {
-          tokenBalanceBefore[i] = await ERC20.attach(tokens[i]).balanceOf(
-            owner.address
-          );
-        }
-
-        let encodedParameters = [];
-        let encodedParameters1 = [];
-        for (let i = 0; i < flashLoanAmount.length; i++) {
-          console.log("underlyings token", underlyings[i]);
-          if (flashLoanToken != underlyings[i]) {
-            const postResponse = await createEnsoCallDataRoute(
-              ensoHandler.address,
-              ensoHandler.address,
-              flashLoanToken,
-              underlyings[i],
-              flashLoanAmount[i].toString()
-            );
-            encodedParameters.push(
-              ethers.utils.defaultAbiCoder.encode(
-                ["bytes[]", "address[]", "uint256[]"],
-                [[postResponse.data.tx.data], [underlyings[i]], [0]]
-              )
-            );
-          } else {
-            encodedParameters.push(
-              ethers.utils.defaultAbiCoder.encode(
-                ["bytes[]", "address[]", "uint256[]"],
-                [["0x"], [underlyings[i]], [0]]
-              )
-            );
-          }
-        }
-
-        const amounToSell =
-          await portfolioCalculations.callStatic.getCollateralAmountToSell(
-            vault,
-            addresses.corePool_controller,
-            venusAssetHandler.address,
-            borrowedTokens,
-            tokens,
-            borrowedPortion,
-            "10", //Flash loan fee
-            bufferUnit //Buffer unit for collateral amount
-          );
-
-        for (let j = 0; j < lendTokens.length; j++) {
-          const postResponse1 = await createEnsoCallDataRoute(
-            ensoHandler.address,
-            ensoHandler.address,
-            lendTokens[j],
-            flashLoanToken,
-            amounToSell[j].toString() //Need calculation here
-          );
-
-          encodedParameters1.push(
-            ethers.utils.defaultAbiCoder.encode(
-              ["bytes[]", "address[]", "uint256[]"],
-              [[postResponse1.data.tx.data], [flashLoanToken], [0]]
-            )
-          );
-        }
-
-        await withdrawManager.withdraw(
-          portfolio.address,
-          tokenToSwapInto,
-          amountPortfolioToken,
-          0,
-          {
-            _factory: addresses.thena_factory,
-            _token0: addresses.USDT, //USDT - Pool token
-            _token1: addresses.USDC_Address, //USDC - Pool token
-            _flashLoanToken: flashLoanToken, //Token to take flashlaon
-            _bufferUnit: bufferUnit, //Buffer unit for collateral amount
-            _solverHandler: ensoHandler.address, //Handler to swap
-            _swapHandler: swapHandler.address,
-            _flashLoanAmount: [flashLoanAmount],
-            firstSwapData: [encodedParameters],
-            secondSwapData: [encodedParameters1],
-            _poolFees: [[]],
-            isDexRepayment: false,
-          },
-          responses
-        );
-
-        const supplyAfter = await portfolio.totalSupply();
-        console.log("SupplyAfter", supplyAfter);
-
-        for (let i = 0; i < tokens.length; i++) {
-          let balanceAfter = await ERC20.attach(tokens[i]).balanceOf(
-            owner.address
-          );
-          let balanceOFHandler = await ERC20.attach(tokens[i]).balanceOf(
-            withdrawBatch.address
-          );
-          expect(Number(balanceAfter)).to.be.greaterThan(
-            Number(userBalanceBefore[i])
-          );
-          expect(Number(balanceOFHandler)).to.be.equal(0);
-        }
-
-        expect(Number(supplyBefore)).to.be.greaterThan(Number(supplyAfter));
-      });
-
-      it("should withdraw in ETH by non-owner(user2)", async () => {
-        await ethers.provider.send("evm_increaseTime", [70]);
-
-        const supplyBefore = await portfolio.totalSupply();
-
-        const tokenToSwapInto = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
-
-        const user = nonOwner;
-
-        let flashloanBufferUnit = 11; //Flashloan buffer unit in 1/10000.This value is used slightly increase the amount of flashLoanAmount, for any priceImpact (10000 = 100%)
-        let bufferUnit = 300; //The buffer unit used to slightly increase the amount of collateral to sell, expressed in 0.001% (100000 = 100%)
-
-        const ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
-        const tokens = await portfolio.getTokens();
-
-        let vault = await portfolio.vault();
-
-        let flashLoanToken = addresses.USDT;
-        let flashLoanProtocolToken = addresses.vUSDT_Address;
-
-        const amountPortfolioToken = await portfolio.balanceOf(user.address);
-
-        console.log("amountPortfolioToken", amountPortfolioToken);
-
-        let withdrawalAmounts =
-          await portfolioCalculations.callStatic.getWithdrawalAmounts(
-            amountPortfolioToken,
-            portfolio.address
-          );
-
-        await portfolio
-          .connect(user)
-          .approve(
-            withdrawManager.address,
-            BigNumber.from(amountPortfolioToken)
-          );
-        let responses = [];
-        let userBalanceBefore = [];
-        for (let i = 0; i < tokens.length; i++) {
-          if (tokens[i] == tokenToSwapInto) {
-            responses.push("0x");
-          } else {
-            let response = await createEnsoCallDataRoute(
-              withdrawBatch.address,
-              user.address,
-              tokens[i],
-              tokenToSwapInto,
-              (withdrawalAmounts[i] * 0.99).toFixed(0)
-            );
-            responses.push(response.data.tx.data);
-          }
-          userBalanceBefore.push(
-            await ERC20.attach(tokens[i]).balanceOf(user.address)
-          );
-        }
-
-        const values =
-          await portfolioCalculations.calculateBorrowedPortionAndFlashLoanDetails(
-            portfolio.address,
-            flashLoanProtocolToken,
-            vault,
-            addresses.corePool_controller,
-            venusAssetHandler.address,
-            amountPortfolioToken,
-            flashloanBufferUnit
-          );
-
-        const borrowedPortion = values[0];
-        const flashLoanAmount = values[1];
-        const underlyings = values[2];
-        const borrowedTokens = values[3];
-
-        const userData = await venusAssetHandler.callStatic.getUserAccountData(
-          vault,
-          addresses.corePool_controller,
-          tokens
-        );
-        const lendTokens = userData[1].lendTokens;
-
-        let balanceBorrowed =
-          await portfolioCalculations.getVenusTokenBorrowedBalance(
-            [addresses.vUSDT_Address],
-            vault
-          );
-
-        console.log("balanceBorrowed before withdraw", balanceBorrowed);
-
-        console.log(
-          "Balance of vToken before",
-          await ERC20.attach(addresses.vBNB_Address).balanceOf(vault)
-        );
-
-        let tokenBalanceBefore: any = [];
-        for (let i = 0; i < tokens.length; i++) {
-          tokenBalanceBefore[i] = await ERC20.attach(tokens[i]).balanceOf(
-            user.address
-          );
-        }
-
-        let encodedParameters = [];
-        let encodedParameters1 = [];
-        for (let i = 0; i < flashLoanAmount.length; i++) {
-          console.log("underlyings token", underlyings[i]);
-          if (flashLoanToken != underlyings[i]) {
-            const postResponse = await createEnsoCallDataRoute(
-              ensoHandler.address,
-              ensoHandler.address,
-              flashLoanToken,
-              underlyings[i],
-              flashLoanAmount[i].toString()
-            );
-            encodedParameters.push(
-              ethers.utils.defaultAbiCoder.encode(
-                ["bytes[]", "address[]", "uint256[]"],
-                [[postResponse.data.tx.data], [underlyings[i]], [0]]
-              )
-            );
-          } else {
-            encodedParameters.push(
-              ethers.utils.defaultAbiCoder.encode(
-                ["bytes[]", "address[]", "uint256[]"],
-                [["0x"], [underlyings[i]], [0]]
-              )
-            );
-          }
-        }
-
-        const amounToSell =
-          await portfolioCalculations.callStatic.getCollateralAmountToSell(
-            vault,
-            addresses.corePool_controller,
-            venusAssetHandler.address,
-            borrowedTokens,
-            tokens,
-            borrowedPortion,
-            "10", //Flash loan fee
-            bufferUnit //Buffer unit for collateral amount
-          );
-
-        for (let j = 0; j < lendTokens.length; j++) {
-          const postResponse1 = await createEnsoCallDataRoute(
-            ensoHandler.address,
-            ensoHandler.address,
-            lendTokens[j],
-            flashLoanToken,
-            amounToSell[j].toString() //Need calculation here
-          );
-
-          encodedParameters1.push(
-            ethers.utils.defaultAbiCoder.encode(
-              ["bytes[]", "address[]", "uint256[]"],
-              [[postResponse1.data.tx.data], [flashLoanToken], [0]]
-            )
-          );
-        }
-
-        await withdrawManager.connect(user).withdraw(
-          portfolio.address,
-          tokenToSwapInto,
-          amountPortfolioToken,
-          0,
-          {
-            _factory: addresses.thena_factory,
-            _token0: addresses.USDT, //USDT - Pool token
-            _token1: addresses.USDC_Address, //USDC - Pool token
-            _flashLoanToken: flashLoanToken, //Token to take flashlaon
-            _bufferUnit: bufferUnit, //Buffer unit for collateral amount
-            _solverHandler: ensoHandler.address, //Handler to swap
-            _swapHandler: swapHandler.address,
-            _flashLoanAmount: [flashLoanAmount],
-            firstSwapData: [encodedParameters],
-            secondSwapData: [encodedParameters1],
-            _poolFees: [[]],
-            isDexRepayment: false,
-          },
-          responses
-        );
-
-        const supplyAfter = await portfolio.totalSupply();
-        console.log("SupplyAfter", supplyAfter);
-
-        for (let i = 0; i < tokens.length; i++) {
-          let balanceAfter = await ERC20.attach(tokens[i]).balanceOf(
-            user.address
-          );
-          let balanceOfHandler = await ERC20.attach(tokens[i]).balanceOf(
-            withdrawBatch.address
-          );
-          expect(Number(balanceAfter)).to.be.greaterThan(
-            Number(userBalanceBefore[i])
-          );
-          expect(Number(balanceOfHandler)).to.be.equal(0);
-        }
-
-        expect(Number(supplyBefore)).to.be.greaterThan(Number(supplyAfter));
-      });
+      // it("should swap tokens for user using native token", async () => {
+      //   let tokens = await portfolio.getTokens();
+
+      //   console.log("SupplyBefore", await portfolio.totalSupply());
+
+      //   let postResponse = [];
+
+      //   for (let i = 0; i < tokens.length; i++) {
+      //     let response = await createEnsoCallDataRoute(
+      //       depositBatch.address,
+      //       depositBatch.address,
+      //       "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      //       tokens[i],
+      //       "100000000000000000"
+      //     );
+      //     postResponse.push(response.data.tx.data);
+      //   }
+
+      //   const data = await depositBatch
+      //     .connect(nonOwner)
+      //     .multiTokenSwapETHAndTransfer(
+      //       {
+      //         _minMintAmount: 0,
+      //         _depositAmount: "1000000000000000000",
+      //         _target: portfolio.address,
+      //         _depositToken: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      //         _callData: postResponse,
+      //       },
+      //       {
+      //         value: "1000000000000000000",
+      //       }
+      //     );
+
+      //   console.log("SupplyAfter", await portfolio.totalSupply());
+      // });
+
+      // it("borrowed token limit should decrease after complete repayment", async () => {
+      //   expect(await rebalancing.tokensBorrowed()).to.be.equal(2);
+      // });
+
+      // it("Repay half of borrowed amount directly using vault token", async () => {
+      //   let vault = await portfolio.vault();
+      //   let ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
+
+      //   let balanceBorrowed =
+      //     await portfolioCalculations.getVenusTokenBorrowedBalance(
+      //       [addresses.vUSDT_Address],
+      //       vault
+      //     );
+
+      //   console.log("balanceBorrowed before repay", balanceBorrowed);
+
+      //   const balanceToRepay = (balanceBorrowed[0] / 2).toString();
+
+      //   console.log("balanceToRepay", balanceToRepay);
+
+      //   await rebalancing.directDebtRepayment(
+      //     addresses.USDT,
+      //     addresses.vUSDT_Address,
+      //     balanceToRepay
+      //   );
+
+      //   let vaultBalanceAfter = await ERC20.attach(addresses.USDT).balanceOf(
+      //     vault
+      //   );
+
+      //   balanceBorrowed =
+      //     await portfolioCalculations.getVenusTokenBorrowedBalance(
+      //       [addresses.vUSDT_Address],
+      //       vault
+      //     );
+
+      //   expect(vaultBalanceAfter).to.be.greaterThan(0);
+      //   console.log("balanceBorrowed after repay", balanceBorrowed);
+      // });
+
+      // it("should rebalance borrowed DAI", async () => {
+      //   let tokens = await portfolio.getTokens();
+      //   let sellToken = tokens[7];
+      //   let buyToken = iaddress.usdcAddress;
+
+      //   let newTokens = [
+      //     tokens[0],
+      //     tokens[1],
+      //     tokens[2],
+      //     tokens[3],
+      //     tokens[4],
+      //     tokens[5],
+      //     tokens[6],
+      //   ];
+
+      //   let vault = await portfolio.vault();
+
+      //   let ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
+      //   let balance = BigNumber.from(
+      //     await ERC20.attach(sellToken).balanceOf(vault)
+      //   ).toString();
+
+      //   let balanceToSwap = BigNumber.from(balance).toString();
+
+      //   console.log("Balance to rebalance", balanceToSwap);
+
+      //   const postResponse = await createEnsoCallDataRoute(
+      //     ensoHandler.address,
+      //     ensoHandler.address,
+      //     sellToken,
+      //     buyToken,
+      //     balanceToSwap
+      //   );
+
+      //   const encodedParameters = ethers.utils.defaultAbiCoder.encode(
+      //     [
+      //       " bytes[][]", // callDataEnso
+      //       "bytes[]", // callDataDecreaseLiquidity
+      //       "bytes[][]", // callDataIncreaseLiquidity
+      //       "address[][]", // increaseLiquidityTarget
+      //       "address[]", // underlyingTokensDecreaseLiquidity
+      //       "address[][]", // tokensIn
+      //       "address[][]", // tokens
+      //       " uint256[][]", // minExpectedOutputAmounts
+      //     ],
+      //     [
+      //       [[postResponse.data.tx.data]],
+      //       [],
+      //       [[]],
+      //       [[]],
+      //       [],
+      //       [[sellToken]],
+      //       [[buyToken]],
+      //       [[0]],
+      //     ]
+      //   );
+
+      //   await rebalancing.updateTokens({
+      //     _newTokens: newTokens,
+      //     _sellTokens: [sellToken],
+      //     _sellAmounts: [balanceToSwap],
+      //     _handler: ensoHandler.address,
+      //     _callData: encodedParameters,
+      //   });
+
+      //   console.log(
+      //     "balance after sell",
+      //     await ERC20.attach(sellToken).balanceOf(vault)
+      //   );
+      //   console.log(
+      //     "balance after buy",
+      //     await ERC20.attach(buyToken).balanceOf(vault)
+      //   );
+      // });
+
+      // it("should rebalance borrowed USDT", async () => {
+      //   let tokens = await portfolio.getTokens();
+      //   let sellToken = tokens[6];
+      //   let buyToken = iaddress.usdcAddress;
+
+      //   let newTokens = [
+      //     tokens[0],
+      //     tokens[1],
+      //     tokens[2],
+      //     tokens[3],
+      //     tokens[4],
+      //     tokens[5],
+      //   ];
+
+      //   let vault = await portfolio.vault();
+
+      //   let ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
+      //   let balance = BigNumber.from(
+      //     await ERC20.attach(sellToken).balanceOf(vault)
+      //   ).toString();
+
+      //   let balanceToSwap = BigNumber.from(balance).toString();
+
+      //   console.log("Balance to rebalance", balanceToSwap);
+
+      //   const postResponse = await createEnsoCallDataRoute(
+      //     ensoHandler.address,
+      //     ensoHandler.address,
+      //     sellToken,
+      //     buyToken,
+      //     balanceToSwap
+      //   );
+
+      //   const encodedParameters = ethers.utils.defaultAbiCoder.encode(
+      //     [
+      //       " bytes[][]", // callDataEnso
+      //       "bytes[]", // callDataDecreaseLiquidity
+      //       "bytes[][]", // callDataIncreaseLiquidity
+      //       "address[][]", // increaseLiquidityTarget
+      //       "address[]", // underlyingTokensDecreaseLiquidity
+      //       "address[][]", // tokensIn
+      //       "address[][]", // tokens
+      //       " uint256[][]", // minExpectedOutputAmounts
+      //     ],
+      //     [
+      //       [[postResponse.data.tx.data]],
+      //       [],
+      //       [[]],
+      //       [[]],
+      //       [],
+      //       [[sellToken]],
+      //       [[buyToken]],
+      //       [[0]],
+      //     ]
+      //   );
+
+      //   await rebalancing.updateTokens({
+      //     _newTokens: newTokens,
+      //     _sellTokens: [sellToken],
+      //     _sellAmounts: [balanceToSwap],
+      //     _handler: ensoHandler.address,
+      //     _callData: encodedParameters,
+      //   });
+
+      //   console.log(
+      //     "balance after sell",
+      //     await ERC20.attach(sellToken).balanceOf(vault)
+      //   );
+      //   console.log(
+      //     "balance after buy",
+      //     await ERC20.attach(buyToken).balanceOf(vault)
+      //   );
+      // });
+
+      // it("should revert, if new buffer unit is more 10%", async () => {
+      //   await expect(
+      //     protocolConfig.updateMaxCollateralBufferUnit(11000)
+      //   ).to.be.revertedWithCustomError(protocolConfig, "InvalidNewBufferUnit");
+      // });
+
+      // it("repay should revert if wrong flashloan provider factory if provided", async () => {
+      //   let flashloanBufferUnit = 20; //Flashloan buffer unit in 1/10000.This value is used slightly increase the amount of flashLoanAmount, for any priceImpact (10000 = 100%)
+      //   let bufferUnit = 160; //The buffer unit used to slightly increase the amount of collateral to sell, expressed in 0.001% (100000 = 100%)
+
+      //   await expect(
+      //     rebalancing.repay(addresses.corePool_controller, {
+      //       _factory: addresses.USDT,
+      //       _token0: addresses.USDT, //USDT - Pool token
+      //       _token1: addresses.USDC_Address, //USDC - Pool token
+      //       _flashLoanToken: addresses.USDT, //Token to take flashlaon
+      //       _debtToken: [addresses.DAI_Address], //Token to pay debt of
+      //       _protocolToken: [addresses.vDAI_Address], // lending token in case of venus
+      //       _bufferUnit: bufferUnit, //Buffer unit for collateral amount
+      //       _solverHandler: ensoHandler.address, //Handler to swap
+      //       _swapHandler: swapHandler.address,
+      //       _flashLoanAmount: [],
+      //       _debtRepayAmount: [],
+      //       firstSwapData: [],
+      //       secondSwapData: [],
+      //       isMaxRepayment: false,
+      //       _poolFees: [3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000],
+      //       isDexRepayment: false,
+      //     })
+      //   ).to.be.revertedWithCustomError(borrowManager, "InvalidFactoryAddress");
+      // });
+
+      // it("repay should revert if wrong solver handler is incorrect", async () => {
+      //   let flashloanBufferUnit = 20; //Flashloan buffer unit in 1/10000
+      //   let bufferUnit = 160; //Buffer unit for collateral amount in 1/100000
+
+      //   await expect(
+      //     rebalancing.repay(addresses.corePool_controller, {
+      //       _factory: addresses.thena_factory,
+      //       _token0: addresses.USDT, //USDT - Pool token
+      //       _token1: addresses.USDC_Address, //USDC - Pool token
+      //       _flashLoanToken: addresses.USDT, //Token to take flashlaon
+      //       _debtToken: [addresses.DAI_Address], //Token to pay debt of
+      //       _protocolToken: [addresses.vDAI_Address], // lending token in case of venus
+      //       _bufferUnit: bufferUnit, //Buffer unit for collateral amount
+      //       _solverHandler: addresses.USDT, //Handler to swap
+      //       _swapHandler: swapHandler.address,
+      //       _flashLoanAmount: [],
+      //       _debtRepayAmount: [],
+      //       firstSwapData: [],
+      //       secondSwapData: [],
+      //       isMaxRepayment: false,
+      //       _poolFees: [3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000, 3000],
+      //       isDexRepayment: false,
+      //     })
+      //   ).to.be.revertedWithCustomError(borrowManager, "InvalidSolver");
+      // });
+
+      // it("repay should revert if wrong solver handler is incorrect", async () => {
+      //   let bufferUnit = 140; //Buffer unit for collateral amount in 1/100000
+
+      //   await expect(
+      //     rebalancing.repay(addresses.corePool_controller, {
+      //       _factory: addresses.thena_factory,
+      //       _token0: addresses.USDT, //USDT - Pool token
+      //       _token1: addresses.USDC_Address, //USDC - Pool token
+      //       _flashLoanToken: addresses.USDT, //Token to take flashlaon
+      //       _debtToken: [addresses.DAI_Address], //Token to pay debt of
+      //       _protocolToken: [addresses.vDAI_Address], // lending token in case of venus
+      //       _bufferUnit: bufferUnit, //Buffer unit for collateral amount
+      //       _solverHandler: addresses.USDT, //Handler to swap
+      //       _swapHandler: swapHandler.address,
+      //       _flashLoanAmount: [],
+      //       _debtRepayAmount: [],
+      //       firstSwapData: [],
+      //       secondSwapData: [],
+      //       isMaxRepayment: false,
+      //       _poolFees: [],
+      //       isDexRepayment: false,
+      //     })
+      //   ).to.be.revertedWithCustomError(borrowManager, "InvalidSolver");
+      // });
+
+      // it("repay should revert if buffer unit execeeds acceptable buffer unit", async () => {
+      //   let bufferUnit = 1000; //Buffer unit for collateral amount in 1/100000
+
+      //   await expect(
+      //     rebalancing.repay(addresses.corePool_controller, {
+      //       _factory: addresses.thena_factory,
+      //       _token0: addresses.USDT, //USDT - Pool token
+      //       _token1: addresses.USDC_Address, //USDC - Pool token
+      //       _flashLoanToken: addresses.USDT, //Token to take flashlaon
+      //       _debtToken: [addresses.DAI_Address], //Token to pay debt of
+      //       _protocolToken: [addresses.vDAI_Address], // lending token in case of venus
+      //       _bufferUnit: bufferUnit, //Buffer unit for collateral amount
+      //       _solverHandler: ensoHandler.address, //Handler to swap
+      //       _swapHandler: swapHandler.address,
+      //       _flashLoanAmount: [],
+      //       _debtRepayAmount: [],
+      //       firstSwapData: [],
+      //       secondSwapData: [],
+      //       isMaxRepayment: false,
+      //       _poolFees: [],
+      //       isDexRepayment: false,
+      //     })
+      //   ).to.be.revertedWithCustomError(borrowManager, "InvalidBufferUnit");
+      // });
+
+      // it("repay should revert if flashLoan is not active", async () => {
+      //   let bufferUnit = 100; //Buffer unit for collateral amount in 1/100000
+
+      //   const types = [
+      //     "address", // flashLoanToken
+      //     "address[]", // debtToken
+      //     "address[]", // protocolToken
+      //     "uint256", // bufferUnit
+      //     "address", // solverHandler
+      //     "address", // poolAddress
+      //     "uint256[]", // flashLoanAmount
+      //     "uint256[]", // debtRepayAmount
+      //     "bytes[]", // firstSwapData
+      //     "bytes[]", // secondSwapData
+      //     "bool", // isMaxRepayment
+      //   ];
+
+      //   const values = [
+      //     addresses.USDT,
+      //     [addresses.DAI_Address],
+      //     [addresses.vDAI_Address],
+      //     bufferUnit,
+      //     ensoHandler.address,
+      //     ensoHandler.address,
+      //     [],
+      //     [],
+      //     [],
+      //     [],
+      //     false,
+      //   ];
+
+      //   const calldata = ethers.utils.defaultAbiCoder.encode(types, values);
+
+      //   await expect(
+      //     borrowManager.algebraFlashCallback("100", "100", calldata)
+      //   ).to.be.revertedWithCustomError(borrowManager, "FlashLoanIsInactive");
+      // });
+
+      // it("should repay half of borrowed dai using flashLoan", async () => {
+      //   let vault = await portfolio.vault();
+      //   let ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
+      //   let tokens = await portfolio.getTokens();
+
+      //   let flashloanBufferUnit = 30; //Flashloan buffer unit in 1/10000
+      //   let bufferUnit = 320; //Buffer unit for collateral amount in 1/100000
+
+      //   let balanceBorrowed =
+      //     await portfolioCalculations.getVenusTokenBorrowedBalance(
+      //       [addresses.vDAI_Address],
+      //       vault
+      //     );
+      //   const userData = await venusAssetHandler.callStatic.getUserAccountData(
+      //     vault,
+      //     addresses.corePool_controller,
+      //     tokens
+      //   );
+      //   const lendTokens = userData[1].lendTokens;
+
+      //   console.log("balanceBorrowed before repay", balanceBorrowed);
+
+      //   const balanceToRepay = (balanceBorrowed[0] / 2).toString();
+
+      //   const balanceToSwap = (
+      //     await portfolioCalculations.calculateFlashLoanAmountForRepayment(
+      //       addresses.vDAI_Address,
+      //       addresses.vUSDT_Address,
+      //       addresses.corePool_controller,
+      //       balanceToRepay,
+      //       flashloanBufferUnit
+      //     )
+      //   ).toString();
+
+      //   console.log("balanceToRepay", balanceToRepay);
+      //   console.log("balanceToSwap", balanceToSwap);
+
+      //   const postResponse = await createEnsoCallDataRoute(
+      //     ensoHandler.address,
+      //     ensoHandler.address,
+      //     addresses.USDT,
+      //     addresses.DAI_Address,
+      //     balanceToSwap
+      //   );
+
+      //   const encodedParameters = ethers.utils.defaultAbiCoder.encode(
+      //     ["bytes[]", "address[]", "uint256[]"],
+      //     [[postResponse.data.tx.data], [addresses.DAI_Address], [0]]
+      //   );
+
+      //   let encodedParameters1 = [];
+      //   //Because repay(rebalance) is one borrow token at a time
+      //   const amounToSell =
+      //     await portfolioCalculations.callStatic.getCollateralAmountToSell(
+      //       vault,
+      //       addresses.corePool_controller,
+      //       venusAssetHandler.address,
+      //       [addresses.vDAI_Address],
+      //       tokens,
+      //       [balanceToRepay],
+      //       "10", //Flash loan fee
+      //       bufferUnit //Buffer unit for collateral amount
+      //     );
+      //   console.log("amounToSell", amounToSell);
+      //   console.log("lendTokens", lendTokens);
+
+      //   for (let j = 0; j < lendTokens.length; j++) {
+      //     const postResponse1 = await createEnsoCallDataRoute(
+      //       ensoHandler.address,
+      //       ensoHandler.address,
+      //       lendTokens[j],
+      //       addresses.USDT,
+      //       amounToSell[j].toString() //Need calculation here
+      //     );
+
+      //     encodedParameters1.push(
+      //       ethers.utils.defaultAbiCoder.encode(
+      //         ["bytes[]", "address[]", "uint256[]"],
+      //         [[postResponse1.data.tx.data], [addresses.USDT], [0]]
+      //       )
+      //     );
+      //   }
+
+      //   await rebalancing.repay(addresses.corePool_controller, {
+      //     _factory: addresses.thena_factory,
+      //     _token0: addresses.USDT, //USDT - Pool token
+      //     _token1: addresses.USDC_Address, //USDC - Pool token
+      //     _flashLoanToken: addresses.USDT, //Token to take flashlaon
+      //     _debtToken: [addresses.DAI_Address], //Token to pay debt of
+      //     _protocolToken: [addresses.vDAI_Address], // lending token in case of venus
+      //     _bufferUnit: bufferUnit, //Buffer unit for collateral amount
+      //     _solverHandler: ensoHandler.address, //Handler to swap
+      //     _swapHandler: swapHandler.address,
+      //     _flashLoanAmount: [balanceToSwap],
+      //     _debtRepayAmount: [balanceToRepay],
+      //     firstSwapData: [encodedParameters],
+      //     secondSwapData: encodedParameters1,
+      //     isMaxRepayment: false,
+      //     _poolFees: [],
+      //     isDexRepayment: false,
+      //   });
+
+      //   console.log(
+      //     "Balance of vToken After",
+      //     await ERC20.attach(addresses.vBNB_Address).balanceOf(vault)
+      //   );
+
+      //   balanceBorrowed =
+      //     await portfolioCalculations.getVenusTokenBorrowedBalance(
+      //       [addresses.vUSDT_Address],
+      //       vault
+      //     );
+
+      //   console.log("balanceBorrowed after repay", balanceBorrowed);
+      // });
+
+      // it("should withdraw in BTC by owner(user1)", async () => {
+      //   await ethers.provider.send("evm_increaseTime", [70]);
+
+      //   const supplyBefore = await portfolio.totalSupply();
+      //   const tokenToSwapInto = iaddress.btcAddress;
+
+      //   const user = owner;
+
+      //   const ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
+      //   const tokens = await portfolio.getTokens();
+
+      //   let vault = await portfolio.vault();
+
+      //   let flashloanBufferUnit = 11; //Flashloan buffer unit in 1/10000
+      //   let bufferUnit = 300; //Buffer unit for collateral amount in 1/100000
+
+      //   let flashLoanToken = addresses.USDT;
+      //   let flashLoanProtocolToken = addresses.vUSDT_Address;
+
+      //   const amountPortfolioToken = await portfolio.balanceOf(user.address);
+
+      //   console.log("amountPortfolioToken", amountPortfolioToken);
+
+      //   let withdrawalAmounts =
+      //     await portfolioCalculations.callStatic.getWithdrawalAmounts(
+      //       amountPortfolioToken,
+      //       portfolio.address
+      //     );
+
+      //   await portfolio.approve(
+      //     withdrawManager.address,
+      //     BigNumber.from(amountPortfolioToken)
+      //   );
+      //   let responses = [];
+      //   let userBalanceBefore = [];
+      //   for (let i = 0; i < tokens.length; i++) {
+      //     if (tokens[i] == tokenToSwapInto) {
+      //       responses.push("0x");
+      //     } else {
+      //       let response = await createEnsoCallDataRoute(
+      //         withdrawBatch.address,
+      //         user.address,
+      //         tokens[i],
+      //         tokenToSwapInto,
+      //         (withdrawalAmounts[i] * 0.993).toFixed(0)
+      //       );
+      //       responses.push(response.data.tx.data);
+      //     }
+      //     userBalanceBefore.push(
+      //       await ERC20.attach(tokens[i]).balanceOf(user.address)
+      //     );
+      //   }
+
+      //   const values =
+      //     await portfolioCalculations.calculateBorrowedPortionAndFlashLoanDetails(
+      //       portfolio.address,
+      //       flashLoanProtocolToken,
+      //       vault,
+      //       addresses.corePool_controller,
+      //       venusAssetHandler.address,
+      //       amountPortfolioToken,
+      //       flashloanBufferUnit
+      //     );
+
+      //   const borrowedPortion = values[0];
+      //   const flashLoanAmount = values[1];
+      //   const underlyings = values[2];
+      //   const borrowedTokens = values[3];
+
+      //   const userData = await venusAssetHandler.callStatic.getUserAccountData(
+      //     vault,
+      //     addresses.corePool_controller,
+      //     tokens
+      //   );
+      //   const lendTokens = userData[1].lendTokens;
+
+      //   let balanceBorrowed =
+      //     await portfolioCalculations.getVenusTokenBorrowedBalance(
+      //       [addresses.vUSDT_Address],
+      //       vault
+      //     );
+
+      //   console.log("balanceBorrowed before withdraw", balanceBorrowed);
+
+      //   console.log(
+      //     "Balance of vToken before",
+      //     await ERC20.attach(addresses.vBNB_Address).balanceOf(vault)
+      //   );
+
+      //   let tokenBalanceBefore: any = [];
+      //   for (let i = 0; i < tokens.length; i++) {
+      //     tokenBalanceBefore[i] = await ERC20.attach(tokens[i]).balanceOf(
+      //       owner.address
+      //     );
+      //   }
+
+      //   let encodedParameters = [];
+      //   let encodedParameters1 = [];
+      //   for (let i = 0; i < flashLoanAmount.length; i++) {
+      //     console.log("underlyings token", underlyings[i]);
+      //     if (flashLoanToken != underlyings[i]) {
+      //       const postResponse = await createEnsoCallDataRoute(
+      //         ensoHandler.address,
+      //         ensoHandler.address,
+      //         flashLoanToken,
+      //         underlyings[i],
+      //         flashLoanAmount[i].toString()
+      //       );
+      //       encodedParameters.push(
+      //         ethers.utils.defaultAbiCoder.encode(
+      //           ["bytes[]", "address[]", "uint256[]"],
+      //           [[postResponse.data.tx.data], [underlyings[i]], [0]]
+      //         )
+      //       );
+      //     } else {
+      //       encodedParameters.push(
+      //         ethers.utils.defaultAbiCoder.encode(
+      //           ["bytes[]", "address[]", "uint256[]"],
+      //           [["0x"], [underlyings[i]], [0]]
+      //         )
+      //       );
+      //     }
+      //   }
+
+      //   const amounToSell =
+      //     await portfolioCalculations.callStatic.getCollateralAmountToSell(
+      //       vault,
+      //       addresses.corePool_controller,
+      //       venusAssetHandler.address,
+      //       borrowedTokens,
+      //       tokens,
+      //       borrowedPortion,
+      //       "10", //Flash loan fee
+      //       bufferUnit //Buffer unit for collateral amount
+      //     );
+
+      //   for (let j = 0; j < lendTokens.length; j++) {
+      //     const postResponse1 = await createEnsoCallDataRoute(
+      //       ensoHandler.address,
+      //       ensoHandler.address,
+      //       lendTokens[j],
+      //       flashLoanToken,
+      //       amounToSell[j].toString() //Need calculation here
+      //     );
+
+      //     encodedParameters1.push(
+      //       ethers.utils.defaultAbiCoder.encode(
+      //         ["bytes[]", "address[]", "uint256[]"],
+      //         [[postResponse1.data.tx.data], [flashLoanToken], [0]]
+      //       )
+      //     );
+      //   }
+
+      //   await withdrawManager.withdraw(
+      //     portfolio.address,
+      //     tokenToSwapInto,
+      //     amountPortfolioToken,
+      //     0,
+      //     {
+      //       _factory: addresses.thena_factory,
+      //       _token0: addresses.USDT, //USDT - Pool token
+      //       _token1: addresses.USDC_Address, //USDC - Pool token
+      //       _flashLoanToken: flashLoanToken, //Token to take flashlaon
+      //       _bufferUnit: bufferUnit, //Buffer unit for collateral amount
+      //       _solverHandler: ensoHandler.address, //Handler to swap
+      //       _swapHandler: swapHandler.address,
+      //       _flashLoanAmount: [flashLoanAmount],
+      //       firstSwapData: [encodedParameters],
+      //       secondSwapData: [encodedParameters1],
+      //       _poolFees: [[]],
+      //       isDexRepayment: false,
+      //     },
+      //     responses
+      //   );
+
+      //   const supplyAfter = await portfolio.totalSupply();
+      //   console.log("SupplyAfter", supplyAfter);
+
+      //   for (let i = 0; i < tokens.length; i++) {
+      //     let balanceAfter = await ERC20.attach(tokens[i]).balanceOf(
+      //       owner.address
+      //     );
+      //     let balanceOFHandler = await ERC20.attach(tokens[i]).balanceOf(
+      //       withdrawBatch.address
+      //     );
+      //     expect(Number(balanceAfter)).to.be.greaterThan(
+      //       Number(userBalanceBefore[i])
+      //     );
+      //     expect(Number(balanceOFHandler)).to.be.equal(0);
+      //   }
+
+      //   expect(Number(supplyBefore)).to.be.greaterThan(Number(supplyAfter));
+      // });
+
+      // it("should withdraw in ETH by non-owner(user2)", async () => {
+      //   await ethers.provider.send("evm_increaseTime", [70]);
+
+      //   const supplyBefore = await portfolio.totalSupply();
+
+      //   const tokenToSwapInto = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+
+      //   const user = nonOwner;
+
+      //   let flashloanBufferUnit = 11; //Flashloan buffer unit in 1/10000.This value is used slightly increase the amount of flashLoanAmount, for any priceImpact (10000 = 100%)
+      //   let bufferUnit = 300; //The buffer unit used to slightly increase the amount of collateral to sell, expressed in 0.001% (100000 = 100%)
+
+      //   const ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
+      //   const tokens = await portfolio.getTokens();
+
+      //   let vault = await portfolio.vault();
+
+      //   let flashLoanToken = addresses.USDT;
+      //   let flashLoanProtocolToken = addresses.vUSDT_Address;
+
+      //   const amountPortfolioToken = await portfolio.balanceOf(user.address);
+
+      //   console.log("amountPortfolioToken", amountPortfolioToken);
+
+      //   let withdrawalAmounts =
+      //     await portfolioCalculations.callStatic.getWithdrawalAmounts(
+      //       amountPortfolioToken,
+      //       portfolio.address
+      //     );
+
+      //   await portfolio
+      //     .connect(user)
+      //     .approve(
+      //       withdrawManager.address,
+      //       BigNumber.from(amountPortfolioToken)
+      //     );
+      //   let responses = [];
+      //   let userBalanceBefore = [];
+      //   for (let i = 0; i < tokens.length; i++) {
+      //     if (tokens[i] == tokenToSwapInto) {
+      //       responses.push("0x");
+      //     } else {
+      //       let response = await createEnsoCallDataRoute(
+      //         withdrawBatch.address,
+      //         user.address,
+      //         tokens[i],
+      //         tokenToSwapInto,
+      //         (withdrawalAmounts[i] * 0.99).toFixed(0)
+      //       );
+      //       responses.push(response.data.tx.data);
+      //     }
+      //     userBalanceBefore.push(
+      //       await ERC20.attach(tokens[i]).balanceOf(user.address)
+      //     );
+      //   }
+
+      //   const values =
+      //     await portfolioCalculations.calculateBorrowedPortionAndFlashLoanDetails(
+      //       portfolio.address,
+      //       flashLoanProtocolToken,
+      //       vault,
+      //       addresses.corePool_controller,
+      //       venusAssetHandler.address,
+      //       amountPortfolioToken,
+      //       flashloanBufferUnit
+      //     );
+
+      //   const borrowedPortion = values[0];
+      //   const flashLoanAmount = values[1];
+      //   const underlyings = values[2];
+      //   const borrowedTokens = values[3];
+
+      //   const userData = await venusAssetHandler.callStatic.getUserAccountData(
+      //     vault,
+      //     addresses.corePool_controller,
+      //     tokens
+      //   );
+      //   const lendTokens = userData[1].lendTokens;
+
+      //   let balanceBorrowed =
+      //     await portfolioCalculations.getVenusTokenBorrowedBalance(
+      //       [addresses.vUSDT_Address],
+      //       vault
+      //     );
+
+      //   console.log("balanceBorrowed before withdraw", balanceBorrowed);
+
+      //   console.log(
+      //     "Balance of vToken before",
+      //     await ERC20.attach(addresses.vBNB_Address).balanceOf(vault)
+      //   );
+
+      //   let tokenBalanceBefore: any = [];
+      //   for (let i = 0; i < tokens.length; i++) {
+      //     tokenBalanceBefore[i] = await ERC20.attach(tokens[i]).balanceOf(
+      //       user.address
+      //     );
+      //   }
+
+      //   let encodedParameters = [];
+      //   let encodedParameters1 = [];
+      //   for (let i = 0; i < flashLoanAmount.length; i++) {
+      //     console.log("underlyings token", underlyings[i]);
+      //     if (flashLoanToken != underlyings[i]) {
+      //       const postResponse = await createEnsoCallDataRoute(
+      //         ensoHandler.address,
+      //         ensoHandler.address,
+      //         flashLoanToken,
+      //         underlyings[i],
+      //         flashLoanAmount[i].toString()
+      //       );
+      //       encodedParameters.push(
+      //         ethers.utils.defaultAbiCoder.encode(
+      //           ["bytes[]", "address[]", "uint256[]"],
+      //           [[postResponse.data.tx.data], [underlyings[i]], [0]]
+      //         )
+      //       );
+      //     } else {
+      //       encodedParameters.push(
+      //         ethers.utils.defaultAbiCoder.encode(
+      //           ["bytes[]", "address[]", "uint256[]"],
+      //           [["0x"], [underlyings[i]], [0]]
+      //         )
+      //       );
+      //     }
+      //   }
+
+      //   const amounToSell =
+      //     await portfolioCalculations.callStatic.getCollateralAmountToSell(
+      //       vault,
+      //       addresses.corePool_controller,
+      //       venusAssetHandler.address,
+      //       borrowedTokens,
+      //       tokens,
+      //       borrowedPortion,
+      //       "10", //Flash loan fee
+      //       bufferUnit //Buffer unit for collateral amount
+      //     );
+
+      //   for (let j = 0; j < lendTokens.length; j++) {
+      //     const postResponse1 = await createEnsoCallDataRoute(
+      //       ensoHandler.address,
+      //       ensoHandler.address,
+      //       lendTokens[j],
+      //       flashLoanToken,
+      //       amounToSell[j].toString() //Need calculation here
+      //     );
+
+      //     encodedParameters1.push(
+      //       ethers.utils.defaultAbiCoder.encode(
+      //         ["bytes[]", "address[]", "uint256[]"],
+      //         [[postResponse1.data.tx.data], [flashLoanToken], [0]]
+      //       )
+      //     );
+      //   }
+
+      //   await withdrawManager.connect(user).withdraw(
+      //     portfolio.address,
+      //     tokenToSwapInto,
+      //     amountPortfolioToken,
+      //     0,
+      //     {
+      //       _factory: addresses.thena_factory,
+      //       _token0: addresses.USDT, //USDT - Pool token
+      //       _token1: addresses.USDC_Address, //USDC - Pool token
+      //       _flashLoanToken: flashLoanToken, //Token to take flashlaon
+      //       _bufferUnit: bufferUnit, //Buffer unit for collateral amount
+      //       _solverHandler: ensoHandler.address, //Handler to swap
+      //       _swapHandler: swapHandler.address,
+      //       _flashLoanAmount: [flashLoanAmount],
+      //       firstSwapData: [encodedParameters],
+      //       secondSwapData: [encodedParameters1],
+      //       _poolFees: [[]],
+      //       isDexRepayment: false,
+      //     },
+      //     responses
+      //   );
+
+      //   const supplyAfter = await portfolio.totalSupply();
+      //   console.log("SupplyAfter", supplyAfter);
+
+      //   for (let i = 0; i < tokens.length; i++) {
+      //     let balanceAfter = await ERC20.attach(tokens[i]).balanceOf(
+      //       user.address
+      //     );
+      //     let balanceOfHandler = await ERC20.attach(tokens[i]).balanceOf(
+      //       withdrawBatch.address
+      //     );
+      //     expect(Number(balanceAfter)).to.be.greaterThan(
+      //       Number(userBalanceBefore[i])
+      //     );
+      //     expect(Number(balanceOfHandler)).to.be.equal(0);
+      //   }
+
+      //   expect(Number(supplyBefore)).to.be.greaterThan(Number(supplyAfter));
+      // });
     });
   });
 });

@@ -90,7 +90,7 @@ export const BSCMainNet: ChainAddresses = {
 
   //Venus - Deployers
   pool_deployer: "0xc89F69Baa3ff17a842AB2DE89E5Fc8a8e2cc7358",
-  thena_factory: "0x306F06C147f064A010530292A1EB6737c3e378e4",
+  thena_factory: "0x30055F87716d3DFD0E5198C27024481099fB4A98",
 
   // Liqee
   qBNB: "0x5aF1b6cA84693Cc8E733C8273Ba260095B3D05CA",

@@ -1682,7 +1682,7 @@ describe.only("Tests for Deposit", () => {
 
         const flashLoanAmount = values[1];
 
-        await portfolio.multiTokenWithdrawal(
+        await portfolio.connect(nonOwner).multiTokenWithdrawal(
           BigNumber.from(amountPortfolioToken),
           {
             _factory: addresses.thena_factory,
