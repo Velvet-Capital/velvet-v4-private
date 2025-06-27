@@ -89,7 +89,7 @@ async function main(): Promise<void> {
 
   const EnsoHandler = await ethers.getContractFactory("EnsoHandler");
   const ensoHandler = await EnsoHandler.deploy(
-    "0x38147794ff247e5fc179edbae6c37fff88f68c52"
+    "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
   );
   await ensoHandler.deployed();
 
@@ -407,7 +407,7 @@ async function main(): Promise<void> {
     "DepositBatchExternalPositions"
   );
   const depositBatch = await DepositBatch.deploy(
-    "0x38147794ff247e5fc179edbae6c37fff88f68c52"
+    "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
   );
   await depositBatch.deployed();
 
@@ -437,7 +437,7 @@ async function main(): Promise<void> {
     "WithdrawBatchExternalPositions"
   );
   const withdrawBatch = await WithdrawBatch.deploy(
-    "0x38147794ff247e5fc179edbae6c37fff88f68c52"
+    "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
   );
   await withdrawBatch.deployed();
 

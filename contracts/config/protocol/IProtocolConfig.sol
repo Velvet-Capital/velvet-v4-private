@@ -309,4 +309,10 @@ interface IProtocolConfig {
     bytes32 protocolId
   ) external view returns (address);
   function MAX_BORROW_TOKEN_LIMIT() external pure returns(uint256);
+
+  function isSupportedCallbackCaller(address _callbackCaller) external view returns (bool);
+
+  function addSupportedCallbackCaller(address _callbackCaller) external;
+
+  function removeSupportedCallbackCaller(address _callbackCaller) external;
 }

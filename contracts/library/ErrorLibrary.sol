@@ -245,4 +245,6 @@ library ErrorLibrary {
   error InvalidSwapHandler();
   // @notice Thrown when position wrapper is not valid
   error InvalidPositionWrapper();
+  // @notice Thrown when callback caller is not supported
+  error UnsupportedCallbackCaller();
 }
