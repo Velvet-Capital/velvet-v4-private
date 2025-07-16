@@ -95,7 +95,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
   }
 
   describe.only("Tests for Position Manager + Wrapper", () => {
-    const uniswapV3Router = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
+    const uniswapV3Router = "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45";
 
     /// @dev The minimum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**-128
     const MIN_TICK = -887272;
@@ -132,7 +132,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
 
       const EnsoHandler = await ethers.getContractFactory("EnsoHandler");
       ensoHandler = await EnsoHandler.deploy(
-        "0x38147794ff247e5fc179edbae6c37fff88f68c52"
+        "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
       );
       await ensoHandler.deployed();
 
@@ -189,11 +189,12 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       await protocolConfig.setCoolDownPeriod("70");
       await protocolConfig.enableSolverHandler(ensoHandler.address);
       await protocolConfig.setSupportedFactory(ensoHandler.address);
+      await protocolConfig.addSupportedCallbackCaller(addresses.aavePool);
 
       await protocolConfig.enableProtocol(
         uniswapV3ProtocolHash,
         "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
-        "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+        "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
         positionWrapperBaseAddress.address
       );
 
@@ -674,10 +675,11 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         const signature = await owner._signTypedData(domain, types, values);
 
         // Calculation to make minimum amount value for user---------------------------------
-        let result = await portfolioCalculations.callStatic.getUserAmountToDeposit(
-          amounts,
-          portfolio.address
-        );
+        let result =
+          await portfolioCalculations.callStatic.getUserAmountToDeposit(
+            amounts,
+            portfolio.address
+          );
         //-----------------------------------------------------------------------------------
 
         newAmounts = result[0];
@@ -788,10 +790,11 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         const signature = await owner._signTypedData(domain, types, values);
 
         // Calculation to make minimum amount value for user---------------------------------
-        let result = await portfolioCalculations.callStatic.getUserAmountToDeposit(
-          amounts,
-          portfolio.address
-        );
+        let result =
+          await portfolioCalculations.callStatic.getUserAmountToDeposit(
+            amounts,
+            portfolio.address
+          );
         //-----------------------------------------------------------------------------------
 
         newAmounts = result[0];
@@ -910,10 +913,11 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         const signature = await nonOwner._signTypedData(domain, types, values);
 
         // Calculation to make minimum amount value for user---------------------------------
-        let result = await portfolioCalculations.callStatic.getUserAmountToDeposit(
-          amounts,
-          portfolio.address
-        );
+        let result =
+          await portfolioCalculations.callStatic.getUserAmountToDeposit(
+            amounts,
+            portfolio.address
+          );
         //-----------------------------------------------------------------------------------
 
         newAmounts = result[0];

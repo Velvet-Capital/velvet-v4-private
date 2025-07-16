@@ -154,7 +154,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
 
       const EnsoHandler = await ethers.getContractFactory("EnsoHandler");
       ensoHandler = await EnsoHandler.deploy(
-        "0x38147794ff247e5fc179edbae6c37fff88f68c52"
+        "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
       );
       await ensoHandler.deployed();
 
@@ -162,7 +162,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         "DepositBatchExternalPositions"
       );
       depositBatch = await DepositBatch.deploy(
-        "0x38147794ff247e5fc179edbae6c37fff88f68c52"
+        "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
       );
       await depositBatch.deployed();
 
@@ -174,7 +174,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
 
       const WithdrawBatch = await ethers.getContractFactory("WithdrawBatch");
       withdrawBatch = await WithdrawBatch.deploy(
-        "0x38147794ff247e5fc179edbae6c37fff88f68c52"
+        "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
       );
       await withdrawBatch.deployed();
 
@@ -205,6 +205,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       protocolConfig = ProtocolConfig.attach(_protocolConfig.address);
       await protocolConfig.setCoolDownPeriod("60");
       await protocolConfig.enableSolverHandler(ensoHandler.address);
+      await protocolConfig.addSupportedCallbackCaller(addresses.aavePool);
 
       await protocolConfig.enableTokens([
         addresses.USDT,
@@ -216,7 +217,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       await protocolConfig.enableProtocol(
         uniswapV3ProtocolHash,
         "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
-        "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+        "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
         positionWrapperBaseAddress.address
       );
 

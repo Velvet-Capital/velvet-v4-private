@@ -654,7 +654,7 @@ contract PortfolioCalculations is ExponentialNoError {
   }
 
   function getPoolFee(address _pool) external view returns (uint256) {
-    return IThena(_pool).globalState().fee;
+    return IThena(_pool).globalState().lastFee;
   }
 
   function getCollateralAmountToSell(

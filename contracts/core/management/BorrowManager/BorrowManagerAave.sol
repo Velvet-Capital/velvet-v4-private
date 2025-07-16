@@ -29,6 +29,8 @@ contract BorrowManagerAave is AbstractBorrowManager, IFlashLoanReceiver {
     if (!_isFlashLoanActive) revert ErrorLibrary.FlashLoanIsInactive();
     if (initiator != address(this)) revert ErrorLibrary.InvalidLoanInitiator();
 
+    if (!_protocolConfig.isSupportedCallbackCaller(msg.sender)) revert ErrorLibrary.UnsupportedCallbackCaller();
+
     FunctionParameters.FlashLoanData memory flashData = abi.decode(
       params,
       (FunctionParameters.FlashLoanData)

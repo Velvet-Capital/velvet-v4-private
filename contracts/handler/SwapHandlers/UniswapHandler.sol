@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { ISwapHandler } from "../../core/interfaces/ISwapHandler.sol";
-import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import { ISwapRouter02 } from "../../wrappers/uniswapV3/ISwapRouter02.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 contract UniswapHandler is ISwapHandler {
@@ -26,15 +26,15 @@ contract UniswapHandler is ISwapHandler {
       tokenOut // Address of the output token
     );
 
-    ISwapRouter.ExactInputParams memory params = ISwapRouter.ExactInputParams({
-      path: path,
-      recipient: to,
-      deadline: block.timestamp + 15,
-      amountIn: amountIn,
-      amountOutMinimum: amountOut
-    });
+    ISwapRouter02.ExactInputParams memory params = ISwapRouter02
+      .ExactInputParams({
+        path: path,
+        recipient: to,
+        amountIn: amountIn,
+        amountOutMinimum: amountOut
+      });
 
-    data = abi.encodeCall(ISwapRouter.exactInput, params);
+    data = abi.encodeCall(ISwapRouter02.exactInput, params);
   }
 
   function swapTokensForExactTokens(
@@ -51,16 +51,15 @@ contract UniswapHandler is ISwapHandler {
       tokenOut // Address of the output token
     );
 
-    ISwapRouter.ExactOutputParams memory params = ISwapRouter
+    ISwapRouter02.ExactOutputParams memory params = ISwapRouter02
       .ExactOutputParams({
         path: path,
         recipient: to,
-        deadline: block.timestamp + 15,
         amountOut: amountOut,
         amountInMaximum: amountIn
       });
 
-    data = abi.encodeCall(ISwapRouter.exactOutput, params);
+    data = abi.encodeCall(ISwapRouter02.exactOutput, params);
   }
 
   function getRouterAddress() public view returns (address) {

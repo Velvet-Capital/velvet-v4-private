@@ -5,7 +5,7 @@ import { PositionManagerAbstract, IPositionWrapper, WrapperFunctionParameters, I
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import { IFactory } from "./IFactory.sol";
 import { IPool } from "../interfaces/IPool.sol";
-import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import { ISwapRouter02 } from "./ISwapRouter02.sol";
 import { IPriceOracle } from "../../oracle/IPriceOracle.sol";
 import { SwapVerificationLibraryUniswap } from "./SwapVerificationLibraryUniswap.sol";
 import { FunctionParameters } from "../../FunctionParameters.sol";
@@ -14,7 +14,7 @@ import { FunctionParameters } from "../../FunctionParameters.sol";
  * @dev Extension of PositionManagerAbstract for managing Uniswap V3 positions with added features like custom token swapping.
  */
 abstract contract PositionManagerAbstractUniswap is PositionManagerAbstract {
-  ISwapRouter internal router;
+  ISwapRouter02 internal router;
 
   /**
    * @dev Initializes the contract with additional protocol configuration and swap router addresses.
@@ -42,7 +42,7 @@ abstract contract PositionManagerAbstractUniswap is PositionManagerAbstract {
       _protocolId
     );
 
-    router = ISwapRouter(_swapRouter);
+    router = ISwapRouter02(_swapRouter);
   }
 
   /**
@@ -413,13 +413,12 @@ abstract contract PositionManagerAbstractUniswap is PositionManagerAbstract {
     uint256 balanceTokenOutBeforeSwap = IERC20Upgradeable(_params._tokenOut)
       .balanceOf(address(this));
 
-    ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+    ISwapRouter02.ExactInputSingleParams memory params = ISwapRouter02
       .ExactInputSingleParams({
         tokenIn: _params._tokenIn,
         tokenOut: _params._tokenOut,
         fee: _params._fee,
         recipient: address(this),
-        deadline: block.timestamp,
         amountIn: _params._amountIn,
         amountOutMinimum: 0,
         sqrtPriceLimitX96: 0
