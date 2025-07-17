@@ -105,22 +105,26 @@ async function main(): Promise<void> {
 
   let tokens = await portfolio.getTokens();
 
+  console.log("Tokens:", tokens);
+
   console.log("Vault:", vault);
 
-  let sellToken = deployedAddresses.ethAddress;
-  let buyToken = addresses.vBTC_Address;
+  let sellToken = addresses.vETH_Address;
+  let buyToken = addresses.vUSDC_Address;
 
   let balance = await ERC20.attach(sellToken).balanceOf(vault);
-  let balanceToSwap = balance / 2;
+  let balanceToSwap = balance;
+  let ensoHandlerBalance = await ERC20.attach(sellToken).balanceOf(ensoHandler.address);
+  let totalBalanceToSwap = balanceToSwap.add(ensoHandlerBalance);
 
-  console.log("Balance to swap:", balanceToSwap);
+  console.log("Balance to swap:", totalBalanceToSwap);
 
   let response = await createEnsoCallDataRoute(
     ensoHandler.address,
     ensoHandler.address,
     sellToken,
     buyToken,
-    balanceToSwap.toString()
+    totalBalanceToSwap.toString()
   );
 
   const encodedParameters = ethers.utils.defaultAbiCoder.encode(
@@ -148,15 +152,38 @@ async function main(): Promise<void> {
 
   console.log("------------- Updating Tokens -------------");
 
-  const newTokens = [tokens[0], tokens[1], buyToken];
+  const newTokens = [tokens[0], buyToken, tokens[2], tokens[3], tokens[4]]; // End state of vault
 
-  await rebalancing.connect(owner2).updateTokens({
+  const tx = await rebalancing.connect(owner2).populateTransaction.updateTokens({
     _newTokens: newTokens,
     _sellTokens: [sellToken],
-    _sellAmounts: [balanceToSwap],
+    _sellAmounts: [balanceToSwap.toString()],
     _handler: ensoHandler.address,
     _callData: encodedParameters,
   });
+  
+  // gas settings
+  tx.gasLimit = 3000000; // Set a high gas limit
+  tx.maxFeePerGas = maxFeePerGas;
+  tx.maxPriorityFeePerGas = adjustedPriorityFee;
+  
+  // Send the transaction manually
+  const sentTx = await owner2.sendTransaction(tx);
+  console.log("Transaction hash:", sentTx.hash);
+  console.log("Transaction submitted! Check BSCScan for details.");
+  
+  // Wait for the transaction to be mined
+  try {
+    const receipt = await sentTx.wait();
+    console.log("Transaction succeeded! Block:", receipt.blockNumber);
+  } catch (error) {
+    console.log("Transaction failed as expected:", error.message);
+    console.log("Check BSCScan for the failed transaction details.");
+  }
+  
+  // Execute for vTokens
+  // await rebalancing.connect(owner2).enableCollateralTokens([buyToken],addresses.corePool_controller); // Only for vTokens if needed
+  
   console.log(
     "------------------------------ Rebalance Ended ------------------------------"
   );

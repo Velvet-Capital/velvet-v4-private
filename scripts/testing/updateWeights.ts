@@ -14,6 +14,7 @@ import {
   Rebalancing__factory,
   PortfolioFactory,
 } from "../../typechain";
+import { createEnsoCallDataRoute } from "../../test/Bsc/IntentCalculations";
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -71,7 +72,7 @@ async function main(): Promise<void> {
     "Gwei"
   );
 
-  console.log("--------------- Borrow Started ---------------");
+  console.log("--------------- Rebalance Started ---------------");
 
   const Portfolio = await ethers.getContractFactory("Portfolio", {
     libraries: {
@@ -93,16 +94,72 @@ async function main(): Promise<void> {
   const Rebalancing = await ethers.getContractFactory("Rebalancing");
   const rebalancing = await Rebalancing.attach(rebalancingAddress);
 
-  await rebalancing.connect(owner2).borrow(
-    addresses.vLINK_Address,
-    [addresses.vBTC_Address],
-    addresses.LINK_Address,
-    addresses.corePool_controller,
-    "59000000000000000" // $1
+  const EnsoHandler = await ethers.getContractFactory("EnsoHandler");
+  const ensoHandler = await EnsoHandler.attach(deployedAddresses.ensoHandler);
+
+  console.log("------------- Creating Enso Call Data Route -------------");
+
+  let ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
+
+  let vault = await portfolio.vault();
+
+  let tokens = await portfolio.getTokens();
+
+  console.log("Vault:", vault);
+
+  let sellToken = deployedAddresses.wbnbAddress;
+  let buyToken = addresses.vBTC_Address;
+
+  let balance = await ERC20.attach(sellToken).balanceOf(vault);
+  let balanceToSwap = balance.div(3);
+  let ensoHandlerBalance = await ERC20.attach(sellToken).balanceOf(ensoHandler.address);
+
+  let totalBalanceToSwap = balanceToSwap.add(ensoHandlerBalance);
+
+  console.log("Balance to swap:", totalBalanceToSwap);
+
+  let response = await createEnsoCallDataRoute(
+    ensoHandler.address,
+    ensoHandler.address,
+    sellToken,
+    buyToken,
+    totalBalanceToSwap.toString()
+  );
+
+  const encodedParameters = ethers.utils.defaultAbiCoder.encode(
+    [
+      " bytes[][]", // callDataEnso
+      "bytes[]", // callDataDecreaseLiquidity
+      "bytes[][]", // callDataIncreaseLiquidity
+      "address[][]", // increaseLiquidityTarget
+      "address[]", // underlyingTokensDecreaseLiquidity
+      "address[][]", // tokensIn
+      "address[][]", // tokens
+      " uint256[][]", // minExpectedOutputAmounts
+    ],
+    [
+      [[response.data.tx.data]],
+      [],
+      [[]],
+      [[]],
+      [],
+      [[sellToken]],
+      [[buyToken]],
+      [[0]],
+    ]
+  );
+
+  console.log("------------- Updating Tokens -------------");
+
+  await rebalancing.connect(owner2).updateWeights(
+    [sellToken],
+    [totalBalanceToSwap.toString()],
+    ensoHandler.address,
+    encodedParameters
   );
 
   console.log(
-    "------------------------------ Borrow Ended ------------------------------"
+    "------------------------------ Rebalance Ended ------------------------------"
   );
 }
 

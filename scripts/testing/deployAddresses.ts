@@ -32,5 +32,7 @@ export const deployedAddresses = {
     usdcAddress: "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
     usdtAddress: "0x55d398326f99059fF775485246999027B3197955",
     cakeAddress: "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82",
+    linkAddress: "0xF8A0BF9cF54Bb92F17374d9e9A321E6a111a51bD",
+    vLinkAddress: "0x650b940a1033B8A1b1873f78730FcFC73ec11f1f",
     deployedPortfolio: "0x5A43CAE60E028F66083E24bfE58397403b3a2Ff9",
   };

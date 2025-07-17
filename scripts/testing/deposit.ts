@@ -1,8 +1,54 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// When running the script with `hardhat run <script>` you'll find the Hardhat
-// Runtime Environment's members available in the global scope.
+//Oracle Enabled for tokens - WBNB, ETH, USDC, DAI, USDT, LINK, BTC
+
+/**
+ * DEPOSIT PROCESS OVERVIEW
+ * ========================
+ * 
+ * This script demonstrates how deposits work in the Velvet protocol:
+ * 
+ * 1. DEPOSIT AMOUNT SPLITTING
+ *    - User deposits 1 BNB (or any amount)
+ *    - The amount is split across portfolio tokens based on their USD value percentages
+ *    - Example: If portfolio has $1000 total value with:
+ *      * Token A: $400 (40%)
+ *      * Token B: $300 (30%) 
+ *      * Token C: $300 (30%)
+ *    - Then 1 BNB deposit splits as:
+ *      * Token A: 0.4 BNB
+ *      * Token B: 0.3 BNB
+ *      * Token C: 0.3 BNB
+ * 
+ * 2. DEBT ADJUSTMENT FOR BORROWED POSITIONS
+ *    - If the portfolio has borrowed tokens, debt affects the splitting
+ *    - Total debt is distributed among collateral tokens (lend tokens)
+ *    - Example: $2 total debt with 4 collateral tokens
+ *      * Each collateral token gets $0.5 debt subtracted from its USD value
+ *      * This reduces their percentage in the portfolio
+ *      * Non-collateral tokens remain unaffected
+ * 
+ * 3. WEIGHTED DEPOSIT CALCULATION
+ *    - After debt adjustment, new percentages are calculated
+ *    - Deposit amount is split according to these adjusted percentages
+ *    - This ensures deposits maintain the portfolio's target allocation
+ * 
+ * 4. SWAP EXECUTION
+ *    - Each split amount is converted to the target token via Enso API
+ *    - Swaps are executed in parallel for efficiency
+ *    - Final tokens are deposited into the portfolio vault
+ * 
+ * KEY PARAMETERS:
+ * - depositAmount: Total amount user wants to deposit (in ETH)
+ * - tokens: Array of portfolio token addresses
+ * - vault: Portfolio vault address where tokens are stored
+ * - totalSupply: Current portfolio token supply (0 for first deposit)
+ * 
+ * DEBT HANDLING:
+ * - totalDebt: Total borrowed amount across all protocols
+ * - collateralTokens: Tokens being used as collateral for borrowing
+ * - debtPerCollateral: totalDebt / number of collateral tokens
+ * - adjustedValue: originalValue - debtPerCollateral (for collateral tokens)
+ */
+
 const { ethers, upgrades, tenderly } = require("hardhat");
 import { chainIdToAddresses } from "../networkVariables";
 import { deployedAddresses } from "./deployAddresses";
