@@ -63,7 +63,7 @@ const chainIds = {
 
 const config: HardhatUserConfig = {
   gasReporter: {
-    enabled: true,
+    enabled: false,
     currency: "USD",
     gasPrice: 21,
   },
@@ -78,7 +78,7 @@ const config: HardhatUserConfig = {
         url: forkingUrl ? forkingUrl : "",
       },
       chainId: Number(forkNetwork),
-      gas: 12000000
+      gas: 12000000,
     },
     ganache: {
       chainId: 5777,

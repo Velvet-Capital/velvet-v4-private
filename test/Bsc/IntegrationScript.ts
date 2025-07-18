@@ -23,13 +23,18 @@ export function toDeadline(expiration: number) {
 
 // Returns the EIP-2612 permit signature for multi-token deposits into a portfolio.
 export async function getPermitSignature(
+  tokenBalanceLibraryAddress: string,
   portfolioAddress: string,
   amounts: string[],
   depositor: SignerWithAddress,
   chainId: number
 ) {
   // Get tokens from portfolio
-  const Portfolio = await ethers.getContractFactory("Portfolio");
+  const Portfolio = await ethers.getContractFactory("Portfolio", {
+    libraries: {
+      TokenBalanceLibrary: tokenBalanceLibraryAddress,
+    },
+  });
   const portfolio = Portfolio.attach(portfolioAddress);
   const tokens = await portfolio.getTokens();
 
@@ -74,23 +79,174 @@ export async function getPermitSignature(
   return await depositor._signTypedData(domain, types, values);
 }
 
+async function getDepositAmounts(
+  portfolio: any,
+  tokens: string[],
+  depositAmount: string,
+  priceOracleAddress: string,
+  amountCalculationsAddress: string,
+  reinvestmentSwapInfo: any
+): Promise<{ finalTokens: string[]; finalAmounts: string[] }> {
+  const numTokens = tokens.length;
+  const totalSupply = await portfolio.totalSupply();
+  let splitAmounts: string[] = [];
+
+  // Get vault address
+  const vaultAddress = await portfolio.vault();
+
+  if (totalSupply.eq(0)) {
+    // Split equally
+    const perToken = BigNumber.from(depositAmount).div(numTokens);
+    for (let i = 0; i < numTokens; i++) {
+      splitAmounts.push(perToken.toString());
+    }
+  } else {
+    let usdBalances: BigNumber[] = [];
+    let totalUsd = BigNumber.from(0);
+    for (let i = 0; i < numTokens; i++) {
+      const token = tokens[i];
+      if (reinvestmentSwapInfo.isTokenExternalPosition[i]) {
+        // For external positions, get underlying token amounts using calculateOutputAmounts with 100%
+
+        const { token0Amount, token1Amount } = await calculateOutputAmounts(
+          token,
+          amountCalculationsAddress,
+          "10000" // 100% in 1e18 precision
+        );
+        const PositionWrapper = await ethers.getContractFactory(
+          "PositionWrapper"
+        );
+        const positionWrapper = PositionWrapper.attach(token);
+        const token0 = await positionWrapper.token0();
+        const token1 = await positionWrapper.token1();
+        const usd0 = await getTokenUsdValue(
+          token0,
+          priceOracleAddress,
+          token0Amount.toString()
+        );
+        const usd1 = await getTokenUsdValue(
+          token1,
+          priceOracleAddress,
+          token1Amount.toString()
+        );
+        const usdSum = usd0.add(usd1);
+        usdBalances.push(usdSum);
+        totalUsd = totalUsd.add(usdSum);
+      } else {
+        const ERC20Upgradeable = await ethers.getContractFactory(
+          "ERC20Upgradeable"
+        );
+        const bal = await ERC20Upgradeable.attach(token).balanceOf(
+          vaultAddress
+        );
+
+        const usd = await getTokenUsdValue(
+          token,
+          priceOracleAddress,
+          bal.toString()
+        );
+        usdBalances.push(usd);
+        totalUsd = totalUsd.add(usd);
+      }
+    }
+    if (totalUsd.eq(0)) {
+      // fallback to equal split if all USD values are zero
+      const perToken = BigNumber.from(depositAmount).div(numTokens);
+      for (let i = 0; i < numTokens; i++) {
+        splitAmounts.push(perToken.toString());
+      }
+    } else {
+      for (let i = 0; i < numTokens; i++) {
+        let amount = BigNumber.from(depositAmount)
+          .mul(usdBalances[i])
+          .div(totalUsd);
+        splitAmounts.push(amount.toString());
+      }
+    }
+  }
+
+  // Now, for each token, if it's an external position, split its amount into underlying tokens by getCurrentRatio
+  let finalTokens: string[] = [];
+  let finalAmounts: string[] = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    const splitAmount = splitAmounts[i];
+    if (reinvestmentSwapInfo.isTokenExternalPosition[i]) {
+      const PositionWrapper = await ethers.getContractFactory(
+        "PositionWrapper"
+      );
+      const positionWrapper = PositionWrapper.attach(token);
+      const token0 = await positionWrapper.token0();
+      const token1 = await positionWrapper.token1();
+      const { amount0USD, amount1USD } = await getCurrentRatio(
+        token,
+        priceOracleAddress
+      );
+      const totalUSD = amount0USD.add(amount1USD);
+      if (totalUSD.eq(0)) {
+        // fallback: split equally
+        finalTokens.push(token0, token1);
+        finalAmounts.push(
+          BigNumber.from(splitAmount).div(2).toString(),
+          BigNumber.from(splitAmount).div(2).toString()
+        );
+      } else {
+        const ratio0 = amount0USD
+          .mul(BigNumber.from(splitAmount))
+          .div(totalUSD);
+        const ratio1 = amount1USD
+          .mul(BigNumber.from(splitAmount))
+          .div(totalUSD);
+        finalTokens.push(token0, token1);
+        finalAmounts.push(ratio0.toString(), ratio1.toString());
+      }
+    } else {
+      finalTokens.push(token);
+      finalAmounts.push(splitAmount);
+    }
+  }
+
+  return { finalTokens, finalAmounts };
+}
+
 export async function createDepositBatchDataWithEnso(
   priceOracleAddress: string,
+  tokenBalanceLibraryAddress: string,
+  amountCalculationAddress: string,
   portfolioAddress: string,
   depositBatchAddress: string,
   depositToken: string,
-  depositAmounts: string[]
+  depositAmount: string // single amount
 ) {
   let reinvestmentSwapInfo = await getExternalPositionData(
     portfolioAddress,
     priceOracleAddress
   );
 
+  // Get tokens from portfolio
+  const Portfolio = await ethers.getContractFactory("Portfolio", {
+    libraries: {
+      TokenBalanceLibrary: tokenBalanceLibraryAddress,
+    },
+  });
+  const portfolio = Portfolio.attach(portfolioAddress);
+  const tokens = await portfolio.getTokens();
+
+  // Use helper to get split amounts
+  let { finalTokens, finalAmounts } = await getDepositAmounts(
+    portfolio,
+    tokens,
+    depositAmount,
+    priceOracleAddress,
+    amountCalculationAddress,
+    reinvestmentSwapInfo
+  );
+
   let ensoCalldata = await createEnsoCalldataDeposit(
     depositBatchAddress,
     depositToken,
     reinvestmentSwapInfo.swapTokens,
-    depositAmounts
+    finalAmounts
   );
 
   return { reinvestmentSwapInfo, ensoCalldata };

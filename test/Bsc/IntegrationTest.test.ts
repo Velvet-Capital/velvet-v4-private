@@ -565,10 +565,12 @@ describe.only("Tests for Deposit", () => {
           ensoCalldata,
         } = await createDepositBatchDataWithEnso(
           priceOracle.address,
+          tokenBalanceLibrary.address,
+          amountCalculationsAlgebra.address,
           portfolio.address,
           depositBatch.address,
           depositToken,
-          depositAmounts
+          "70000000000000000000"
         );
 
         const data = await depositBatch.multiTokenSwapETHAndTransfer(
@@ -605,16 +607,6 @@ describe.only("Tests for Deposit", () => {
       });
 
       it("user should invest (ETH - native token)", async () => {
-        let depositAmounts = [
-          "1000000000000000000",
-          "1000000000000000000",
-          "1000000000000000000",
-          "1000000000000000000",
-          "1000000000000000000",
-          "1000000000000000000",
-          "100000000000000000",
-        ];
-
         let depositToken = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
         const {
           reinvestmentSwapInfo: {
@@ -637,10 +629,12 @@ describe.only("Tests for Deposit", () => {
           ensoCalldata,
         } = await createDepositBatchDataWithEnso(
           priceOracle.address,
+          tokenBalanceLibrary.address,
+          amountCalculationsAlgebra.address,
           portfolio.address,
           depositBatch.address,
           depositToken,
-          depositAmounts
+          "70000000000000000000"
         );
 
         const data = await depositBatch.multiTokenSwapETHAndTransfer(
