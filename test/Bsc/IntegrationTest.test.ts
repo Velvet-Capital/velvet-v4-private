@@ -533,15 +533,8 @@ describe.only("Tests for Deposit", () => {
       });
 
       it("user should invest (ETH - native token)", async () => {
-        let depositAmounts = [
-          "1000000000000000000",
-          "1000000000000000000",
-          "1000000000000000000",
-          "1000000000000000000",
-          "1000000000000000000",
-          "1000000000000000000",
-          "100000000000000000",
-        ];
+        let depositAmount = BigNumber.from("70000000000000000000");
+        let safeDepositAmount = depositAmount.sub(1000);
 
         let depositToken = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
         const {
@@ -566,17 +559,18 @@ describe.only("Tests for Deposit", () => {
         } = await createDepositBatchDataWithEnso(
           priceOracle.address,
           tokenBalanceLibrary.address,
+          swapVerificationLibrary.address,
           amountCalculationsAlgebra.address,
           portfolio.address,
           depositBatch.address,
           depositToken,
-          "70000000000000000000"
+          BigNumber.from(safeDepositAmount).toString()
         );
 
         const data = await depositBatch.multiTokenSwapETHAndTransfer(
           {
             _minMintAmount: 0,
-            _depositAmount: "70000000000000000000",
+            _depositAmount: depositAmount,
             _target: portfolio.address,
             _depositToken: depositToken,
             _callData: ensoCalldata,
@@ -599,7 +593,7 @@ describe.only("Tests for Deposit", () => {
             _fee: feeTiers,
           },
           {
-            value: "70000000000000000000",
+            value: depositAmount,
           }
         );
 
@@ -608,6 +602,9 @@ describe.only("Tests for Deposit", () => {
 
       it("user should invest (ETH - native token)", async () => {
         let depositToken = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+        let depositAmount = BigNumber.from("70000000000000000000");
+        let safeDepositAmount = depositAmount.sub(10000);
+
         const {
           reinvestmentSwapInfo: {
             positionWrappers,
@@ -630,17 +627,18 @@ describe.only("Tests for Deposit", () => {
         } = await createDepositBatchDataWithEnso(
           priceOracle.address,
           tokenBalanceLibrary.address,
+          swapVerificationLibrary.address,
           amountCalculationsAlgebra.address,
           portfolio.address,
           depositBatch.address,
           depositToken,
-          "70000000000000000000"
+          BigNumber.from(safeDepositAmount).toString()
         );
 
         const data = await depositBatch.multiTokenSwapETHAndTransfer(
           {
             _minMintAmount: 0,
-            _depositAmount: "70000000000000000000",
+            _depositAmount: depositAmount,
             _target: portfolio.address,
             _depositToken: depositToken,
             _callData: ensoCalldata,
@@ -663,7 +661,7 @@ describe.only("Tests for Deposit", () => {
             _fee: feeTiers,
           },
           {
-            value: "70000000000000000000",
+            value: depositAmount,
           }
         );
 
@@ -703,6 +701,7 @@ describe.only("Tests for Deposit", () => {
         } = await getWithdrawBatchData(
           priceOracle.address,
           tokenBalanceLibrary.address, // tokenBalanceLibraryAddress
+          swapVerificationLibrary.address,
           portfolioCalculations.address, // portfolioCalculationsAddress
           amountCalculationsAlgebra.address, // amountCalculationsAddress
           portfolio.address, // portfolioAddress

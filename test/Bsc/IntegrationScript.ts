@@ -180,7 +180,8 @@ async function getDepositAmounts(
       const token1 = await positionWrapper.token1();
       const { amount0USD, amount1USD } = await getCurrentRatio(
         token,
-        priceOracleAddress
+        priceOracleAddress,
+        amountCalculationsAddress
       );
       const totalUSD = amount0USD.add(amount1USD);
       if (totalUSD.eq(0)) {
@@ -212,6 +213,7 @@ async function getDepositAmounts(
 export async function createDepositBatchDataWithEnso(
   priceOracleAddress: string,
   tokenBalanceLibraryAddress: string,
+  swapVerificationLibraryAddress: string,
   amountCalculationAddress: string,
   portfolioAddress: string,
   depositBatchAddress: string,
@@ -220,7 +222,10 @@ export async function createDepositBatchDataWithEnso(
 ) {
   let reinvestmentSwapInfo = await getExternalPositionData(
     portfolioAddress,
-    priceOracleAddress
+    priceOracleAddress,
+    tokenBalanceLibraryAddress,
+    swapVerificationLibraryAddress,
+    amountCalculationAddress
   );
 
   // Get tokens from portfolio
@@ -284,6 +289,7 @@ export async function createEnsoCalldataDeposit(
 export async function getWithdrawBatchData(
   priceOracleAddress: string,
   tokenBalanceLibraryAddress: string,
+  swapVerificationLibraryAddress: string,
   portfolioCalculationsAddress: string,
   amountCalculationsAddress: string,
   portfolioAddress: string,
@@ -294,7 +300,10 @@ export async function getWithdrawBatchData(
 ) {
   let reinvestmentSwapInfo = await getExternalPositionData(
     portfolioAddress,
-    priceOracleAddress
+    priceOracleAddress,
+    tokenBalanceLibraryAddress,
+    swapVerificationLibraryAddress,
+    amountCalculationsAddress
   );
 
   let { withdrawalAmounts } = await getWithdrawalAmounts(
@@ -451,7 +460,6 @@ export async function calculateOutputAmounts(
   const amountCalculationsAlgebra = await AmountCalculationsAlgebra.attach(
     amountCalculationsAddress
   );
-  await amountCalculationsAlgebra.deployed();
 
   let result =
     await amountCalculationsAlgebra.callStatic.getLiquidityAmountsForPartialWithdrawal(
@@ -470,7 +478,8 @@ export async function calculateOutputAmounts(
 // Calculates the required swap (amount and direction) to reinvest collected fees according to the pool's target ratio.
 export async function getReinvestmentSwapInfo(
   position: string,
-  priceOracleAddress: string
+  priceOracleAddress: string,
+  amountCalculationsAddress: string
 ) {
   // Get the fee amounts and desired amounts
   const expectedFees = await getExpectedFeesExternalPosition(
@@ -480,7 +489,8 @@ export async function getReinvestmentSwapInfo(
 
   const currentRatioAmounts = await getCurrentRatio(
     position,
-    priceOracleAddress
+    priceOracleAddress,
+    amountCalculationsAddress
   );
 
   // Get token addresses
@@ -616,13 +626,15 @@ export async function getExpectedFeesExternalPosition(
 
 export async function getCurrentRatio(
   position: string,
-  priceOracleAddress: string
+  priceOracleAddress: string,
+  amountCalculationsAddress: string
 ) {
   const AmountCalculationsAlgebra = await ethers.getContractFactory(
     "AmountCalculationsAlgebra"
   );
-  const amountCalculationsAlgebra = await AmountCalculationsAlgebra.deploy();
-  await amountCalculationsAlgebra.deployed();
+  const amountCalculationsAlgebra = await AmountCalculationsAlgebra.attach(
+    amountCalculationsAddress
+  );
 
   const PositionWrapper = await ethers.getContractFactory("PositionWrapper");
   const positionWrapper = PositionWrapper.attach(position);
@@ -665,7 +677,10 @@ export async function getCurrentRatio(
 // Gathers all data needed for a batch deposit, including swap and position info.
 export async function getExternalPositionData(
   portfolioAddress: string,
-  priceOracleAddress: string
+  priceOracleAddress: string,
+  tokenBalanceLibraryAddress: string,
+  swapVerificationLibraryAddress: string,
+  amountCalculationsAddress: string
 ) {
   // @todo
   // we need to add multiple position managers for each token the corresponding manager
@@ -694,8 +709,9 @@ export async function getExternalPositionData(
     "TokenBalanceLibrary"
   );
 
-  let tokenBalanceLibrary = await TokenBalanceLibrary.deploy();
-  await tokenBalanceLibrary.deployed();
+  let tokenBalanceLibrary = await TokenBalanceLibrary.attach(
+    tokenBalanceLibraryAddress
+  );
 
   // Get tokens from portfolio
   const Portfolio = await ethers.getContractFactory("Portfolio", {
@@ -717,17 +733,11 @@ export async function getExternalPositionData(
     await assetManagementConfig.lastDeployedPositionManager();
 
   if (positionManagerAddress != undefined) {
-    const SwapVerificationLibrary = await ethers.getContractFactory(
-      "SwapVerificationLibraryAlgebra"
-    );
-    const swapVerificationLibrary = await SwapVerificationLibrary.deploy();
-    await swapVerificationLibrary.deployed();
-
     const PositionManager = await ethers.getContractFactory(
       "PositionManagerAlgebra",
       {
         libraries: {
-          SwapVerificationLibraryAlgebra: swapVerificationLibrary.address,
+          SwapVerificationLibraryAlgebra: swapVerificationLibraryAddress,
         },
       }
     );
@@ -763,9 +773,10 @@ export async function getExternalPositionData(
 
         portfolioTokenIndex.push(i, i);
 
-        let reinvestmentSwapInfo = getReinvestmentSwapInfo(
+        let reinvestmentSwapInfo = await getReinvestmentSwapInfo(
           tokens[i],
-          priceOracleAddress
+          priceOracleAddress,
+          amountCalculationsAddress
         );
 
         tokensIn.push((await reinvestmentSwapInfo).tokenIn);
