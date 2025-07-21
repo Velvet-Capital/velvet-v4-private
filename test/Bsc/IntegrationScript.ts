@@ -15,6 +15,15 @@ import { ethers } from "hardhat";
 import { priceOracle } from "./Deployments.test";
 const MaxUint128 = ethers.BigNumber.from("0xffffffffffffffffffffffffffffffff");
 
+// Constants
+const CHAIN_ID = 56;
+const SLIPPAGE = 700;
+const FEE_TIER = "100";
+const BASIS_POINTS = 999;
+const DIVISOR = 1000;
+const SAFETY_WEI = ethers.BigNumber.from(1);
+const SCALE = BigNumber.from("1000000000000000000"); // 1e18
+
 export function toDeadline(expiration: number) {
   return Math.floor((Date.now() + expiration) / 1000);
 }
@@ -96,10 +105,7 @@ async function getDepositAmounts(
 
   if (totalSupply.eq(0)) {
     // Split equally
-    const perToken = BigNumber.from(depositAmount).div(numTokens);
-    for (let i = 0; i < numTokens; i++) {
-      splitAmounts.push(perToken.toString());
-    }
+    splitAmounts = splitEqually(BigNumber.from(depositAmount), numTokens);
   } else {
     let usdBalances: BigNumber[] = [];
     let totalUsd = BigNumber.from(0);
@@ -151,10 +157,7 @@ async function getDepositAmounts(
     }
     if (totalUsd.eq(0)) {
       // fallback to equal split if all USD values are zero
-      const perToken = BigNumber.from(depositAmount).div(numTokens);
-      for (let i = 0; i < numTokens; i++) {
-        splitAmounts.push(perToken.toString());
-      }
+      splitAmounts = splitEqually(BigNumber.from(depositAmount), numTokens);
     } else {
       for (let i = 0; i < numTokens; i++) {
         let amount = BigNumber.from(depositAmount)
@@ -187,17 +190,14 @@ async function getDepositAmounts(
       if (totalUSD.eq(0)) {
         // fallback: split equally
         finalTokens.push(token0, token1);
+        const splitAmountBN = BigNumber.from(splitAmount);
         finalAmounts.push(
-          BigNumber.from(splitAmount).div(2).toString(),
-          BigNumber.from(splitAmount).div(2).toString()
+          splitAmountBN.div(2).toString(),
+          splitAmountBN.div(2).toString()
         );
       } else {
-        const ratio0 = amount0USD
-          .mul(BigNumber.from(splitAmount))
-          .div(totalUSD);
-        const ratio1 = amount1USD
-          .mul(BigNumber.from(splitAmount))
-          .div(totalUSD);
+        const ratio0 = calculateRatio(amount0USD, totalUSD);
+        const ratio1 = calculateRatio(amount1USD, totalUSD);
         finalTokens.push(token0, token1);
         finalAmounts.push(ratio0.toString(), ratio1.toString());
       }
@@ -396,18 +396,11 @@ export async function getSwapAmountsForExternalPosition(
 
   const PositionWrapper = await ethers.getContractFactory("PositionWrapper");
 
-  const basisPoints = 999;
-  const divisor = 1000;
-  const safetyWei = ethers.BigNumber.from(1);
-
   for (let i = 0; i < tokens.length; i++) {
     if (!isTokenExternalPosition[i]) {
       // Apply reduction and safety subtraction for non-external tokens
 
-      let reduced = withdrawalAmounts[i].mul(basisPoints).div(divisor);
-      if (reduced.gt(safetyWei)) {
-        reduced = reduced.sub(safetyWei);
-      }
+      let reduced = reduceAmount(withdrawalAmounts[i]);
       swapAmounts.push(reduced.toString());
     } else {
       const positionWrapperCurrent = PositionWrapper.attach(
@@ -425,21 +418,11 @@ export async function getSwapAmountsForExternalPosition(
         percentage.toString()
       );
       if (withdrawAmounts.token0Amount.gt(0)) {
-        let reduced = withdrawAmounts.token0Amount
-          .mul(basisPoints)
-          .div(divisor);
-        if (reduced.gt(safetyWei)) {
-          reduced = reduced.sub(safetyWei);
-        }
+        let reduced = reduceAmount(withdrawAmounts.token0Amount);
         swapAmounts.push(reduced.toString());
       }
       if (withdrawAmounts.token1Amount.gt(0)) {
-        let reduced = withdrawAmounts.token1Amount
-          .mul(basisPoints)
-          .div(divisor);
-        if (reduced.gt(safetyWei)) {
-          reduced = reduced.sub(safetyWei);
-        }
+        let reduced = reduceAmount(withdrawAmounts.token1Amount);
         swapAmounts.push(reduced.toString());
       }
       wrapperIndex++;
@@ -782,7 +765,7 @@ export async function getExternalPositionData(
         tokensIn.push((await reinvestmentSwapInfo).tokenIn);
         tokensOut.push((await reinvestmentSwapInfo).tokenOut);
         swapAmounts.push((await reinvestmentSwapInfo).swapAmount);
-        feeTiers.push("100");
+        feeTiers.push(FEE_TIER);
 
         amountsMin0.push(0);
         amountsMin1.push(0);
@@ -826,12 +809,12 @@ export async function createEnsoCallDataRoute(
   _amountIn: any
 ): Promise<any> {
   const params = {
-    chainId: 56,
+    chainId: CHAIN_ID,
     fromAddress: spender,
     receiver: receiver,
     spender: spender,
     amountIn: _amountIn,
-    slippage: 700,
+    slippage: SLIPPAGE,
     tokenIn: _tokenIn,
     tokenOut: _tokenOut,
     routingStrategy: "delegate",
@@ -859,4 +842,22 @@ export async function getTokenUsdValue(
   const priceOracle = PriceOracle.attach(priceOracleAddress);
 
   return await priceOracle.convertToUSD18Decimals(tokenAddress, amount);
+}
+
+// Helper Functions
+function splitEqually(amount: BigNumber, numParts: number): string[] {
+  const perPart = amount.div(numParts);
+  return Array(numParts).fill(perPart.toString());
+}
+
+function calculateRatio(amount: BigNumber, total: BigNumber): BigNumber {
+  return total.eq(0) ? BigNumber.from(0) : amount.mul(SCALE).div(total);
+}
+
+function reduceAmount(amount: BigNumber): BigNumber {
+  let reduced = amount.mul(BASIS_POINTS).div(DIVISOR);
+  if (reduced.gt(SAFETY_WEI)) {
+    reduced = reduced.sub(SAFETY_WEI);
+  }
+  return reduced;
 }
