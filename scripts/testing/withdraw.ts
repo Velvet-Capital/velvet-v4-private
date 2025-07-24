@@ -302,7 +302,59 @@ async function main(): Promise<void> {
   }
   console.log("------------- Calculating Pool Fees -------------");
 
-  let flashLoanProtocolToken = addresses.vUSDT_Address; // TakflashLoanProtocolTokening USDT as collateral token
+  let flashLoanProtocolToken; // TakflashLoanProtocolTokening USDT as collateral token
+  let flashLoanToken;
+  let poolFees;
+  const [lendTokens, borrowTokens] =
+    await venusAssetHandler.getAllProtocolAssets(
+      vault,
+      addresses.corePool_controller,
+      []
+    );
+
+  // Replace the flash loan token selection logic with:
+  if (borrowTokens.length === 0) {
+    console.log("✅ No borrowed tokens - proceeding with simple withdrawal");
+    flashLoanProtocolToken = addresses.vUSDT_Address;
+    flashLoanToken = addresses.USDT;
+    poolFees = { poolFees: [[]] }; // Empty pool fees
+  } else if (borrowTokens.length === 1) {
+    console.log("✅ Single borrowed token - using it as flash loan token");
+    flashLoanProtocolToken = borrowTokens[0];
+    const underlyingTokens = await getUnderlyingTokensFromVTokens([flashLoanProtocolToken], venusAssetHandler);
+    flashLoanToken = underlyingTokens[0];
+    // Calculate pool fees for single token
+    poolFees = await getPoolFeesForWithdrawal(flashLoanToken, borrowTokens, lendTokens, addresses, chainId, venusAssetHandler);
+  } else {
+    console.log("🔍 Multiple borrowed tokens - selecting optimal flash loan token");
+  const calculator = new PoolFeeCalculator(
+    addresses.PancakeSwapV3FactoryAddress,
+    chainId,
+    venusAssetHandler
+  );
+  
+  // Step 1: Select optimal flash loan token
+  const flashLoanSelection = await calculator.selectOptimalFlashLoanToken(
+    borrowTokens,
+    lendTokens,
+    addresses
+  );
+  
+  flashLoanProtocolToken = flashLoanSelection.flashLoanProtocolToken;
+  flashLoanToken = flashLoanSelection.flashLoanToken;
+  
+  // Step 2: Calculate pool fees
+  poolFees = await calculator.getPoolFeesForWithdrawal(
+    flashLoanToken,
+    borrowTokens,
+    lendTokens,
+    addresses
+  );
+  }
+
+  console.log("Selected flash loan protocol token:", flashLoanProtocolToken);
+  console.log("Selected flash loan token:", flashLoanToken);
+
   let flashLoanAmounts: string[][] = [];
 
   let flashloanBufferUnit = 18; //Flashloan buffer unit in 1/10000, extra flashlaon to take, to fulfil the swap(from flashlaon to debt token)
@@ -323,27 +375,21 @@ async function main(): Promise<void> {
 
   console.log("debtRepayAmount:", debtRepayAmount);
 
-  const [lendTokens, borrowTokens] =
-    await venusAssetHandler.getAllProtocolAssets(
-      vault,
-      addresses.corePool_controller,
-      []
-    );
   const lendTokensSet = new Set(lendTokens);
 
   console.log("lendTokens:", lendTokens);
   console.log("borrowTokens:", borrowTokens);
 
-  const poolFees = await getPoolFeesForWithdrawal(
-    addresses.USDT, // flashLoanToken (normal token)
-    borrowTokens, // vDebtTokens (vToken format)
-    lendTokens, // vLendTokens (vToken format)
-    addresses,
-    chainId,
-    venusAssetHandler // Pass the venusAssetHandler
-  );
+  // let poolFees = await getPoolFeesForWithdrawal(
+  //   flashLoanToken, // flashLoanToken (normal token)
+  //   borrowTokens, // vDebtTokens (vToken format)
+  //   lendTokens, // vLendTokens (vToken format)
+  //   addresses,
+  //   chainId,
+  //   venusAssetHandler // Pass the venusAssetHandler
+  // );
 
-  console.log("poolFees:", poolFees.poolFees);
+  // console.log("poolFees:", poolFees.poolFees);
 
   console.log("------------- Calculating FlashLoanAmount -------------");
   // the above 2 values are dependent, the more  weincrease flashlaon buffer unit, the more collateral we need to take, to fulfil the swap(i.e bufferUnit)
@@ -508,6 +554,27 @@ async function getPoolFeesForWithdrawal(
     vLendTokens,
     addresses
   );
+}
+
+async function getUnderlyingTokensFromVTokens(vTokens: string[], venusAssetHandler: any): Promise<string[]> {
+  const underlyingTokens: string[] = [];
+
+  for (const vToken of vTokens) {
+    try {
+      // Special case for vBNB
+      if (vToken.toLowerCase() === "0xA07c5b74C9B40447a954e1466938b865b6BBea36".toLowerCase()) {
+        underlyingTokens.push("0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"); // WBNB
+      } else {
+        const underlying = await venusAssetHandler.getUnderlyingToken(vToken);
+        underlyingTokens.push(underlying);
+      }
+    } catch (error: any) {
+      console.log(`❌ Failed to get underlying for ${vToken}: ${error.message}`);
+      underlyingTokens.push(vToken);
+    }
+  }
+
+  return underlyingTokens;
 }
 
 // We recommend this pattern to be able to use async/await everywhere

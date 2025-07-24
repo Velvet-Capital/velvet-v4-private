@@ -1,14 +1,18 @@
 // scripts/utils/poolFeeCalculator.ts
 import { ethers } from "hardhat";
 
-interface PoolFeeConfig {
-  poolFees: number[][];  // Single 2D array for all pool fees
-}
-
 interface PoolInfo {
   fee: number;
   tvl: number;
   poolAddress: string;
+}
+
+interface TokenAnalysis {
+  token: string;
+  vToken: string;
+  score: number;
+  reasons: string[];
+  poolFees: number[];
 }
 
 export class PoolFeeCalculator {
@@ -22,22 +26,144 @@ export class PoolFeeCalculator {
     this.venusAssetHandler = venusAssetHandler;
   }
 
+  async selectOptimalFlashLoanToken(
+    borrowTokens: string[],
+    lendTokens: string[],
+    addresses: any
+  ): Promise<{ flashLoanProtocolToken: string; flashLoanToken: string }> {
+    console.log("🔍 Selecting optimal flash loan token with pool analysis...");
+    
+    if (borrowTokens.length === 0) {
+      console.log("✅ No borrowed tokens - using USDT as default");
+      return {
+        flashLoanProtocolToken: addresses.vUSDT_Address,
+        flashLoanToken: addresses.USDT
+      };
+    }
+    
+    if (borrowTokens.length === 1) {
+      console.log("✅ Single borrowed token - using it as flash loan token");
+      const flashLoanProtocolToken = borrowTokens[0];
+      const underlyingTokens = await this.getUnderlyingTokens([flashLoanProtocolToken]);
+      const flashLoanToken = underlyingTokens[0];
+      
+      return {
+        flashLoanProtocolToken,
+        flashLoanToken
+      };
+    }
+    
+    // Multiple borrowed tokens - need optimal selection with pool analysis
+    console.log("🔍 Multiple borrowed tokens - analyzing pool liquidity for optimal selection");
+    
+    // Get underlying tokens
+    const debtTokens = await this.getUnderlyingTokens(borrowTokens);
+    const lendUnderlyingTokens = await this.getUnderlyingTokens(lendTokens);
+    
+    console.log("Debt tokens (underlying):", debtTokens);
+    console.log("Lend tokens (underlying):", lendUnderlyingTokens);
+    
+    // Define high-liquidity tokens
+    const highLiquidityTokens = [
+      addresses.USDT.toLowerCase(),
+      addresses.USDC_Address.toLowerCase(),
+      addresses.DAI_Address.toLowerCase(),
+      "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c".toLowerCase(), // WBNB
+    ];
+    
+    // Analyze each borrowed token with pool analysis
+    let bestToken = debtTokens[0];
+    let bestVToken = borrowTokens[0];
+    let bestScore = 0;
+    let bestReasons: string[] = [];
+    
+    for (let i = 0; i < debtTokens.length; i++) {
+      const debtToken = debtTokens[i];
+      const vToken = borrowTokens[i];
+      
+      let score = 0;
+      let reasons: string[] = [];
+      let poolFees: number[] = [];
+      
+      // 1. High liquidity token bonus
+      if (highLiquidityTokens.includes(debtToken.toLowerCase())) {
+        score += 100;
+        reasons.push("High liquidity token");
+      }
+      
+      // 2. Calculate pool fees for flash loan → debt token swaps
+      for (const otherDebtToken of debtTokens) {
+        if (otherDebtToken.toLowerCase() !== debtToken.toLowerCase()) {
+          try {
+            const optimalFee = await this.getOptimalPoolFeeWithTVL(debtToken, otherDebtToken);
+            if (optimalFee > 0) {
+              poolFees.push(optimalFee);
+            }
+          } catch (error) {
+            console.log(`⚠️ Failed to get pool fee for ${debtToken} → ${otherDebtToken}`);
+          }
+        }
+      }
+      
+      // 3. Calculate pool fees for collateral → flash loan token swaps
+      for (const lendToken of lendUnderlyingTokens) {
+        if (lendToken.toLowerCase() !== debtToken.toLowerCase()) {
+          try {
+            const optimalFee = await this.getOptimalPoolFeeWithTVL(lendToken, debtToken);
+            if (optimalFee > 0) {
+              poolFees.push(optimalFee);
+            }
+          } catch (error) {
+            console.log(`⚠️ Failed to get pool fee for ${lendToken} → ${debtToken}`);
+          }
+        }
+      }
+      
+      // 4. Score based on trading pairs and liquidity
+      const tradingPairs = poolFees.length;
+      score += tradingPairs * 10;
+      reasons.push(`${tradingPairs} trading pairs with good liquidity`);
+      
+      // 5. Pool liquidity scoring based on fees
+      const liquidityScore = this.calculateLiquidityScoreFromFees(poolFees);
+      score += liquidityScore;
+      reasons.push(`Liquidity score: ${liquidityScore}`);
+      
+      console.log(`  ${debtToken}: ${score} points (${reasons.join(", ")})`);
+      
+      if (score > bestScore) {
+        bestScore = score;
+        bestToken = debtToken;
+        bestVToken = vToken;
+        bestReasons = reasons;
+      }
+    }
+    
+    console.log(`🏆 Selected ${bestToken} (vToken: ${bestVToken}) with score ${bestScore}`);
+    console.log(`   Reasons: ${bestReasons.join(", ")}`);
+    
+    return {
+      flashLoanProtocolToken: bestVToken,
+      flashLoanToken: bestToken
+    };
+  }
+
   /**
    * Get optimal pool fees for withdrawal scenarios
    */
   async getPoolFeesForWithdrawal(
     flashLoanToken: string,
-    vDebtTokens: string[], // Venus debt tokens (vToken format)
-    vLendTokens: string[], // Venus lend tokens (vToken format)
+    vDebtTokens: string[],
+    vLendTokens: string[],
     addresses: any
-  ): Promise<PoolFeeConfig> {
+  ): Promise<{ poolFees: number[][] }> {  // ✅ Just poolFees like before
     console.log("🔍 Calculating pool fees for withdrawal...");
   
     // Get underlying tokens from vTokens
     const debtTokens = await this.getUnderlyingTokens(vDebtTokens);
     const lendTokens = await this.getUnderlyingTokens(vLendTokens);
   
-    const allPoolFees: number[] = []; // Changed to single array
+    const allPoolFees: number[] = [];
   
     // Step 1: Calculate flash loan → debt token pool fees
     for (const debtToken of debtTokens) {
@@ -46,7 +172,7 @@ export class PoolFeeCalculator {
       } else {
         const optimalFee = await this.getOptimalPoolFeeWithTVL(flashLoanToken, debtToken);
         console.log(`💰 Flash loan → ${debtToken}: fee ${optimalFee}`);
-        allPoolFees.push(optimalFee); // Push to single array
+        allPoolFees.push(optimalFee);
       }
     }
   
@@ -57,11 +183,27 @@ export class PoolFeeCalculator {
       } else {
         const optimalFee = await this.getOptimalPoolFeeWithTVL(lendToken, flashLoanToken);
         console.log(`💰 ${lendToken} → Flash loan: fee ${optimalFee}`);
-        allPoolFees.push(optimalFee); // Push to single array
+        allPoolFees.push(optimalFee);
       }
     }
   
-    return { poolFees: [allPoolFees] }; // Return as nested array
+    return { poolFees: [allPoolFees] };  // ✅ Just poolFees like before
+  }
+
+  /**
+   * Calculate liquidity score from pool fees
+   */
+  private calculateLiquidityScoreFromFees(poolFees: number[]): number {
+    let score = 0;
+    
+    for (const fee of poolFees) {
+      if (fee === 100) score += 30;      // 0.01% - highest liquidity
+      else if (fee === 500) score += 25;  // 0.05% - high liquidity
+      else if (fee === 2500) score += 15; // 0.25% - medium liquidity
+      else if (fee === 10000) score += 5; // 1% - low liquidity
+    }
+    
+    return score;
   }
 
   /**
@@ -182,17 +324,4 @@ export class PoolFeeCalculator {
       ? [token0, token1] 
       : [token1, token0];
   }
-}
-
-// Export function for use in withdraw script
-export async function calculatePoolFeesForWithdrawal(
-  flashLoanToken: string,
-  vDebtTokens: string[],
-  vLendTokens: string[],
-  addresses: any,
-  chainId: number,
-  venusAssetHandler: any
-): Promise<PoolFeeConfig> {
-  const calculator = new PoolFeeCalculator(addresses.PancakeSwapV3FactoryAddress, chainId, venusAssetHandler);
-  return await calculator.getPoolFeesForWithdrawal(flashLoanToken, vDebtTokens, vLendTokens, addresses);
 }
