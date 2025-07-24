@@ -23,8 +23,7 @@ import { IERC20MetadataUpgradeable } from "@openzeppelin/contracts-upgradeable/t
 library SwapVerificationLibraryAlgebraV2 {
   uint256 private constant TOTAL_WEIGHT = 10_000;
 
-  /// @notice Minimum amount of fees in smallest token unit that must be collected before they can be reinvested.
-  uint256 internal constant MIN_REINVESTMENT_AMOUNT = 1000000;
+  uint256 internal constant ACCEPTED_DUST_AMOUNT = 2 ether;
 
   /**
    * @dev Verifies the swap by comparing the sell and buy amounts using the price oracle.
@@ -280,9 +279,20 @@ library SwapVerificationLibraryAlgebraV2 {
     uint256 _feeAmount0,
     uint256 _feeAmount1
   ) external {
+    address oracle = protocolConfig.oracle();
     if (
-      _feeAmount0 > MIN_REINVESTMENT_AMOUNT ||
-      _feeAmount1 > MIN_REINVESTMENT_AMOUNT
+      (_feeAmount0 > 0 &&
+        IPriceOracle(oracle).convertToUSD18Decimals(
+          _params._token0,
+          _feeAmount0
+        ) >
+        ACCEPTED_DUST_AMOUNT) ||
+      (_feeAmount1 > 0 &&
+        IPriceOracle(oracle).convertToUSD18Decimals(
+          _params._token1,
+          _feeAmount1
+        ) >
+        ACCEPTED_DUST_AMOUNT)
     ) {
       verifyZeroSwapAmount(protocolConfig, _params, _nftManager);
     }
