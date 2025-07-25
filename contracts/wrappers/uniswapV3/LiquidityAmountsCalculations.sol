@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import { IPositionWrapper } from "../abstract/IPositionWrapper.sol";
 import { IFactory } from "../uniswapV3/IFactory.sol";
 import { IPool } from "./IPool.sol";
+import { IPriceOracle } from "../../oracle/IPriceOracle.sol";
 
 import "@cryptoalgebra/integral-core/contracts/libraries/FullMath.sol";
 import "@cryptoalgebra/integral-core/contracts/libraries/Constants.sol";
@@ -75,5 +76,31 @@ library LiquidityAmountsCalculations {
 
       ratio = (normalizedAmount0 * 1e18) / normalizedAmount1;
     }
+  }
+
+  function getPoolRatioUSDBased(
+    IPositionWrapper _positionWrapper,
+    IPriceOracle _priceOracle,
+    address _factory,
+    address _token0,
+    address _token1,
+    int24 _tickLower,
+    int24 _tickUpper
+  ) internal returns (uint256 ratio) {
+    uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(_tickLower);
+    uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(_tickUpper);
+
+    (uint256 amount0, uint256 amount1) = _getUnderlyingAmounts(
+      _positionWrapper,
+      _factory,
+      sqrtRatioAX96,
+      sqrtRatioBX96,
+      1 ether
+    );
+
+    uint256 price0 = _priceOracle.convertToUSD18Decimals(_token0, amount0);
+    uint256 price1 = _priceOracle.convertToUSD18Decimals(_token1, amount1);
+
+    ratio = (price0 * 1e18) / price1;
   }
 }

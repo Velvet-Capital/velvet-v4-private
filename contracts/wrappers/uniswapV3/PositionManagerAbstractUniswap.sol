@@ -374,7 +374,15 @@ abstract contract PositionManagerAbstractUniswap is PositionManagerAbstract {
         _params
       );
 
-      if (!isDust) (balance0, balance1) = _swapTokenToToken(_params);
+      if (!isDust) {
+        (balance0, balance1) = _swapTokenToToken(_params);
+      } else {
+        SwapVerificationLibraryUniswap.verifyDustSwapAmount(
+          protocolConfig,
+          _params,
+          address(uniswapV3PositionManager)
+        );
+      }
     } else {
       uint256 feeAmount0 = IERC20Upgradeable(_params._token0).balanceOf(
         address(this)

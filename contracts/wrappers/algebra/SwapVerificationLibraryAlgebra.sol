@@ -313,4 +313,33 @@ library SwapVerificationLibraryAlgebra {
         _params._amountIn
       ) < swapAmountDustThreshold;
   }
+
+  /**
+   * @dev Verifies that the swap amount is dust.
+   * @param _params Swap parameters encapsulating position and token details.
+   * @param _nftManager Address of the Non-Fungible Position Manager.
+   */
+  function verifyDustSwapAmount(
+    IProtocolConfig protocolConfig,
+    WrapperFunctionParameters.SwapParams memory _params,
+    address _nftManager
+  ) external {
+    uint256 poolRatio = LiquidityAmountsCalculations.getPoolRatioUSDBased(
+      _params._positionWrapper,
+      IPriceOracle(protocolConfig.oracle()),
+      getFactoryAddress(_nftManager),
+      _params._token0,
+      _params._token1,
+      _params._tickLower,
+      _params._tickUpper
+    );
+
+    // pool ratio < 1% or > 99% (very one-sided positions)
+    // 1% = 1e16, 99% = 99e18
+    if (poolRatio < 1e16 || poolRatio > 99e18) {
+      return;
+    }
+    // else check if ratio is already correct
+    verifyZeroSwapAmount(protocolConfig, _params, _nftManager);
+  }
 }
