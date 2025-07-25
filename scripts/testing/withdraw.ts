@@ -305,6 +305,7 @@ async function main(): Promise<void> {
   let flashLoanProtocolToken; // TakflashLoanProtocolTokening USDT as collateral token
   let flashLoanToken;
   let poolFees;
+  let thenaPoolInfo;
   const [lendTokens, borrowTokens] =
     await venusAssetHandler.getAllProtocolAssets(
       vault,
@@ -318,40 +319,67 @@ async function main(): Promise<void> {
     flashLoanProtocolToken = addresses.vUSDT_Address;
     flashLoanToken = addresses.USDT;
     poolFees = { poolFees: [[]] }; // Empty pool fees
-  } else if (borrowTokens.length === 1) {
-    console.log("✅ Single borrowed token - using it as flash loan token");
-    flashLoanProtocolToken = borrowTokens[0];
-    const underlyingTokens = await getUnderlyingTokensFromVTokens([flashLoanProtocolToken], venusAssetHandler);
-    flashLoanToken = underlyingTokens[0];
-    // Calculate pool fees for single token
-    poolFees = await getPoolFeesForWithdrawal(flashLoanToken, borrowTokens, lendTokens, addresses, chainId, venusAssetHandler);
+    thenaPoolInfo = {
+      _factory: "0x306F06C147f064A010530292A1EB6737c3e378e4",
+      _token0: addresses.USDT,
+      _token1: addresses.USDC_Address,
+      _flashLoanToken: addresses.USDT
+    };
   } else {
-    console.log("🔍 Multiple borrowed tokens - selecting optimal flash loan token");
-  const calculator = new PoolFeeCalculator(
-    addresses.PancakeSwapV3FactoryAddress,
-    chainId,
-    venusAssetHandler
-  );
-  
-  // Step 1: Select optimal flash loan token
-  const flashLoanSelection = await calculator.selectOptimalFlashLoanToken(
-    borrowTokens,
-    lendTokens,
-    addresses
-  );
-  
-  flashLoanProtocolToken = flashLoanSelection.flashLoanProtocolToken;
-  flashLoanToken = flashLoanSelection.flashLoanToken;
-  
-  // Step 2: Calculate pool fees
-  poolFees = await calculator.getPoolFeesForWithdrawal(
-    flashLoanToken,
-    borrowTokens,
-    lendTokens,
-    addresses
-  );
+    console.log(`🔍 ${borrowTokens.length === 1 ? 'Single' : 'Multiple'} borrowed tokens - selecting optimal flash loan token`);
+    
+    const calculator = new PoolFeeCalculator(
+      addresses.PancakeSwapV3FactoryAddress,
+      chainId,
+      venusAssetHandler
+    );
+    
+    try {
+      // Get optimal flash loan token AND Thena pool info
+      const flashLoanSelection = await calculator.selectOptimalFlashLoanToken(
+        borrowTokens,
+        lendTokens,
+        addresses
+      );
+      
+      flashLoanProtocolToken = flashLoanSelection.flashLoanProtocolToken;
+      flashLoanToken = flashLoanSelection.flashLoanToken;
+      
+      // Calculate pool fees
+      poolFees = await calculator.getPoolFeesForWithdrawal(
+        flashLoanToken,
+        borrowTokens,
+        lendTokens,
+        addresses
+      );
+      
+      thenaPoolInfo = {
+        _factory: flashLoanSelection.thenaFactory,
+        _token0: flashLoanSelection.thenaToken0,
+        _token1: flashLoanSelection.thenaToken1,
+        _flashLoanToken: flashLoanSelection.flashLoanToken
+      };
+      
+      console.log("Selected flash loan token:", flashLoanToken);
+      console.log("Selected Thena pool:", thenaPoolInfo);
+      
+    } catch (error) {
+      console.log(`❌ Error in flash loan selection: ${error.message}`);
+      console.log("⚠️ Falling back to default USDT flash loan");
+      
+      // Fallback to USDT
+      flashLoanProtocolToken = addresses.vUSDT_Address;
+      flashLoanToken = addresses.USDT;
+      poolFees = { poolFees: [[]] }; // Default empty pool fees
+      thenaPoolInfo = {
+        _factory: "0x306F06C147f064A010530292A1EB6737c3e378e4",
+        _token0: addresses.USDT,
+        _token1: addresses.USDC_Address,
+        _flashLoanToken: addresses.USDT
+      };
+    }
   }
-
+  
   console.log("Selected flash loan protocol token:", flashLoanProtocolToken);
   console.log("Selected flash loan token:", flashLoanToken);
 
