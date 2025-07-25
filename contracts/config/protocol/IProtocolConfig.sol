@@ -66,7 +66,7 @@ interface IProtocolConfig {
    */
   function isProtocolPaused() external view returns (bool);
 
-  /** 
+  /**
    * @notice Returns whether the repay is currently paused.
    * @return True if the repay is paused, false otherwise.
    */
@@ -308,11 +308,15 @@ interface IProtocolConfig {
   function getPositionWrapperBaseImplementation(
     bytes32 protocolId
   ) external view returns (address);
-  function MAX_BORROW_TOKEN_LIMIT() external pure returns(uint256);
+  function MAX_BORROW_TOKEN_LIMIT() external pure returns (uint256);
 
-  function isSupportedCallbackCaller(address _callbackCaller) external view returns (bool);
+  function isSupportedCallbackCaller(
+    address _callbackCaller
+  ) external view returns (bool);
 
   function addSupportedCallbackCaller(address _callbackCaller) external;
 
   function removeSupportedCallbackCaller(address _callbackCaller) external;
+
+  function swapAmountDustThreshold() external view returns (uint256);
 }

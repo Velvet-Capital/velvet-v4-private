@@ -23,8 +23,6 @@ import { IERC20MetadataUpgradeable } from "@openzeppelin/contracts-upgradeable/t
 library SwapVerificationLibraryAlgebra {
   uint256 private constant TOTAL_WEIGHT = 10_000;
 
-  uint256 internal constant ACCEPTED_DUST_AMOUNT = 2 ether;
-
   /**
    * @dev Verifies the swap by comparing the sell and buy amounts using the price oracle.
    * @param _sellToken Address of the token being sold.
@@ -280,21 +278,39 @@ library SwapVerificationLibraryAlgebra {
     uint256 _feeAmount1
   ) external {
     address oracle = protocolConfig.oracle();
+    uint256 swapAmountDustThreshold = protocolConfig.swapAmountDustThreshold();
     if (
       (_feeAmount0 > 0 &&
         IPriceOracle(oracle).convertToUSD18Decimals(
           _params._token0,
           _feeAmount0
         ) >
-        ACCEPTED_DUST_AMOUNT) ||
+        swapAmountDustThreshold) ||
       (_feeAmount1 > 0 &&
         IPriceOracle(oracle).convertToUSD18Decimals(
           _params._token1,
           _feeAmount1
         ) >
-        ACCEPTED_DUST_AMOUNT)
+        swapAmountDustThreshold)
     ) {
       verifyZeroSwapAmount(protocolConfig, _params, _nftManager);
     }
+  }
+
+  /**
+   * @dev Checks if the swap amount is dust.
+   * @param _params Swap parameters encapsulating position and token details.
+   * @return True if the swap amount is dust, false otherwise.
+   */
+  function checkSwapAmountIsDust(
+    IProtocolConfig protocolConfig,
+    WrapperFunctionParameters.SwapParams memory _params
+  ) external view returns (bool) {
+    uint256 swapAmountDustThreshold = protocolConfig.swapAmountDustThreshold();
+    return
+      IPriceOracle(protocolConfig.oracle()).convertToUSD18Decimals(
+        _params._tokenIn,
+        _params._amountIn
+      ) < swapAmountDustThreshold;
   }
 }
