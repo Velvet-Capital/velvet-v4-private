@@ -33,6 +33,8 @@ contract PositionWrapper is
   int24 public initialTickLower; // Lower tick of the Uniswap V3 position.
   int24 public initialTickUpper; // Upper tick of the Uniswap V3 position.
 
+  uint256 public constant MIN_MINT_AMOUNT = 1000;
+
   event TokensMinted(address user, uint256 amount);
   event TokensBurned(address user, uint256 amount);
 
@@ -105,6 +107,7 @@ contract PositionWrapper is
    * @dev Restricts minting functionality to the contract owner.
    */
   function mint(address to, uint256 amount) external onlyOwner {
+    if (amount < MIN_MINT_AMOUNT) revert ErrorLibrary.InvalidMintAmount();
     _mint(to, amount);
 
     emit TokensMinted(to, amount);
