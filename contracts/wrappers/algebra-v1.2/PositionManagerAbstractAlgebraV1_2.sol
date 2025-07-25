@@ -503,26 +503,20 @@ abstract contract PositionManagerAbstractAlgebraV1_2 is
       if (!isDust) {
         (balance0, balance1) = _swapTokenToToken(_params);
       } else {
-        SwapVerificationLibraryAlgebraV2.verifyDustSwapAmount(
+        (balance0, balance1) = SwapVerificationLibraryAlgebraV2
+          .verifyDustSwapAmount(
+            protocolConfig,
+            _params,
+            address(uniswapV3PositionManager)
+          );
+      }
+    } else {
+      (balance0, balance1) = SwapVerificationLibraryAlgebraV2
+        .verifyZeroSwapAmountForReinvestFees(
           protocolConfig,
           _params,
           address(uniswapV3PositionManager)
         );
-      }
-    } else {
-      uint256 feeAmount0 = IERC20Upgradeable(_params._token0).balanceOf(
-        address(this)
-      );
-      uint256 feeAmount1 = IERC20Upgradeable(_params._token1).balanceOf(
-        address(this)
-      );
-      SwapVerificationLibraryAlgebraV2.verifyZeroSwapAmountForReinvestFees(
-        protocolConfig,
-        _params,
-        address(uniswapV3PositionManager),
-        feeAmount0,
-        feeAmount1
-      );
     }
   }
 }

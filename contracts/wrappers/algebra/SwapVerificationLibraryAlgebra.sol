@@ -265,36 +265,31 @@ library SwapVerificationLibraryAlgebra {
    * This function is specifically used to ensure that any fees due for reinvestment don't exceed
    * certain thresholds before proceeding with a ratio verification step.
    * @param _params Swap parameters encapsulating position and token details.
-   * @param _feeAmount0 The amount of token0 after claiming fees including previous dust.
-   * @param _feeAmount1 The amount of token1 after claiming fees including previous dust.
    * @notice Only proceeds with the verification if either of the owed token amounts exceeds
    * the minimum reinvestment threshold.
    */
   function verifyZeroSwapAmountForReinvestFees(
     IProtocolConfig protocolConfig,
     WrapperFunctionParameters.SwapParams memory _params,
-    address _nftManager,
-    uint256 _feeAmount0,
-    uint256 _feeAmount1
-  ) external {
+    address _nftManager
+  ) external returns (uint256 balance0, uint256 balance1) {
     address oracle = protocolConfig.oracle();
     uint256 swapAmountDustThreshold = protocolConfig.swapAmountDustThreshold();
+    balance0 = IERC20Upgradeable(_params._token0).balanceOf(address(this));
+    balance1 = IERC20Upgradeable(_params._token1).balanceOf(address(this));
+
     if (
-      (_feeAmount0 > 0 &&
-        IPriceOracle(oracle).convertToUSD18Decimals(
-          _params._token0,
-          _feeAmount0
-        ) >
+      (balance0 > 0 &&
+        IPriceOracle(oracle).convertToUSD18Decimals(_params._token0, balance0) >
         swapAmountDustThreshold) ||
-      (_feeAmount1 > 0 &&
-        IPriceOracle(oracle).convertToUSD18Decimals(
-          _params._token1,
-          _feeAmount1
-        ) >
+      (balance1 > 0 &&
+        IPriceOracle(oracle).convertToUSD18Decimals(_params._token1, balance1) >
         swapAmountDustThreshold)
     ) {
       verifyZeroSwapAmount(protocolConfig, _params, _nftManager);
     }
+
+    return (balance0, balance1);
   }
 
   /**
@@ -323,7 +318,7 @@ library SwapVerificationLibraryAlgebra {
     IProtocolConfig protocolConfig,
     WrapperFunctionParameters.SwapParams memory _params,
     address _nftManager
-  ) external {
+  ) external returns (uint256 balance0, uint256 balance1) {
     uint256 poolRatio = LiquidityAmountsCalculations.getPoolRatioUSDBased(
       _params._positionWrapper,
       IPriceOracle(protocolConfig.oracle()),
@@ -334,12 +329,17 @@ library SwapVerificationLibraryAlgebra {
       _params._tickUpper
     );
 
+    balance0 = IERC20Upgradeable(_params._token0).balanceOf(address(this));
+    balance1 = IERC20Upgradeable(_params._token1).balanceOf(address(this));
+
     // pool ratio < 1% or > 99% (very one-sided positions)
     // 1% = 1e16, 99% = 99e18
     if (poolRatio < 1e16 || poolRatio > 99e18) {
-      return;
+      return (balance0, balance1);
     }
     // else check if ratio is already correct
     verifyZeroSwapAmount(protocolConfig, _params, _nftManager);
+
+    return (balance0, balance1);
   }
 }
