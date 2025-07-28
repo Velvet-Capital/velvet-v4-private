@@ -333,12 +333,16 @@ library SwapVerificationLibraryAlgebraV2 {
     balance0 = IERC20Upgradeable(_params._token0).balanceOf(address(this));
     balance1 = IERC20Upgradeable(_params._token1).balanceOf(address(this));
 
-    // pool ratio < 1% token0 or > 99% token0 (very one-sided positions)
+    // Check if pool ratio indicates a very one-sided position (< 1% or > 99% token0)
+    // In such extreme positions, the calculated swap amount can be very small
+    // (e.g., only 0.0001% of one token needs to be swapped to the other)
+    // For these cases, we skip verification to avoid issues with tiny amounts
     // 1% token0 = 1e16, 99% token0 = 99e16
     if (poolRatio < 1e16 || poolRatio > 99e16) {
       return (balance0, balance1);
     }
-    // else check if ratio is already correct
+    // If not a one-sided position, check if the current ratio is already correct
+    // This verifies that the position maintains the proper token ratio without any swap
     verifyZeroSwapAmount(protocolConfig, _params, _nftManager);
 
     return (balance0, balance1);
