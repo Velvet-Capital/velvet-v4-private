@@ -1,4 +1,4 @@
-import "@nomiclabs/hardhat-etherscan";
+import "@nomicfoundation/hardhat-verify";
 import "hardhat-gas-reporter";
 import "@nomiclabs/hardhat-ethers";
 import "@typechain/hardhat";
@@ -182,12 +182,11 @@ const config: HardhatUserConfig = {
     timeout: 400000,
   },
   etherscan: {
-    apiKey: {
-      mainnet: process.env.ETHERSCAN_API_KEY
-        ? process.env.ETHERSCAN_API_KEY
-        : "",
-      bsc: process.env.BSCSCAN_API_KEY ? process.env.BSCSCAN_API_KEY : "",
-    },
+    apiKey: process.env.ETHERSCAN_API_KEY,
+    enabled: true,
+  },
+  sourcify: {
+    enabled: false,
   },
   abiExporter: {
     path: "./abi",
