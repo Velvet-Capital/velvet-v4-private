@@ -101,6 +101,11 @@ library LiquidityAmountsCalculations {
     uint256 price0 = _priceOracle.convertToUSD18Decimals(_token0, amount0);
     uint256 price1 = _priceOracle.convertToUSD18Decimals(_token1, amount1);
 
+    // Prevent division by zero
+    if (price1 == 0) {
+      return 100e18; // 100% token0 position
+    }
+
     ratio = (price0 * 1e18) / price1;
   }
 }
