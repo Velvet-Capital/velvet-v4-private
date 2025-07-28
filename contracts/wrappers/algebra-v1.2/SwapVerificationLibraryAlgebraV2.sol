@@ -333,9 +333,9 @@ library SwapVerificationLibraryAlgebraV2 {
     balance0 = IERC20Upgradeable(_params._token0).balanceOf(address(this));
     balance1 = IERC20Upgradeable(_params._token1).balanceOf(address(this));
 
-    // pool ratio < 1% or > 99% (very one-sided positions)
-    // 1% = 1e16, 99% = 99e18
-    if (poolRatio < 1e16 || poolRatio > 99e18) {
+    // pool ratio < 1% token0 or > 99% token0 (very one-sided positions)
+    // 1% token0 = 1e16, 99% token0 = 99e16
+    if (poolRatio < 1e16 || poolRatio > 99e16) {
       return (balance0, balance1);
     }
     // else check if ratio is already correct
