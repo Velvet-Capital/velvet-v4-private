@@ -98,7 +98,7 @@ library LiquidityAmountsCalculations {
 
     // Prevent division by zero
     if (price1 == 0) {
-      return 100e18; // 100% token0 position
+      return 100e16; // 100% token0 position
     }
 
     ratio = (price0 * 1e18) / price1;
