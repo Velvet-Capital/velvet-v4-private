@@ -494,21 +494,29 @@ abstract contract PositionManagerAbstractAlgebraV1_2 is
   ) internal override returns (uint256 balance0, uint256 balance1) {
     // Swap tokens to the token0 or token1 pool ratio
     if (_params._amountIn > 0) {
-      (balance0, balance1) = _swapTokenToToken(_params);
-    } else {
-      uint256 feeAmount0 = IERC20Upgradeable(_params._token0).balanceOf(
-        address(this)
-      );
-      uint256 feeAmount1 = IERC20Upgradeable(_params._token1).balanceOf(
-        address(this)
-      );
-      SwapVerificationLibraryAlgebraV2.verifyZeroSwapAmountForReinvestFees(
+      // check if the amount in is greater than the dust threshold
+      bool isDust = SwapVerificationLibraryAlgebraV2.checkSwapAmountIsDust(
         protocolConfig,
-        _params,
-        address(uniswapV3PositionManager),
-        feeAmount0,
-        feeAmount1
+        _params
       );
+
+      if (!isDust) {
+        (balance0, balance1) = _swapTokenToToken(_params);
+      } else {
+        (balance0, balance1) = SwapVerificationLibraryAlgebraV2
+          .verifyDustSwapAmount(
+            protocolConfig,
+            _params,
+            address(uniswapV3PositionManager)
+          );
+      }
+    } else {
+      (balance0, balance1) = SwapVerificationLibraryAlgebraV2
+        .verifyZeroSwapAmountForReinvestFees(
+          protocolConfig,
+          _params,
+          address(uniswapV3PositionManager)
+        );
     }
   }
 }

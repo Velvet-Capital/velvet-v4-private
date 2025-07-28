@@ -17,6 +17,8 @@ abstract contract ExternalPositionManagement is OwnableCheck, Initializable {
   uint256 public allowedRatioDeviationBps;
   /// @notice The accepted slippage for fee reinvestment, measured in basis points.
   uint256 public acceptedSlippageFeeReinvestment;
+  /// @notice The dust threshold for swap amounts, measured in USD.
+  uint256 public swapAmountDustThreshold;
 
   /// @notice A mapping that stores information about enabled protocols.
   mapping(bytes32 => ProtocolInfo) public protocols;
@@ -38,6 +40,7 @@ abstract contract ExternalPositionManagement is OwnableCheck, Initializable {
   function __ExternalPositionManagement_init() internal onlyInitializing {
     allowedRatioDeviationBps = 50;
     acceptedSlippageFeeReinvestment = 100;
+    swapAmountDustThreshold = 1 ether;
   }
 
   /**
