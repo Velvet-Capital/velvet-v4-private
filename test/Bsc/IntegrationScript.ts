@@ -10,7 +10,10 @@ const qs = require("qs");
 import { BigNumber, Contract, Signer } from "ethers";
 
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { INonfungiblePositionManager__factory } from "../../typechain";
+import {
+  ERC20Upgradeable,
+  INonfungiblePositionManager__factory,
+} from "../../typechain";
 import { ethers } from "hardhat";
 import { priceOracle } from "./Deployments.test";
 const MaxUint128 = ethers.BigNumber.from("0xffffffffffffffffffffffffffffffff");
@@ -576,6 +579,8 @@ export async function getReinvestmentSwapInfo(
 
   // Calculate the amount to swap
   return getSwapInfoToDesiredRatioBN(
+    expectedFees.tokenBalance0,
+    expectedFees.tokenBalance1,
     expectedFees.amount0USD,
     expectedFees.amount1USD,
     currentRatioAmounts.amount0USD,
@@ -586,6 +591,8 @@ export async function getReinvestmentSwapInfo(
 }
 
 function getSwapInfoToDesiredRatioBN(
+  tokenBalance0: BigNumber,
+  tokenBalance1: BigNumber,
   feeAmount0USD: BigNumber,
   feeAmount1USD: BigNumber,
   desiredAmount0USD: BigNumber,
@@ -594,20 +601,30 @@ function getSwapInfoToDesiredRatioBN(
   token1: string
 ) {
   const scale = BigNumber.from("1000000000000000000"); // 1e18
-  if (feeAmount0USD.eq(0) && feeAmount1USD.eq(0)) {
+
+  // Early exit if no balances
+  if (
+    (feeAmount0USD.eq(0) && feeAmount1USD.eq(0)) ||
+    (feeAmount0USD.lt(ethers.constants.WeiPerEther) &&
+      feeAmount1USD.lt(ethers.constants.WeiPerEther))
+  ) {
     return {
       swapAmount: BigNumber.from(0),
       tokenIn: ethers.constants.AddressZero,
       tokenOut: ethers.constants.AddressZero,
     };
   }
+
   const totalFee = feeAmount0USD.add(feeAmount1USD);
   const totalDesired = desiredAmount0USD.add(desiredAmount1USD);
-  // Calculate ratios as scaled integers
+
+  // Calculate current and desired ratios (scaled by 1e18 for precision)
   const currentRatio = feeAmount0USD.mul(scale).div(totalFee);
   const desiredRatio = desiredAmount0USD.mul(scale).div(totalDesired);
-  if (currentRatio.sub(desiredRatio).abs().lt(1000)) {
-    // ~1e-15 tolerance
+
+  // Check if already at desired ratio (with small tolerance)
+  if (currentRatio.sub(desiredRatio).abs().lt(scale.div(1000))) {
+    // 0.1% tolerance
     return {
       swapAmount: BigNumber.from(0),
       tokenIn: ethers.constants.AddressZero,
@@ -615,54 +632,105 @@ function getSwapInfoToDesiredRatioBN(
       note: "Already at desired ratio",
     };
   }
-  // Calculate and log ratios for debugging
+
+  // Calculate ratios as percentages for logging
   const currentRatioPercent = currentRatio.mul(100).div(scale);
   const desiredRatioPercent = desiredRatio.mul(100).div(scale);
-  console.log(`Current ratio: ${currentRatioPercent.toString()}%`);
-  console.log(`Desired ratio: ${desiredRatioPercent.toString()}%`);
+
+  console.log(`Current ratio: ${currentRatioPercent.toString()}% token0`);
+  console.log(`Desired ratio: ${desiredRatioPercent.toString()}% token0`);
   console.log(
-    `Current amounts: ${feeAmount0USD.toString()} token0, ${feeAmount1USD.toString()} token1`
+    `Current USD amounts: ${feeAmount0USD.toString()} token0, ${feeAmount1USD.toString()} token1`
   );
   console.log(
-    `Desired amounts: ${desiredAmount0USD.toString()} token0, ${desiredAmount1USD.toString()} token1`
+    `Desired USD amounts: ${desiredAmount0USD.toString()} token0, ${desiredAmount1USD.toString()} token1`
+  );
+  console.log(
+    `Current token amounts: ${tokenBalance0.toString()} token0, ${tokenBalance1.toString()} token1`
   );
 
-  if (currentRatio.lt(desiredRatio)) {
-    // Need to buy token0 (swap token1 for token0)
-    // Calculate how much token1 to sell to achieve desired ratio
-    const totalAmount = feeAmount0USD.add(feeAmount1USD);
-    const currentToken1Percent = BigNumber.from(100).sub(currentRatioPercent);
-    const desiredToken1Percent = BigNumber.from(100).sub(desiredRatioPercent);
-    const token1ReductionPercent =
-      currentToken1Percent.sub(desiredToken1Percent);
-    let swapAmount = totalAmount.mul(token1ReductionPercent).div(100);
+  // Calculate what we should have based on current total and desired ratio
+  const totalCurrentUSD = feeAmount0USD.add(feeAmount1USD);
+  const targetToken0USD = totalCurrentUSD.mul(desiredRatio).div(scale);
+  const targetToken1USD = totalCurrentUSD.sub(targetToken0USD);
 
-    console.log(
-      `Token1 reduction percent: ${token1ReductionPercent.toString()}`
-    );
-    console.log(`Calculated swap amount: ${swapAmount.toString()}`);
-    console.log(`Available balance: ${feeAmount1USD.toString()}`);
-    const swapPercentage = swapAmount.mul(100).div(feeAmount1USD);
-    console.log(
-      `Swap amount is ${swapPercentage.toString()}% of available balance`
-    );
+  console.log(
+    `Target USD amounts: ${targetToken0USD.toString()} token0, ${targetToken1USD.toString()} token1`
+  );
+
+  // Determine which token has excess and needs to be sold
+  const excessToken0USD = feeAmount0USD.sub(targetToken0USD);
+  const excessToken1USD = feeAmount1USD.sub(targetToken1USD);
+
+  console.log(`Token0 excess USD: ${excessToken0USD.toString()}`);
+  console.log(`Token1 excess USD: ${excessToken1USD.toString()}`);
+
+  if (excessToken0USD.gt(0)) {
+    // Token0 has excess, need to sell token0 for token1
+    console.log(`Selling token0 to buy token1`);
+
+    // Calculate swap amount: (excess_usd / current_usd) × tokenBalance
+    let swapAmount = excessToken0USD.mul(tokenBalance0).div(feeAmount0USD);
+
+    console.log(`Calculated swap amount: ${swapAmount.toString()} token0`);
+    console.log(`Available token0 balance: ${tokenBalance0.toString()}`);
 
     // Check if swap amount exceeds available balance
-    if (swapAmount.gt(feeAmount1USD)) {
-      swapAmount = feeAmount1USD; // Cap at available balance
+    if (swapAmount.gt(tokenBalance0)) {
+      swapAmount = tokenBalance0; // Cap at available balance
       console.log(`Capped swap amount: ${swapAmount.toString()}`);
       console.log(
         `Note: Cannot achieve full desired ratio with available balance`
       );
     }
 
-    // Calculate what the ratio would be after swap
-    const newToken0Amount = feeAmount0USD.add(swapAmount);
-    const newToken1Amount = feeAmount1USD.sub(swapAmount);
-    const newTotal = newToken0Amount.add(newToken1Amount);
-    const newRatio = newToken0Amount.mul(scale).div(newTotal);
+    // Calculate expected ratio after swap
+    const swapUSDValue = swapAmount.mul(feeAmount0USD).div(tokenBalance0);
+    const newToken0USD = feeAmount0USD.sub(swapUSDValue);
+    const newToken1USD = feeAmount1USD.add(swapUSDValue);
+    const newTotal = newToken0USD.add(newToken1USD);
+    const newRatio = newToken0USD.mul(scale).div(newTotal);
     const newRatioPercent = newRatio.mul(100).div(scale);
-    console.log(`After swap ratio: ${newRatioPercent.toString()}%`);
+
+    console.log(
+      `Expected ratio after swap: ${newRatioPercent.toString()}% token0`
+    );
+
+    return {
+      swapAmount,
+      tokenIn: token0,
+      tokenOut: token1,
+    };
+  } else if (excessToken1USD.gt(0)) {
+    // Token1 has excess, need to sell token1 for token0
+    console.log(`Selling token1 to buy token0`);
+
+    // Calculate swap amount: (excess_usd / current_usd) × tokenBalance
+    let swapAmount = excessToken1USD.mul(tokenBalance1).div(feeAmount1USD);
+
+    console.log(`Calculated swap amount: ${swapAmount.toString()} token1`);
+    console.log(`Available token1 balance: ${tokenBalance1.toString()}`);
+
+    // Check if swap amount exceeds available balance
+    if (swapAmount.gt(tokenBalance1)) {
+      swapAmount = tokenBalance1; // Cap at available balance
+      console.log(`Capped swap amount: ${swapAmount.toString()}`);
+      console.log(
+        `Note: Cannot achieve full desired ratio with available balance`
+      );
+    }
+
+    // Calculate expected ratio after swap
+    const swapUSDValue = swapAmount.mul(feeAmount1USD).div(tokenBalance1);
+    const newToken0USD = feeAmount0USD.add(swapUSDValue);
+    const newToken1USD = feeAmount1USD.sub(swapUSDValue);
+    const newTotal = newToken0USD.add(newToken1USD);
+    const newRatio = newToken0USD.mul(scale).div(newTotal);
+    const newRatioPercent = newRatio.mul(100).div(scale);
+
+    console.log(
+      `Expected ratio after swap: ${newRatioPercent.toString()}% token0`
+    );
 
     return {
       swapAmount,
@@ -670,46 +738,12 @@ function getSwapInfoToDesiredRatioBN(
       tokenOut: token0,
     };
   } else {
-    // Need to buy token1 (swap token0 for token1)
-    // Calculate how much token0 to sell to achieve desired ratio
-    const totalAmount = feeAmount0USD.add(feeAmount1USD);
-    const currentToken0Percent = currentRatioPercent;
-    const desiredToken0Percent = desiredRatioPercent;
-    const token0ReductionPercent =
-      currentToken0Percent.sub(desiredToken0Percent);
-    let swapAmount = totalAmount.mul(token0ReductionPercent).div(100);
-
-    console.log(
-      `Token0 reduction percent: ${token0ReductionPercent.toString()}`
-    );
-    console.log(`Calculated swap amount: ${swapAmount.toString()}`);
-    console.log(`Available balance: ${feeAmount0USD.toString()}`);
-    const swapPercentage = swapAmount.mul(100).div(feeAmount0USD);
-    console.log(
-      `Swap amount is ${swapPercentage.toString()}% of available balance`
-    );
-
-    // Check if swap amount exceeds available balance
-    if (swapAmount.gt(feeAmount0USD)) {
-      swapAmount = feeAmount0USD; // Cap at available balance
-      console.log(`Capped swap amount: ${swapAmount.toString()}`);
-      console.log(
-        `Note: Cannot achieve full desired ratio with available balance`
-      );
-    }
-
-    // Calculate what the ratio would be after swap
-    const newToken0Amount = feeAmount0USD.sub(swapAmount);
-    const newToken1Amount = feeAmount1USD.add(swapAmount);
-    const newTotal = newToken0Amount.add(newToken1Amount);
-    const newRatio = newToken0Amount.mul(scale).div(newTotal);
-    const newRatioPercent = newRatio.mul(100).div(scale);
-    console.log(`After swap ratio: ${newRatioPercent.toString()}%`);
-
+    // This shouldn't happen if we passed the tolerance check
     return {
-      swapAmount,
-      tokenIn: token0,
-      tokenOut: token1,
+      swapAmount: BigNumber.from(0),
+      tokenIn: ethers.constants.AddressZero,
+      tokenOut: ethers.constants.AddressZero,
+      note: "No excess found",
     };
   }
 }
@@ -737,6 +771,8 @@ export async function getExpectedFeesExternalPosition(
   const tokenId = await positionWrapper.tokenId();
   let amount0USD = BigNumber.from(0);
   let amount1USD = BigNumber.from(0);
+  let tokenBalance0 = BigNumber.from(0);
+  let tokenBalance1 = BigNumber.from(0);
 
   if (Number(BigNumber.from(tokenId)) != 0) {
     const PositionWrapper = await ethers.getContractFactory("PositionWrapper");
@@ -752,7 +788,7 @@ export async function getExpectedFeesExternalPosition(
       MaxUint128,
     ];
 
-    const positionManagerSigner = await ethers.getSigner(
+    const positionManagerSigner = await ethers.provider.getSigner(
       await positionWrapper.parentPositionManager()
     );
 
@@ -763,32 +799,39 @@ export async function getExpectedFeesExternalPosition(
         value: 0,
       });
 
-    // Add current contract balance (previous dust)
     const ERC20Upgradeable = await ethers.getContractFactory(
       "ERC20Upgradeable"
     );
     const contractBalanceT0 = await ERC20Upgradeable.attach(
       await positionWrapper.token0()
     ).balanceOf(positionManagerAddress);
+
     const contractBalanceT1 = await ERC20Upgradeable.attach(
       await positionWrapper.token1()
     ).balanceOf(positionManagerAddress);
+
+    tokenBalance0 = BigNumber.from(amount0).add(contractBalanceT0);
+
+    tokenBalance1 = BigNumber.from(amount1).add(contractBalanceT1);
+
+    console.log("tokenBalance0 actual balance", tokenBalance0.toString());
+    console.log("tokenBalance1 actual balance", tokenBalance1.toString());
 
     // Convert amount0, amount1 to USD (here we use stable coins for testing so we can skip)
     amount0USD = await getTokenUsdValue(
       await positionWrapper.token0(),
       priceOracleAddress,
-      BigNumber.from(amount0).add(contractBalanceT0).toString()
+      tokenBalance0.toString()
     );
 
     amount1USD = await getTokenUsdValue(
       await positionWrapper.token1(),
       priceOracleAddress,
-      BigNumber.from(amount1).add(contractBalanceT1).toString()
+      tokenBalance1.toString()
     );
   }
 
-  return { amount0USD, amount1USD };
+  return { tokenBalance0, tokenBalance1, amount0USD, amount1USD };
 }
 
 export async function getCurrentRatio(
@@ -1033,169 +1076,4 @@ function reduceAmount(amount: BigNumber): BigNumber {
     reduced = reduced.sub(SAFETY_WEI);
   }
   return reduced;
-}
-
-// Helper function to test swap amount calculations with precision
-export function testSwapAmountCalculationPrecise() {
-  console.log("=== Testing Swap Amount Calculation with Full Precision ===");
-
-  // Example 1: Buy token0 (swap token1 for token0)
-  // Current: 50/50, Desired: 70/30
-  console.log("\n--- Example 1: Buy token0 ---");
-  const feeAmount0USD_1 = BigNumber.from("500000000000000000000"); // 500 token0
-  const feeAmount1USD_1 = BigNumber.from("500000000000000000000"); // 500 token1
-  const desiredAmount0USD_1 = BigNumber.from("700000000000000000000"); // 700 token0
-  const desiredAmount1USD_1 = BigNumber.from("300000000000000000000"); // 300 token1
-
-  const result1 = getSwapInfoToDesiredRatioBN(
-    feeAmount0USD_1,
-    feeAmount1USD_1,
-    desiredAmount0USD_1,
-    desiredAmount1USD_1,
-    "0x0000000000000000000000000000000000000001", // token0
-    "0x0000000000000000000000000000000000000002" // token1
-  );
-
-  console.log("Current: 500 token0, 500 token1 (50/50)");
-  console.log("Desired: 700 token0, 300 token1 (70/30)");
-  console.log("Action: Buy token0 (swap token1 for token0)");
-  console.log("Swap Amount:", result1.swapAmount.toString());
-  console.log("Token In:", result1.tokenIn);
-  console.log("Token Out:", result1.tokenOut);
-
-  // Example 2: Buy token1 (swap token0 for token1)
-  // Current: 70/30, Desired: 30/70
-  console.log("\n--- Example 2: Buy token1 ---");
-  const feeAmount0USD_2 = BigNumber.from("700000000000000000000"); // 700 token0
-  const feeAmount1USD_2 = BigNumber.from("300000000000000000000"); // 300 token1
-  const desiredAmount0USD_2 = BigNumber.from("300000000000000000000"); // 300 token0
-  const desiredAmount1USD_2 = BigNumber.from("700000000000000000000"); // 700 token1
-
-  const result2 = getSwapInfoToDesiredRatioBN(
-    feeAmount0USD_2,
-    feeAmount1USD_2,
-    desiredAmount0USD_2,
-    desiredAmount1USD_2,
-    "0x0000000000000000000000000000000000000001", // token0
-    "0x0000000000000000000000000000000000000002" // token1
-  );
-
-  console.log("Current: 700 token0, 300 token1 (70/30)");
-  console.log("Desired: 300 token0, 700 token1 (30/70)");
-  console.log("Action: Buy token1 (swap token0 for token1)");
-  console.log("Swap Amount:", result2.swapAmount.toString());
-  console.log("Token In:", result2.tokenIn);
-  console.log("Token Out:", result2.tokenOut);
-
-  // Example 3: Small precision test
-  console.log("\n--- Example 3: Small Precision Test ---");
-  const feeAmount0USD_3 = BigNumber.from("749294974000000000000"); // 749.294974 token0
-  const feeAmount1USD_3 = BigNumber.from("250705026000000000000"); // 250.705026 token1
-  const desiredAmount0USD_3 = BigNumber.from("750000000000000000000"); // 750 token0
-  const desiredAmount1USD_3 = BigNumber.from("250000000000000000000"); // 250 token1
-
-  const result3 = getSwapInfoToDesiredRatioBN(
-    feeAmount0USD_3,
-    feeAmount1USD_3,
-    desiredAmount0USD_3,
-    desiredAmount1USD_3,
-    "0x0000000000000000000000000000000000000001", // token0
-    "0x0000000000000000000000000000000000000002" // token1
-  );
-
-  console.log("Current: 749.294974 token0, 250.705026 token1");
-  console.log("Desired: 750 token0, 250 token1");
-  console.log(
-    "Action:",
-    result3.swapAmount.gt(0) ? "Small adjustment" : "No swap needed"
-  );
-  console.log("Swap Amount:", result3.swapAmount.toString());
-  console.log("Token In:", result3.tokenIn);
-  console.log("Token Out:", result3.tokenOut);
-
-  // Example 4: Very small values
-  console.log("\n--- Example 4: Very Small Values ---");
-  const feeAmount0USD_4 = BigNumber.from("1000000000000000000"); // 1 token0
-  const feeAmount1USD_4 = BigNumber.from("1000000000000000000"); // 1 token1
-  const desiredAmount0USD_4 = BigNumber.from("1500000000000000000"); // 1.5 token0
-  const desiredAmount1USD_4 = BigNumber.from("500000000000000000"); // 0.5 token1
-
-  const result4 = getSwapInfoToDesiredRatioBN(
-    feeAmount0USD_4,
-    feeAmount1USD_4,
-    desiredAmount0USD_4,
-    desiredAmount1USD_4,
-    "0x0000000000000000000000000000000000000001", // token0
-    "0x0000000000000000000000000000000000000002" // token1
-  );
-
-  console.log("Current: 1 token0, 1 token1 (50/50)");
-  console.log("Desired: 1.5 token0, 0.5 token1 (75/25)");
-  console.log("Action: Buy token0 (swap token1 for token0)");
-  console.log("Swap Amount:", result4.swapAmount.toString());
-  console.log("Token In:", result4.tokenIn);
-  console.log("Token Out:", result4.tokenOut);
-
-  // Example 5: Real fee values
-  console.log("\n--- Example 5: Real Fee Values ---");
-  const feeAmount0USD_5 = BigNumber.from("732079299086489"); // Real fee token0
-  const feeAmount1USD_5 = BigNumber.from("3653728309484992"); // Real fee token1
-  const desiredAmount0USD_5 = BigNumber.from("1000000000000000000"); // 1 token0 (desired)
-  const desiredAmount1USD_5 = BigNumber.from("1000000000000000000"); // 1 token1 (desired)
-
-  const result5 = getSwapInfoToDesiredRatioBN(
-    feeAmount0USD_5,
-    feeAmount1USD_5,
-    desiredAmount0USD_5,
-    desiredAmount1USD_5,
-    "0x0000000000000000000000000000000000000001", // token0
-    "0x0000000000000000000000000000000000000002" // token1
-  );
-
-  console.log("Current: 732079299086489 token0, 3653728309484992 token1");
-  console.log(
-    "Desired: 1000000000000000000 token0, 1000000000000000000 token1"
-  );
-  console.log(
-    "Action:",
-    result5.swapAmount.gt(0) ? "Real fee adjustment" : "No swap needed"
-  );
-  console.log("Swap Amount:", result5.swapAmount.toString());
-  console.log("Token In:", result5.tokenIn);
-  console.log("Token Out:", result5.tokenOut);
-
-  // Example 6: Micro amounts
-  console.log("\n--- Example 6: Micro Amounts ---");
-  const feeAmount0USD_6 = BigNumber.from("1000000000000000"); // 0.001 token0
-  const feeAmount1USD_6 = BigNumber.from("9000000000000000"); // 0.009 token1
-  const desiredAmount0USD_6 = BigNumber.from("5000000000000000"); // 0.005 token0
-  const desiredAmount1USD_6 = BigNumber.from("5000000000000000"); // 0.005 token1
-
-  const result6 = getSwapInfoToDesiredRatioBN(
-    feeAmount0USD_6,
-    feeAmount1USD_6,
-    desiredAmount0USD_6,
-    desiredAmount1USD_6,
-    "0x0000000000000000000000000000000000000001", // token0
-    "0x0000000000000000000000000000000000000002" // token1
-  );
-
-  console.log("Current: 0.001 token0, 0.009 token1 (10/90)");
-  console.log("Desired: 0.005 token0, 0.005 token1 (50/50)");
-  console.log(
-    "Action:",
-    result6.swapAmount.gt(0) ? "Micro adjustment" : "No swap needed"
-  );
-  console.log("Swap Amount:", result6.swapAmount.toString());
-  console.log("Token In:", result6.tokenIn);
-  console.log("Token Out:", result6.tokenOut);
-
-  return {
-    result1,
-    result2,
-    result3,
-    result4,
-    result5,
-    result6,
-  };
 }
