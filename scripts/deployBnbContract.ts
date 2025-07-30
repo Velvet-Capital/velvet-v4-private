@@ -6,7 +6,8 @@
 const { ethers, upgrades, tenderly } = require("hardhat");
 import { chainIdToAddresses } from "../scripts/networkVariables";
 
-const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 async function main(): Promise<void> {
   let owner;
@@ -122,7 +123,10 @@ async function main(): Promise<void> {
   const swapVerificationLibrary = await SwapVerificationLibrary.deploy();
   await swapVerificationLibrary.deployed();
 
-  console.log("swapVerificationLibrary address:", swapVerificationLibrary.address);
+  console.log(
+    "swapVerificationLibrary address:",
+    swapVerificationLibrary.address
+  );
 
   await tenderly.verify({
     name: "SwapVerificationLibraryAlgebra",
@@ -132,7 +136,10 @@ async function main(): Promise<void> {
   const VenusAssetHandler = await ethers.getContractFactory(
     "VenusAssetHandler"
   );
-  const venusAssetHandler = await VenusAssetHandler.deploy(addresses.vBNB_Address, addresses.WETH_Address);
+  const venusAssetHandler = await VenusAssetHandler.deploy(
+    addresses.vBNB_Address,
+    addresses.WETH_Address
+  );
   await venusAssetHandler.deployed();
 
   console.log("venusAssetHandler address:", venusAssetHandler.address);
@@ -189,13 +196,6 @@ async function main(): Promise<void> {
     ethers.utils.toUtf8Bytes("THENA-CONCENTRATED-LIQUIDITY")
   );
 
-  await protocolConfig.enableProtocol(
-    thenaProtocolHash,
-    "0xa51adb08cbe6ae398046a23bec013979816b77ab",
-    "0x327dd3208f0bcf590a66110acb6e5e6941a4efa0",
-    positionWrapperBaseAddress.address
-  );
-
   await sleep(2000); // 2 seconds
 
   await protocolConfig.enableTokens([
@@ -212,7 +212,6 @@ async function main(): Promise<void> {
   await protocolConfig.enableSolverHandler(ensoHandler.address);
 
   await protocolConfig.enableSwapHandler(swapHandler.address);
-
 
   await protocolConfig.setAssetHandlers(
     [
@@ -274,6 +273,13 @@ async function main(): Promise<void> {
   const positionManagerBaseAddress = await PositionManager.deploy(overrides);
   await positionManagerBaseAddress.deployed(overrides);
 
+  await protocolConfig.enableProtocol(
+    thenaProtocolHash,
+    "0xa51adb08cbe6ae398046a23bec013979816b77ab",
+    "0x327dd3208f0bcf590a66110acb6e5e6941a4efa0",
+    positionManagerBaseAddress.address
+  );
+
   console.log("PositionManager address:", positionManagerBaseAddress.address);
 
   await tenderly.verify({
@@ -287,7 +293,10 @@ async function main(): Promise<void> {
   const externalPositionStorage = await ExternalPositionStorage.deploy();
   await externalPositionStorage.deployed();
 
-  console.log("externalPositionStorage address:", externalPositionStorage.address);
+  console.log(
+    "externalPositionStorage address:",
+    externalPositionStorage.address
+  );
 
   await tenderly.verify({
     name: "ExternalPositionStorage",
@@ -302,7 +311,10 @@ async function main(): Promise<void> {
   const amountCalculationsAlgebra = await AmountCalculationsAlgebra.deploy();
   await amountCalculationsAlgebra.deployed();
 
-  console.log("amountCalculationsAlgebra address:", amountCalculationsAlgebra.address);
+  console.log(
+    "amountCalculationsAlgebra address:",
+    amountCalculationsAlgebra.address
+  );
 
   await tenderly.verify({
     name: "AmountCalculationsAlgebra",
@@ -479,16 +491,14 @@ async function main(): Promise<void> {
     [
       {
         _basePortfolioAddress: portfolioContract.address,
-        _baseTokenExclusionManagerAddress:
-        tokenExclusionManager.address,
+        _baseTokenExclusionManagerAddress: tokenExclusionManager.address,
         _baseRebalancingAddres: rebalancingDefault.address,
-        _baseAssetManagementConfigAddress:
-          assetManagementConfig.address,
+        _baseAssetManagementConfigAddress: assetManagementConfig.address,
         _feeModuleImplementationAddress: feeModule.address,
         _baseTokenRemovalVaultImplementation: tokenRemovalVault.address,
         _baseVelvetGnosisSafeModuleAddress: velvetSafeModule.address,
         _baseBorrowManager: borrowManager.address,
-        _basePositionManager: positionManagerBaseAddress.address,
+        _basePositionWrapper: positionWrapperBaseAddress.address,
         _baseExternalPositionStorage: externalPositionStorage.address,
         _gnosisSingleton: addresses.gnosisSingleton,
         _gnosisFallbackLibrary: addresses.gnosisFallbackLibrary,

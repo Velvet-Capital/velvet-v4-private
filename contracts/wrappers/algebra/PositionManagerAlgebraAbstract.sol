@@ -188,7 +188,7 @@ abstract contract PositionManagerAbstractAlgebra is PositionManagerAlgebraBase {
 
     // Deploy and initialize the position wrapper.
     ERC1967Proxy positionWrapperProxy = new ERC1967Proxy(
-      protocolConfig.getPositionWrapperBaseImplementation(protocolId),
+      assetManagementConfig.basePositionWrapper(),
       abi.encodeWithSelector(
         IPositionWrapper.init.selector,
         address(this),

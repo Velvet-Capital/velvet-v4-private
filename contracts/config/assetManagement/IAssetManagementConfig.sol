@@ -132,4 +132,6 @@ interface IAssetManagementConfig {
    * @return bool True if the protocol is whitelisted
    */
   function whitelistedProtocols(bytes32 protocolId) external returns (bool);
+
+  function basePositionWrapper() external returns (address);
 }
