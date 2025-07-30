@@ -103,25 +103,12 @@ async function main(): Promise<void> {
   const vault = await portfolio.vault();
   console.log("Vault:", vault);
 
+  //This is used when we have vaultBalance of debt token > 0
+  const tx = await rebalancing.directDebtRepayment(
 
-  const [lendTokens, ] =
-    await venusAssetHandler.getAllProtocolAssets(
-      vault,
-      addresses.corePool_controller,
-      []
-    );
-
-  console.log("lendTokens:", lendTokens);
-
-  const tokenToLend = addresses.vBNB_Address //AssetManagers Input
-
-  await rebalancing.connect(owner2).borrow(
-    addresses.vLINK_Address, //vToken format of the token to borrow
-    [tokenToLend], //vToken format of the tokens to lend
-    addresses.LINK_Address, //Underlying token of the token to borrow
-    addresses.corePool_controller,
-    "59000000000000000" // amount to borrow
   );
+
+
 
   console.log(
     "------------------------------ Borrow Ended ------------------------------"

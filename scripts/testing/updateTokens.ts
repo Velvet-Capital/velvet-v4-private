@@ -37,10 +37,10 @@ async function main(): Promise<void> {
   const baseFee = feeData.lastBaseFeePerGas;
 
   // Calculate priority fee (tip)
-  const priorityFee = ethers.utils.parseUnits("1", "gwei");
+  const priorityFee = ethers.utils.parseUnits("0.1", "gwei");
 
   // Ensure the priority fee is at least 1 Gwei
-  const minPriorityFee = ethers.utils.parseUnits("1", "gwei");
+  const minPriorityFee = ethers.utils.parseUnits("0.1", "gwei");
   const adjustedPriorityFee = priorityFee.lt(minPriorityFee)
     ? minPriorityFee
     : priorityFee;
@@ -181,8 +181,27 @@ async function main(): Promise<void> {
     console.log("Check BSCScan for the failed transaction details.");
   }
   
-  // Execute for vTokens
-  // await rebalancing.connect(owner2).enableCollateralTokens([buyToken],addresses.corePool_controller); // Only for vTokens if needed
+  const vTokenAddresses = [
+    addresses.vBNB_Address,
+    addresses.vUSDT_Address,
+    addresses.vETH_Address,
+    addresses.vDAI_Address,
+    addresses.vBTC_Address,
+    addresses.vDOGE_Address,
+    addresses.vLINK_Address,
+    addresses.vUSDC_Address,
+    addresses.vUSDT_DeFi_Address,
+    addresses.vTWT_DeFi_Address
+  ];
+
+  const isVToken = vTokenAddresses.some(vToken => 
+    vToken.toLowerCase() === buyToken.toLowerCase()
+  );
+
+  if(isVToken){
+    await rebalancing.connect(owner2).enableCollateralTokens([buyToken],addresses.corePool_controller); // Only for vTokens if needed
+  }
+  
   
   console.log(
     "------------------------------ Rebalance Ended ------------------------------"

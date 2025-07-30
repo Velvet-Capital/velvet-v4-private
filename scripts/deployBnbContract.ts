@@ -66,132 +66,132 @@ async function main(): Promise<void> {
 
   console.log("--------------- Contract Deployment Started ---------------");
 
-  // const PriceOracle = await ethers.getContractFactory("PriceOracle");
-  // const priceOracle = await PriceOracle.deploy(addresses.WETH_Address);
-  // await priceOracle.deployed();
+  const PriceOracle = await ethers.getContractFactory("PriceOracle");
+  const priceOracle = await PriceOracle.deploy(addresses.WETH_Address);
+  await priceOracle.deployed();
 
-  // console.log("priceOracle address:", priceOracle.address);
+  console.log("priceOracle address:", priceOracle.address);
 
-  // await priceOracle.setFeeds(
-  //   [
-  //     addresses.WETH_Address,
-  //     addresses.USDC_Address,
-  //     addresses.DAI_Address,
-  //     ETH_ADDRESS,
-  //     USDT_ADDRESS,
-  //     addresses.LINK_Address,
-  //   ],
-  //   [
-  //     "0x0000000000000000000000000000000000000348",
-  //     "0x0000000000000000000000000000000000000348",
-  //     "0x0000000000000000000000000000000000000348",
-  //     "0x0000000000000000000000000000000000000348",
-  //     "0x0000000000000000000000000000000000000348",
-  //     "0x0000000000000000000000000000000000000348",
-  //   ],
-  //   [
-  //     "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE", //chainlink price feed
-  //     "0x51597f405303C4377E36123cBc172b13269EA163",
-  //     "0x132d3C0B1D2cEa0BC552588063bdBb210FDeecfA",
-  //     "0x9ef1B8c0E4F7dc8bF5719Ea496883DC6401d5b2e",
-  //     "0xB97Ad0E74fa7d920791E90258A6E2085088b4320",
-  //     "0xca236E327F629f9Fc2c30A4E95775EbF0B89fac8"
-  //   ]
-  // );
+  await priceOracle.setFeeds(
+    [
+      addresses.WETH_Address,
+      addresses.USDC_Address,
+      addresses.DAI_Address,
+      ETH_ADDRESS,
+      USDT_ADDRESS,
+      addresses.LINK_Address,
+    ],
+    [
+      "0x0000000000000000000000000000000000000348",
+      "0x0000000000000000000000000000000000000348",
+      "0x0000000000000000000000000000000000000348",
+      "0x0000000000000000000000000000000000000348",
+      "0x0000000000000000000000000000000000000348",
+      "0x0000000000000000000000000000000000000348",
+    ],
+    [
+      "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE", //chainlink price feed
+      "0x51597f405303C4377E36123cBc172b13269EA163",
+      "0x132d3C0B1D2cEa0BC552588063bdBb210FDeecfA",
+      "0x9ef1B8c0E4F7dc8bF5719Ea496883DC6401d5b2e",
+      "0xB97Ad0E74fa7d920791E90258A6E2085088b4320",
+      "0xca236E327F629f9Fc2c30A4E95775EbF0B89fac8"
+    ]
+  );
 
-  // await tenderly.verify({
-  //   name: "PriceOracle",
-  //   address: priceOracle.address,
-  // });
+  await tenderly.verify({
+    name: "PriceOracle",
+    address: priceOracle.address,
+  });
 
-  // const EnsoHandler = await ethers.getContractFactory("EnsoHandler");
-  // const ensoHandler = await EnsoHandler.deploy(
-  //   "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
-  // );
-  // await ensoHandler.deployed();
+  const EnsoHandler = await ethers.getContractFactory("EnsoHandler");
+  const ensoHandler = await EnsoHandler.deploy(
+    "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
+  );
+  await ensoHandler.deployed();
 
-  // console.log("ensoHandler address:", ensoHandler.address);
+  console.log("ensoHandler address:", ensoHandler.address);
 
-  // await tenderly.verify({
-  //   name: "EnsoHandler",
-  //   address: ensoHandler.address,
-  // });
+  await tenderly.verify({
+    name: "EnsoHandler",
+    address: ensoHandler.address,
+  });
 
-  // const TokenBalanceLibrary = await ethers.getContractFactory(
-  //   "TokenBalanceLibrary"
-  // );
+  const TokenBalanceLibrary = await ethers.getContractFactory(
+    "TokenBalanceLibrary"
+  );
 
-  // const tokenBalanceLibrary = await TokenBalanceLibrary.deploy();
-  // await tokenBalanceLibrary.deployed();
+  const tokenBalanceLibrary = await TokenBalanceLibrary.deploy();
+  await tokenBalanceLibrary.deployed();
 
-  // console.log("tokenBalanceLibrary address:", tokenBalanceLibrary.address);
+  console.log("tokenBalanceLibrary address:", tokenBalanceLibrary.address);
 
-  // await tenderly.verify({
-  //   name: "TokenBalanceLibrary",
-  //   address: tokenBalanceLibrary.address,
-  // });
+  await tenderly.verify({
+    name: "TokenBalanceLibrary",
+    address: tokenBalanceLibrary.address,
+  });
 
-  // await sleep(2000); // 2 seconds
+  await sleep(2000); // 2 seconds
 
-  // const SwapVerificationLibrary = await ethers.getContractFactory(
-  //   "SwapVerificationLibraryAlgebra"
-  // );
-  // const swapVerificationLibrary = await SwapVerificationLibrary.deploy();
-  // await swapVerificationLibrary.deployed();
+  const SwapVerificationLibrary = await ethers.getContractFactory(
+    "SwapVerificationLibraryAlgebra"
+  );
+  const swapVerificationLibrary = await SwapVerificationLibrary.deploy();
+  await swapVerificationLibrary.deployed();
 
-  // console.log(
-  //   "swapVerificationLibrary address:",
-  //   swapVerificationLibrary.address
-  // );
+  console.log(
+    "swapVerificationLibrary address:",
+    swapVerificationLibrary.address
+  );
 
-  // await tenderly.verify({
-  //   name: "SwapVerificationLibraryAlgebra",
-  //   address: swapVerificationLibrary.address,
-  // });
+  await tenderly.verify({
+    name: "SwapVerificationLibraryAlgebra",
+    address: swapVerificationLibrary.address,
+  });
 
-  // const VenusAssetHandler = await ethers.getContractFactory(
-  //   "VenusAssetHandler"
-  // );
-  // const venusAssetHandler = await VenusAssetHandler.deploy(
-  //   addresses.vBNB_Address,
-  //   addresses.WETH_Address
-  // );
-  // await venusAssetHandler.deployed();
+  const VenusAssetHandler = await ethers.getContractFactory(
+    "VenusAssetHandler"
+  );
+  const venusAssetHandler = await VenusAssetHandler.deploy(
+    addresses.vBNB_Address,
+    addresses.WETH_Address
+  );
+  await venusAssetHandler.deployed();
 
-  // console.log("venusAssetHandler address:", venusAssetHandler.address);
+  console.log("venusAssetHandler address:", venusAssetHandler.address);
 
-  // await tenderly.verify({
-  //   name: "VenusAssetHandler",
-  //   address: venusAssetHandler.address,
-  // });
+  await tenderly.verify({
+    name: "VenusAssetHandler",
+    address: venusAssetHandler.address,
+  });
 
-  // await sleep(2000); // 2 seconds
+  await sleep(2000); // 2 seconds
 
-  // const PositionWrapper = await ethers.getContractFactory("PositionWrapper");
-  // const positionWrapperBaseAddress = await PositionWrapper.deploy(overrides);
-  // await positionWrapperBaseAddress.deployed();
+  const PositionWrapper = await ethers.getContractFactory("PositionWrapper");
+  const positionWrapperBaseAddress = await PositionWrapper.deploy(overrides);
+  await positionWrapperBaseAddress.deployed();
 
-  // console.log("PositionWrapper address:", positionWrapperBaseAddress.address);
+  console.log("PositionWrapper address:", positionWrapperBaseAddress.address);
 
-  // await tenderly.verify({
-  //   name: "PositionWrapper",
-  //   address: positionWrapperBaseAddress.address,
-  // });
+  await tenderly.verify({
+    name: "PositionWrapper",
+    address: positionWrapperBaseAddress.address,
+  });
 
-  // const PancakeSwapHandler = await ethers.getContractFactory(
-  //   "UniswapV2Handler"
-  // );
-  // const swapHandler = await PancakeSwapHandler.deploy();
-  // await swapHandler.deployed();
+  const PancakeSwapHandler = await ethers.getContractFactory(
+    "UniswapV2Handler"
+  );
+  const swapHandler = await PancakeSwapHandler.deploy();
+  await swapHandler.deployed();
 
-  // console.log("swapHandler address:", swapHandler.address);
+  console.log("swapHandler address:", swapHandler.address);
 
-  // await tenderly.verify({
-  //   name: "UniswapV2Handler",
-  //   address: swapHandler.address,
-  // });
+  await tenderly.verify({
+    name: "UniswapV2Handler",
+    address: swapHandler.address,
+  });
 
-  // swapHandler.init(addresses.PancakeSwapRouterAddress);
+  swapHandler.init(addresses.PancakeSwapRouterAddress);
 
   const PancakeSwapV3Handler = await ethers.getContractFactory(
     "PancakeSwapHandler"

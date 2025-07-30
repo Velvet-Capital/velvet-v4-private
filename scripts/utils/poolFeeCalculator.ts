@@ -26,6 +26,13 @@ interface FlashLoanSelection {
   thenaToken1: string;
 }
 
+interface PoolCandidate {
+  token0: string;
+  token1: string;
+  liquidity: number;
+  candidateToken: string;
+}
+
 export class PoolFeeCalculator {
   private pancakeSwapV3Factory: string;
   private chainId: number;
@@ -139,72 +146,55 @@ export class PoolFeeCalculator {
   /**
    * Find the best Thena pool for a flash loan token
    */
-  private async findBestThenaPool(
-    flashLoanToken: string, 
-    addresses: any
-  ): Promise<{
+  async findBestThenaPool(flashLoanToken: string, addresses: any): Promise<{
     factory: string;
     token0: string;
     token1: string;
   }> {
-    console.log(` Finding best Thena pool for flash loan token: ${flashLoanToken}`);
+    console.log(`�� Finding best Thena pool for flash loan token: ${flashLoanToken}`);
     
-    // Use our pairing tokens list
     const candidateTokens = PoolFeeCalculator.PAIRING_TOKENS;
+    const existingPools: PoolCandidate[] = [];
     
-    console.log(`📊 Checking ${candidateTokens.length} candidate tokens for pairing`);
-    
-    // Try each candidate token - flash loan token MUST be one of the pool tokens
+    // Check ALL possible pairs first
     for (const candidateToken of candidateTokens) {
       if (candidateToken.toLowerCase() !== flashLoanToken.toLowerCase()) {
         console.log(`🔍 Checking pool: ${flashLoanToken} - ${candidateToken}`);
         const poolExists = await this.checkThenaPoolExists(flashLoanToken, candidateToken);
         if (poolExists) {
-          // flashLoanToken MUST be one of the pool tokens
           const [token0, token1] = this.sortTokens(flashLoanToken, candidateToken);
-          console.log(`✅ Found Thena pool: ${token0} - ${token1}`);
-          console.log(`✅ Flash loan token ${flashLoanToken} is in this pool`);
-          return {
-            factory: "0x306F06C147f064A010530292A1EB6737c3e378e4",
-            token0: token0,
-            token1: token1
-          };
+          const poolInfo = await this.getPoolInfo(token0, token1, 500); // Check liquidity
+          existingPools.push({
+            token0,
+            token1,
+            liquidity: poolInfo.tvl,
+            candidateToken
+          });
+          console.log(`✅ Found pool: ${token0} - ${token1} (TVL: ${poolInfo.tvl})`);
         }
       }
     }
     
-    // Fallback - find any pool that contains the flash loan token
-    console.log(`⚠️ No suitable pool found in pairing list, trying to find any pool with ${flashLoanToken}`);
-    
-    // Try common stablecoins to pair with flash loan token
-    const fallbackTokens = [
-      addresses.USDT,
-      addresses.USDC_Address,
-      addresses.DAI_Address,
-      "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c", // WBNB
-    ];
-    
-    for (const fallbackToken of fallbackTokens) {
-      if (fallbackToken.toLowerCase() !== flashLoanToken.toLowerCase()) {
-        const poolExists = await this.checkThenaPoolExists(flashLoanToken, fallbackToken);
-        if (poolExists) {
-          const [token0, token1] = this.sortTokens(flashLoanToken, fallbackToken);
-          console.log(`✅ Found fallback pool: ${token0} - ${token1}`);
-          return {
-            factory: "0x306F06C147f064A010530292A1EB6737c3e378e4",
-            token0: token0,
-            token1: token1
-          };
-        }
-      }
+    if (existingPools.length === 0) {
+      // Fallback logic...
+      console.log(`⚠️ No pools found, using fallback pool`);
+      return {
+        factory: "0x30055F87716d3DFD0E5198C27024481099fB4A98",
+        token0: flashLoanToken,
+        token1: addresses.USDT,
+      };
     }
     
-    // Final fallback - use a pool that definitely contains the flash loan token
-    console.log(`⚠️ No pool found with ${flashLoanToken}, using default pool`);
+    // Sort by liquidity (highest first) and return the best
+    existingPools.sort((a, b) => b.liquidity - a.liquidity);
+    const bestPool = existingPools[0];
+    
+    console.log(`�� Best pool selected: ${bestPool.token0} - ${bestPool.token1} (TVL: ${bestPool.liquidity})`);
+    
     return {
-      factory: "0x306F06C147f064A010530292A1EB6737c3e378e4",
-      token0: flashLoanToken, // Ensure flash loan token is in the pool
-      token1: addresses.USDT,  // Pair with USDT
+      factory: "0x30055F87716d3DFD0E5198C27024481099fB4A98",
+      token0: bestPool.token0,
+      token1: bestPool.token1
     };
   }
 
