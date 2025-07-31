@@ -103,12 +103,12 @@ async function main(): Promise<void> {
   const vault = await portfolio.vault();
   console.log("Vault:", vault);
 
-  //This is used when we have vaultBalance of debt token > 0
+  //This is used when we have vaultBalance of debt token > 0 abd after repay vault balance should be > 0
   const tx = await rebalancing.directDebtRepayment(
-
+    addresses.BTC_Address, //DebtToken
+    addresses.vBTC_Address, //vToken format of debt token
+    "8400000000000" // Amount to repay, if full repayment then type(uint256).max
   );
-
-
 
   console.log(
     "------------------------------ Borrow Ended ------------------------------"
