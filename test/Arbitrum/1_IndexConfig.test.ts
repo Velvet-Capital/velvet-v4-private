@@ -246,7 +246,7 @@ describe.only("Tests for Portfolio Config", () => {
             _baseTokenRemovalVaultImplementation: tokenRemovalVault.address,
             _baseVelvetGnosisSafeModuleAddress: velvetSafeModule.address,
             _baseBorrowManager: borrowManager.address,
-            _basePositionManager: positionManagerBaseAddress.address,
+            _basePositionWrapper: positionWrapperBaseAddress.address,
             _baseExternalPositionStorage: externalPositionStorage.address,
             _gnosisSingleton: addresses.gnosisSingleton,
             _gnosisFallbackLibrary: addresses.gnosisFallbackLibrary,
@@ -896,7 +896,7 @@ describe.only("Tests for Portfolio Config", () => {
 
       it("claiming reward tokens should fail if protocol is paused", async () => {
         await expect(
-          rebalancing.claimRewardTokens(addresses.WETH, addresses.WETH,0, "0x")
+          rebalancing.claimRewardTokens(addresses.WETH, addresses.WETH, 0, "0x")
         ).to.be.revertedWithCustomError(rebalancing, "ProtocolIsPaused");
       });
 
@@ -948,7 +948,7 @@ describe.only("Tests for Portfolio Config", () => {
 
       it("claiming reward tokens should fail if reward target is not enabled", async () => {
         await expect(
-          rebalancing.claimRewardTokens(addresses.WETH, addresses.WETH,0,  "0x")
+          rebalancing.claimRewardTokens(addresses.WETH, addresses.WETH, 0, "0x")
         ).to.be.revertedWithCustomError(rebalancing, "RewardTargetNotEnabled");
       });
 
@@ -981,7 +981,7 @@ describe.only("Tests for Portfolio Config", () => {
       it("reward token target should be usable to claim after enabling", async () => {
         // empty calldata is passed, test case with calldata in file 4
         await expect(
-          rebalancing.claimRewardTokens(addresses.WETH, addresses.WETH,0, "0x")
+          rebalancing.claimRewardTokens(addresses.WETH, addresses.WETH, 0, "0x")
         ).to.be.revertedWithCustomError(rebalancing, "ClaimFailed");
       });
 
@@ -1786,11 +1786,10 @@ describe.only("Tests for Portfolio Config", () => {
         await portfolioFactory.setTokenRemovalVaultModule(addr1.address);
       });
 
-
       it("should fail if repay is paused", async () => {
         await protocolConfig.setRepayPause(true);
         await expect(
-           rebalancing.repay(addresses.aavePool, {
+          rebalancing.repay(addresses.aavePool, {
             _factory: addresses.aavePool,
             _token0: addresses.aavePool, //USDT - Pool token
             _token1: addresses.aavePool, //USDC - Pool token

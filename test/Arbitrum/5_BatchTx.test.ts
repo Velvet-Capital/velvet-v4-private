@@ -162,10 +162,10 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         { kind: "uups" }
       );
 
-      const UniSwapHandler = await ethers.getContractFactory(
-        "UniswapHandler"
+      const UniSwapHandler = await ethers.getContractFactory("UniswapHandler");
+      uniswapHandler = await UniSwapHandler.deploy(
+        addresses.UniswapV3RouterAddress
       );
-      uniswapHandler = await UniSwapHandler.deploy(addresses.UniswapV3RouterAddress);
       await uniswapHandler.deployed();
 
       protocolConfig = ProtocolConfig.attach(_protocolConfig.address);
@@ -190,7 +190,9 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       const assetManagementConfig = await AssetManagementConfig.deploy();
       await assetManagementConfig.deployed();
 
-      const BorrowManager = await ethers.getContractFactory("BorrowManagerAave");
+      const BorrowManager = await ethers.getContractFactory(
+        "BorrowManagerAave"
+      );
       borrowManager = await BorrowManager.deploy();
       await borrowManager.deployed();
 
@@ -209,7 +211,6 @@ describe.only("Tests for Deposit + Withdrawal", () => {
 
       swapHandler.init(addresses.SushiSwapRouterAddress);
       await protocolConfig.enableSwapHandler(swapHandler.address);
-
 
       let whitelistedTokens = [
         addresses.ARB,
@@ -287,7 +288,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             _baseTokenRemovalVaultImplementation: tokenRemovalVault.address,
             _baseVelvetGnosisSafeModuleAddress: velvetSafeModule.address,
             _baseBorrowManager: borrowManager.address,
-            _basePositionManager: positionManagerBaseAddress.address,
+            _basePositionWrapper: positionWrapperBaseAddress.address,
             _baseExternalPositionStorage: externalPositionStorage.address,
             _gnosisSingleton: addresses.gnosisSingleton,
             _gnosisFallbackLibrary: addresses.gnosisFallbackLibrary,

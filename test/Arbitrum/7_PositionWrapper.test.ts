@@ -171,6 +171,13 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       const positionManagerBaseAddress = await PositionManager.deploy();
       await positionManagerBaseAddress.deployed();
 
+      await protocolConfig.enableProtocol(
+        uniswapV3ProtocolHash,
+        "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
+        "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
+        positionManagerBaseAddress.address
+      );
+
       const BorrowManager = await ethers.getContractFactory(
         "BorrowManagerAave"
       );
@@ -190,13 +197,6 @@ describe.only("Tests for Deposit + Withdrawal", () => {
       await protocolConfig.enableSolverHandler(ensoHandler.address);
       await protocolConfig.setSupportedFactory(ensoHandler.address);
       await protocolConfig.addSupportedCallbackCaller(addresses.aavePool);
-
-      await protocolConfig.enableProtocol(
-        uniswapV3ProtocolHash,
-        "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
-        "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
-        positionWrapperBaseAddress.address
-      );
 
       const TokenExclusionManager = await ethers.getContractFactory(
         "TokenExclusionManager"
@@ -291,7 +291,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
             _baseTokenRemovalVaultImplementation: tokenRemovalVault.address,
             _baseVelvetGnosisSafeModuleAddress: velvetSafeModule.address,
             _baseBorrowManager: borrowManager.address,
-            _basePositionManager: positionManagerBaseAddress.address,
+            _basePositionWrapper: positionWrapperBaseAddress.address,
             _baseExternalPositionStorage: externalPositionStorage.address,
             _gnosisSingleton: addresses.gnosisSingleton,
             _gnosisFallbackLibrary: addresses.gnosisFallbackLibrary,

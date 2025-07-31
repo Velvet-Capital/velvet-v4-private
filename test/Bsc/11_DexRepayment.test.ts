@@ -391,7 +391,7 @@ describe.only("Tests for Deposit", () => {
             _feeModuleImplementationAddress: feeModule.address,
             _baseTokenRemovalVaultImplementation: tokenRemovalVault.address,
             _baseVelvetGnosisSafeModuleAddress: velvetSafeModule.address,
-            _basePositionManager: positionManagerBaseAddress.address,
+            _basePositionWrapper: positionWrapperBaseAddress.address,
             _baseExternalPositionStorage: externalPositionStorage.address,
             _baseBorrowManager: borrowManager.address,
             _gnosisSingleton: addresses.gnosisSingleton,
@@ -1682,9 +1682,9 @@ describe.only("Tests for Deposit", () => {
 
         const flashLoanAmount = values[1];
 
-        await portfolio.connect(nonOwner).multiTokenWithdrawal(
-          BigNumber.from(amountPortfolioToken),
-          {
+        await portfolio
+          .connect(nonOwner)
+          .multiTokenWithdrawal(BigNumber.from(amountPortfolioToken), {
             _factory: addresses.thena_factory,
             _token0: addresses.USDT, //USDT - Pool token
             _token1: addresses.USDC_Address, //USDC - Pool token
@@ -1697,8 +1697,7 @@ describe.only("Tests for Deposit", () => {
             isDexRepayment: true,
             _poolFees: [[500, 500, 500, 500, 500, 500, 500, 500, 500]],
             _swapHandler: swapHandler.address,
-          }
-        );
+          });
 
         const supplyAfter = await portfolio.totalSupply();
         console.log("SupplyAfter", supplyAfter);
