@@ -67,7 +67,7 @@ export class PoolFeeCalculator {
   /**
    * Get underlying tokens from vTokens
    */
-  private async getUnderlyingTokens(vTokens: string[]): Promise<string[]> {
+  public async getUnderlyingTokens(vTokens: string[]): Promise<string[]> {
     const underlyingTokens: string[] = [];
     
     for (const vToken of vTokens) {
@@ -107,7 +107,7 @@ export class PoolFeeCalculator {
       return {
         flashLoanProtocolToken: addresses.vUSDT_Address,
         flashLoanToken: addresses.USDT,
-        thenaFactory: "0x306F06C147f064A010530292A1EB6737c3e378e4",
+        thenaFactory: "0x30055F87716d3DFD0E5198C27024481099fB4A98",
         thenaToken0: addresses.USDT,
         thenaToken1: addresses.USDC_Address
       };
@@ -210,7 +210,7 @@ export class PoolFeeCalculator {
       ];
       
       const thenaFactory = new ethers.Contract(
-        "0x306F06C147f064A010530292A1EB6737c3e378e4",
+        "0x30055F87716d3DFD0E5198C27024481099fB4A98",
         thenaFactoryABI,
         ethers.provider
       );

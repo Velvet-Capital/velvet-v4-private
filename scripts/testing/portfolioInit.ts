@@ -73,11 +73,11 @@ async function main(): Promise<void> {
 
   console.log("--------------- Portfolio Init Started ---------------");
 
-  // const Portfolio = await ethers.getContractFactory("Portfolio", {
-  //   libraries: {
-  //     TokenBalanceLibrary: deployedAddresses.tokenBalanceLibrary,
-  //   },
-  // });
+  const Portfolio = await ethers.getContractFactory("Portfolio", {
+    libraries: {
+      TokenBalanceLibrary: deployedAddresses.tokenBalanceLibrary,
+    },
+  });
   // const portfolio = await Portfolio.attach(deployedAddresses.portfolioContract);
 
   const PortfolioFactory = await ethers.getContractFactory("PortfolioFactory");
@@ -85,30 +85,30 @@ async function main(): Promise<void> {
     deployedAddresses.portfolioFactory
   );
 
-  // const portfolioDeployed = await portfolioFactory
-  //   .connect(owner2)
-  //   .createPortfolioNonCustodial({
-  //     _name: "PORTFOLIOLY",
-  //     _symbol: "IDX",
-  //     _managementFee: "100",
-  //     _performanceFee: "0",
-  //     _entryFee: "0",
-  //     _exitFee: "0",
-  //     _initialPortfolioAmount: "10000000000000000000000",
-  //     _minPortfolioTokenHoldingAmount: "10000000000000000",
-  //     _assetManagerTreasury: treasury.address,
-  //     _whitelistedTokens: [],
-  //     _public: true,
-  //     _transferable: true,
-  //     _transferableToPublic: true,
-  //     _whitelistTokens: false,
-  //     _witelistedProtocolIds: [],
-  //   });
+  const portfolioDeployed = await portfolioFactory
+    .connect(owner2)
+    .createPortfolioNonCustodial({
+      _name: "PORTFOLIOLY",
+      _symbol: "IDX",
+      _managementFee: "100",
+      _performanceFee: "0",
+      _entryFee: "0",
+      _exitFee: "0",
+      _initialPortfolioAmount: "10000000000000000000000",
+      _minPortfolioTokenHoldingAmount: "10000000000000000",
+      _assetManagerTreasury: treasury.address,
+      _whitelistedTokens: [],
+      _public: true,
+      _transferable: true,
+      _transferableToPublic: true,
+      _whitelistTokens: false,
+      _witelistedProtocolIds: [],
+    });
 
-  await sleep(10000);
+  await sleep(30000);
 
-  const portfolioAddress = await portfolioFactory.getPortfolioList(2);
-  const portfolioInfo = await portfolioFactory.PortfolioInfolList(2);
+  const portfolioAddress = await portfolioFactory.getPortfolioList(9);
+  const portfolioInfo = await portfolioFactory.PortfolioInfolList(9);
 
   const portfolio = await ethers.getContractAt(
     Portfolio__factory.abi,

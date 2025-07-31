@@ -56,6 +56,7 @@ import {
 import { createEnsoCallDataRoute } from "../../test/Bsc/IntentCalculations";
 import { BigNumber } from "ethers";
 import { calculateOutputAmounts } from "../../test/Bsc/IntentCalculationsAlgebraV2";
+import { BufferOptimizer } from "../utils/bufferOptimizer";
 
 function divideAmountEqually(amount: any, tokenCount: number) {
   const amountPerToken = amount.div(tokenCount);
@@ -99,10 +100,10 @@ async function main(): Promise<void> {
   const baseFee = feeData.lastBaseFeePerGas;
 
   // Calculate priority fee (tip)
-  const priorityFee = ethers.utils.parseUnits("0.5", "gwei");
+  const priorityFee = ethers.utils.parseUnits("0.1", "gwei");
 
   // Ensure the priority fee is at least 1 Gwei
-  const minPriorityFee = ethers.utils.parseUnits("0.5", "gwei");
+  const minPriorityFee = ethers.utils.parseUnits("0.1", "gwei");
   const adjustedPriorityFee = priorityFee.lt(minPriorityFee)
     ? minPriorityFee
     : priorityFee;
@@ -258,10 +259,10 @@ async function main(): Promise<void> {
     await portfolio.balanceOf(owner4.address)
   );
 
-  // await portfolio.connect(owner4).approve(
-  //   withdrawManager.address,
-  //   BigNumber.from(amountPortfolioToken)
-  // );
+  await portfolio.connect(owner4).approve(
+    withdrawManager.address,
+    BigNumber.from(amountPortfolioToken)
+  );
 
   let withdrawalAmounts =
     await portfolioCalculations.callStatic.getWithdrawalAmounts(
@@ -320,20 +321,20 @@ async function main(): Promise<void> {
     flashLoanToken = addresses.USDT;
     poolFees = { poolFees: [[]] }; // Empty pool fees
     thenaPoolInfo = {
-      _factory: "0x306F06C147f064A010530292A1EB6737c3e378e4",
+      _factory: "0x30055F87716d3DFD0E5198C27024481099fB4A98",
       _token0: addresses.USDT,
       _token1: addresses.USDC_Address,
       _flashLoanToken: addresses.USDT
     };
   } else {
     console.log(`🔍 ${borrowTokens.length === 1 ? 'Single' : 'Multiple'} borrowed tokens - selecting optimal flash loan token`);
-    
+
     const calculator = new PoolFeeCalculator(
       addresses.PancakeSwapV3FactoryAddress,
       chainId,
       venusAssetHandler
     );
-    
+
     try {
       // Get optimal flash loan token AND Thena pool info
       const flashLoanSelection = await calculator.selectOptimalFlashLoanToken(
@@ -341,10 +342,10 @@ async function main(): Promise<void> {
         lendTokens,
         addresses
       );
-      
+
       flashLoanProtocolToken = flashLoanSelection.flashLoanProtocolToken;
       flashLoanToken = flashLoanSelection.flashLoanToken;
-      
+
       // Calculate pool fees
       poolFees = await calculator.getPoolFeesForWithdrawal(
         flashLoanToken,
@@ -352,41 +353,79 @@ async function main(): Promise<void> {
         lendTokens,
         addresses
       );
-      
+
       thenaPoolInfo = {
         _factory: flashLoanSelection.thenaFactory,
         _token0: flashLoanSelection.thenaToken0,
         _token1: flashLoanSelection.thenaToken1,
         _flashLoanToken: flashLoanSelection.flashLoanToken
       };
-      
+
       console.log("Selected flash loan token:", flashLoanToken);
       console.log("Selected Thena pool:", thenaPoolInfo);
-      
+
     } catch (error) {
       console.log(`❌ Error in flash loan selection: ${error.message}`);
       console.log("⚠️ Falling back to default USDT flash loan");
-      
+
       // Fallback to USDT
       flashLoanProtocolToken = addresses.vUSDT_Address;
       flashLoanToken = addresses.USDT;
       poolFees = { poolFees: [[]] }; // Default empty pool fees
       thenaPoolInfo = {
-        _factory: "0x306F06C147f064A010530292A1EB6737c3e378e4",
+        _factory: "0x30055F87716d3DFD0E5198C27024481099fB4A98",
         _token0: addresses.USDT,
         _token1: addresses.USDC_Address,
         _flashLoanToken: addresses.USDT
       };
     }
   }
-  
+
   console.log("Selected flash loan protocol token:", flashLoanProtocolToken);
   console.log("Selected flash loan token:", flashLoanToken);
+  console.log("controller", addresses.corePool_controller);
+
+  const [accountData, tokenAddresses] = await venusAssetHandler.callStatic.getUserAccountData(vault, addresses.corePool_controller, []);
+
+  const bufferOptimizer = new BufferOptimizer(
+    addresses.PancakeSwapV3FactoryAddress,
+    chainId,
+    venusAssetHandler
+  );
+
+  const baseValues =
+    await portfolioCalculations.calculateBorrowedPortionAndFlashLoanDetails(
+      portfolio.address,
+      flashLoanProtocolToken,
+      vault,
+      addresses.corePool_controller,
+      venusAssetHandler.address,
+      amountPortfolioToken,
+      0,
+    );
+
+    const optimalBuffers = await bufferOptimizer.calculateOptimalBuffers({
+      flashLoanToken,
+      flashLoanProtocolToken,
+      borrowTokens,
+      lendTokens,
+      baseFlashLoanAmounts: baseValues[1].map((amount: any) => ethers.utils.formatEther(amount)),
+      totalCollateral: accountData.totalCollateral,
+      addresses,
+      chainId,
+      venusAssetHandler,
+      poolFees,
+      vault: vault, // Add missing vault parameter
+      pancakeSwapFactory: addresses.PancakeSwapV3FactoryAddress // Add missing factory parameter
+    });
+
+  console.log("Optimal Buffers:", optimalBuffers);
+
 
   let flashLoanAmounts: string[][] = [];
 
-  let flashloanBufferUnit = 18; //Flashloan buffer unit in 1/10000, extra flashlaon to take, to fulfil the swap(from flashlaon to debt token)
-  let bufferUnit = 280; //Buffer unit for collateral amount in 1/100000, extra collateral to take, to fulfil the swap(from collateral underlying to flashlaon token)
+  let flashloanBufferUnit = optimalBuffers.flashLoanBufferUnit; //Flashloan buffer unit in 1/10000, extra flashlaon to take, to fulfil the swap(from flashlaon to debt token)
+  let bufferUnit = optimalBuffers.bufferUnit; //Buffer unit for collateral amount in 1/100000, extra collateral to take, to fulfil the swap(from collateral underlying to flashlaon token)
 
   const values =
     await portfolioCalculations.calculateBorrowedPortionAndFlashLoanDetails(
@@ -474,7 +513,6 @@ async function main(): Promise<void> {
     if (swapTokens[i] == tokenToSwapInto) {
       responses.push("0x");
     } else {
-      console.log("swapTokens[i]:", swapTokens[i]);
       if (lendTokensSet.has(swapTokens[i])) {
         const vaultBalance = await ERC20.attach(swapTokens[i]).balanceOf(vault);
         console.log("vaultBalance:", vaultBalance);
@@ -482,7 +520,6 @@ async function main(): Promise<void> {
           .mul(amountPortfolioToken)
           .div(await portfolio.totalSupply());
 
-        console.log("userShare:", userShare);
 
         // Get the correct index for this lendToken in amountToSell
         const amountIndex = lendTokenToAmountIndex.get(swapTokens[i]);
@@ -513,7 +550,7 @@ async function main(): Promise<void> {
     responses,
     0,
     {
-      _factory: "0x306F06C147f064A010530292A1EB6737c3e378e4",
+      _factory: "0x30055F87716d3DFD0E5198C27024481099fB4A98",
       _token0: addresses.USDT, // Pool token 0
       _token1: addresses.USDC_Address, // Pool token 1
       _flashLoanToken: addresses.USDT, // FlashLoanToken == token to repay

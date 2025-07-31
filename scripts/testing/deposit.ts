@@ -61,6 +61,10 @@ import {
   PortfolioFactory,
 } from "../../typechain";
 import { createEnsoCallDataRoute } from "../../test/Bsc/IntentCalculations";
+import { PoolFeeCalculator } from "../utils/poolFeeCalculator";
+
+const chainId: any = process.env.CHAIN_ID;
+  const addresses = chainIdToAddresses[chainId];
 
 function divideAmountEqually(amount: any, tokenCount: number) {
   const amountPerToken = amount.div(tokenCount);
@@ -212,7 +216,7 @@ async function main(): Promise<void> {
   console.log("------------- Creating Enso Call Data Route -------------");
 
   const totalSupply = await portfolio.totalSupply();
-  let amount = ethers.utils.parseUnits("0.007", "ether");
+  let amount = ethers.utils.parseUnits("0.004", "ether");
   let depositAmounts = [];
   let postResponse = [];
 
@@ -241,36 +245,36 @@ async function main(): Promise<void> {
 
   console.log("------------- Executing Deposit Batch -------------");
 
-    const data = await depositBatch.connect(owner4).multiTokenSwapETHAndTransfer(
-      {
-        _minMintAmount: 0,
-        _depositAmount: amount.toString(),
-        _target: portfolio.address,
-        _depositToken: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-        _callData: postResponse,
-      },
-      {
-        // Except Swap Tokens, Other Parameters are not used until we have a position manager
-        _positionWrappers: positionWrappers,
-        _swapTokens: swapTokens,
-        _positionWrapperIndex: positionWrapperIndex,
-        _portfolioTokenIndex: portfolioTokenIndex,
-        _index0: index0,
-        _index1: index1,
-        _amount0Min: amount0Min,
-        _amount1Min: amount1Min,
-        _isExternalPosition: isExternalPosition,
-        _swapDeployer: swapDeployer,
-        _tokenIn: tokenIn,
-        _tokenOut: tokenOut,
-        _amountIn: amountIn,
-        _deployer: ZERO_ADDRESS,
-        _fee: fee,
-      },
-      {
-        value: amount.toString(),
-      }
-    );
+  const data = await depositBatch.connect(owner4).multiTokenSwapETHAndTransfer(
+    {
+      _minMintAmount: 0,
+      _depositAmount: amount.toString(),
+      _target: portfolio.address,
+      _depositToken: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      _callData: postResponse,
+    },
+    {
+      // Except Swap Tokens, Other Parameters are not used until we have a position manager
+      _positionWrappers: positionWrappers,
+      _swapTokens: swapTokens,
+      _positionWrapperIndex: positionWrapperIndex,
+      _portfolioTokenIndex: portfolioTokenIndex,
+      _index0: index0,
+      _index1: index1,
+      _amount0Min: amount0Min,
+      _amount1Min: amount1Min,
+      _isExternalPosition: isExternalPosition,
+      _swapDeployer: swapDeployer,
+      _tokenIn: tokenIn,
+      _tokenOut: tokenOut,
+      _amountIn: amountIn,
+      _deployer: ZERO_ADDRESS,
+      _fee: fee,
+    },
+    {
+      value: amount.toString(),
+    }
+  );
 
   console.log(
     "------------------------------ Deposit Ended ------------------------------"
@@ -294,6 +298,8 @@ async function calculateWeightedDepositAmounts(
     deployedAddresses.venusAssetHandler
   );
 
+  console.log("Venus Asset Handler:", venusAssetHandler.address);
+
   // Get comptroller address
   const comptrollerAddress = "0xfD36E2c2a6789Db23113685031d7F16329158384";
 
@@ -308,6 +314,7 @@ async function calculateWeightedDepositAmounts(
     );
 
   const { lendTokens, borrowTokens } = tokenAddresses;
+  console.log("Lend Tokens:", lendTokens);
   const vTokenSet = new Set(lendTokens);
 
   // Convert totalDebt to 18 decimals (it's in 8 decimals from Venus)
@@ -319,9 +326,19 @@ async function calculateWeightedDepositAmounts(
   const tokenProcessingPromises = tokens.map(async (token, i) => {
     const balance = await ERC20.attach(token).balanceOf(vault);
 
+    const poolFeeCalculator = new PoolFeeCalculator(
+      addresses.PancakeSwapV3FactoryAddress, // You'll need to add this to your addresses
+      56,
+      venusAssetHandler
+    );
+
+
+
     if (vTokenSet.has(token)) {
       // It's a vToken
-      const underlying = await venusAssetHandler.getUnderlyingToken(token);
+      const underlyingTokens = await poolFeeCalculator.getUnderlyingTokens([token]);
+      const underlying = underlyingTokens[0];
+      console.log("Underlying:", underlying);
       const isCollateral = await venusAssetHandler.isCollateralEnabled(
         token,
         vault,
@@ -341,6 +358,8 @@ async function calculateWeightedDepositAmounts(
       const underlyingAmount = balance
         .mul(exchangeRateMantissa)
         .div(ethers.BigNumber.from(10).pow(18));
+
+      console.log("Underlying Amount:", underlyingAmount);
 
       const usdValue = await oracle.convertToUSD18Decimals(
         underlying,
