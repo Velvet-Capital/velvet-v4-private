@@ -23,7 +23,10 @@ import {
   calculateDepositAmounts,
 } from "./IntentCalculations";
 
-import { createEncodedParametersIncreaseLiquidity } from "./IntegrationScriptRebalance";
+import {
+  createEncodedParametersIncreaseLiquidity,
+  createEncodedParametersDecreaseLiquidity,
+} from "./IntegrationScriptRebalance";
 
 import { tokenAddresses, IAddresses, priceOracle } from "./Deployments.test";
 
@@ -833,75 +836,14 @@ describe.only("Tests for Deposit", () => {
           await ERC20.attach(token1).balanceOf(vault)
         );
 
-        // get underlying amounts of position
-        let percentage = await amountCalculationsAlgebra.getPercentage(
-          sellTokenBalance,
-          (await positionWrapper.totalSupply()).toString()
-        );
-
-        let withdrawAmounts = await calculateOutputAmounts(
-          sellToken,
-          percentage.toString()
-        );
-
-        let swapAmounts: any = [[]];
-        if (withdrawAmounts.token0Amount > 0) {
-          swapAmounts[0][0] = (withdrawAmounts.token0Amount * 0.99999).toFixed(
-            0
-          );
-        }
-
-        if (withdrawAmounts.token1Amount > 0) {
-          swapAmounts[0][1] = (withdrawAmounts.token1Amount * 0.99999).toFixed(
-            0
-          );
-        }
-
-        let callDataEnso: any = [[]];
-
-        const callDataDecreaseLiquidity: any = [];
-        // Encode the function call
-        let ABI = [
-          "function decreaseLiquidity(address _positionWrapper, uint256 _withdrawalAmount, uint256 _amount0Min, uint256 _amount1Min, address _swapDeployer, address tokenIn, address tokenOut, uint256 amountIn, uint24 _fee)",
-        ];
-        let abiEncode = new ethers.utils.Interface(ABI);
-        callDataDecreaseLiquidity[0] = abiEncode.encodeFunctionData(
-          "decreaseLiquidity",
-          [
+        const encodedParameters =
+          await createEncodedParametersDecreaseLiquidity(
             sellToken,
             sellTokenBalance,
-            0,
-            0,
-            ZERO_ADDRESS,
-            token0,
-            token1,
-            0,
-            100,
-          ]
-        );
-
-        const encodedParameters = ethers.utils.defaultAbiCoder.encode(
-          [
-            " bytes[][]", // callDataEnso
-            "bytes[]", // callDataDecreaseLiquidity
-            "bytes[][]", // callDataIncreaseLiquidity
-            "address[][]", // increaseLiquidityTarget
-            "address[]", // underlyingTokensDecreaseLiquidity
-            "address[][]", // tokensIn
-            "address[][]", // tokensOut
-            " uint256[][]", // minExpectedOutputAmounts (out)
-          ],
-          [
-            callDataEnso,
-            callDataDecreaseLiquidity,
-            [[]],
-            [[]],
-            [await removedPosition.token0(), await removedPosition.token1()],
-            [[sellToken]],
-            [[await removedPosition.token0(), await removedPosition.token1()]],
-            [[0, 0]],
-          ]
-        );
+            ensoHandler.address,
+            amountCalculationsAlgebra.address,
+            owner.address
+          );
 
         await rebalancing.updateTokens({
           _newTokens: newTokens,

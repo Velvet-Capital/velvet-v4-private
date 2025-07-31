@@ -458,8 +458,6 @@ export async function createEnsoCallDataRoute(
     routingStrategy: "delegate",
   };
 
-  console.log("params", params);
-
   const postUrl = "https://api.enso.finance/api/v1/shortcuts/route?";
 
   const headers = {
@@ -815,6 +813,214 @@ export async function createEncodedParametersIncreaseLiquidity(
       [[sellToken]],
       [[position]],
       [[0]],
+    ]
+  );
+
+  return encodedParameters;
+}
+
+export async function createEncodedParametersDecreaseLiquidity(
+  sellPosition: string,
+  sellTokenBalance: string,
+  ensoHandlerAddress: string,
+  amountCalculationsAddress: string,
+  dustReceiver: string
+) {
+  const PositionWrapper = await ethers.getContractFactory("PositionWrapper");
+  const positionWrapper = PositionWrapper.attach(sellPosition);
+
+  const token0 = await positionWrapper.token0();
+  const token1 = await positionWrapper.token1();
+
+  // Calculate percentage of position being sold
+  const AmountCalculationsAlgebra = await ethers.getContractFactory(
+    "AmountCalculationsAlgebra"
+  );
+  const amountCalculationsAlgebra = AmountCalculationsAlgebra.attach(
+    amountCalculationsAddress
+  );
+
+  let percentage = await amountCalculationsAlgebra.getPercentage(
+    sellTokenBalance,
+    (await positionWrapper.totalSupply()).toString()
+  );
+
+  // Calculate underlying token amounts that will be withdrawn
+  let withdrawAmounts = await calculateOutputAmounts(
+    sellPosition,
+    amountCalculationsAddress,
+    percentage.toString()
+  );
+
+  // Create decrease liquidity call data
+  const callDataDecreaseLiquidity: any = [];
+  let ABI = [
+    "function decreaseLiquidity(address _positionWrapper, uint256 _withdrawalAmount, uint256 _amount0Min, uint256 _amount1Min, address _swapDeployer, address tokenIn, address tokenOut, uint256 amountIn, uint24 _fee)",
+  ];
+  let abiEncode = new ethers.utils.Interface(ABI);
+
+  callDataDecreaseLiquidity[0] = abiEncode.encodeFunctionData(
+    "decreaseLiquidity",
+    [
+      sellPosition,
+      sellTokenBalance,
+      0, // _amount0Min
+      0, // _amount1Min
+      ethers.constants.AddressZero, // _swapDeployer
+      token0, // tokenIn
+      token1, // tokenOut
+      0, // amountIn
+      100, // _fee
+    ]
+  );
+
+  // Prepare underlying tokens array
+  const underlyingTokens = [];
+  if (withdrawAmounts.token0Amount.gt(0)) {
+    underlyingTokens.push(token0);
+  }
+  if (withdrawAmounts.token1Amount.gt(0)) {
+    underlyingTokens.push(token1);
+  }
+
+  const encodedParameters = ethers.utils.defaultAbiCoder.encode(
+    [
+      "bytes[][]", // callDataEnso
+      "bytes[]", // callDataDecreaseLiquidity
+      "bytes[][]", // callDataIncreaseLiquidity
+      "address[][]", // increaseLiquidityTarget
+      "address[]", // underlyingTokensDecreaseLiquidity
+      "address[][]", // tokensIn
+      "address[][]", // tokensOut
+      "uint256[][]", // minExpectedOutputAmounts (out)
+    ],
+    [
+      [[]], // Empty callDataEnso (no swaps needed for this basic case)
+      callDataDecreaseLiquidity,
+      [[]], // Empty callDataIncreaseLiquidity
+      [[]], // Empty increaseLiquidityTarget
+      underlyingTokens, // Underlying tokens from the position
+      [[sellPosition]], // tokensIn - the position being sold
+      [underlyingTokens], // tokensOut - underlying tokens being received
+      [[0, 0]], // minExpectedOutputAmounts
+    ]
+  );
+
+  return encodedParameters;
+}
+
+export async function createEncodedParametersDecreaseLiquidityWithSwap(
+  sellPosition: string,
+  sellTokenBalance: string,
+  buyToken: string,
+  ensoHandlerAddress: string,
+  amountCalculationsAddress: string,
+  dustReceiver: string
+) {
+  const PositionWrapper = await ethers.getContractFactory("PositionWrapper");
+  const positionWrapper = PositionWrapper.attach(sellPosition);
+
+  const token0 = await positionWrapper.token0();
+  const token1 = await positionWrapper.token1();
+
+  // Calculate percentage of position being sold
+  const AmountCalculationsAlgebra = await ethers.getContractFactory(
+    "AmountCalculationsAlgebra"
+  );
+  const amountCalculationsAlgebra = AmountCalculationsAlgebra.attach(
+    amountCalculationsAddress
+  );
+
+  let percentage = await amountCalculationsAlgebra.getPercentage(
+    sellTokenBalance,
+    (await positionWrapper.totalSupply()).toString()
+  );
+
+  // Calculate underlying token amounts that will be withdrawn
+  let withdrawAmounts = await calculateOutputAmounts(
+    sellPosition,
+    amountCalculationsAddress,
+    percentage.toString()
+  );
+
+  // Prepare swap data for underlying tokens to target token
+  let callDataEnso: any = [[]];
+
+  if (withdrawAmounts.token0Amount.gt(0) && token0 !== buyToken) {
+    let swapAmount = withdrawAmounts.token0Amount.toString();
+    const response0 = await createEnsoCallDataRoute(
+      ensoHandlerAddress,
+      ensoHandlerAddress,
+      token0,
+      buyToken,
+      swapAmount
+    );
+    callDataEnso[0].push(response0.data.tx.data);
+  }
+
+  if (withdrawAmounts.token1Amount.gt(0) && token1 !== buyToken) {
+    let swapAmount = withdrawAmounts.token1Amount.toString();
+    const response1 = await createEnsoCallDataRoute(
+      ensoHandlerAddress,
+      ensoHandlerAddress,
+      token1,
+      buyToken,
+      swapAmount
+    );
+    callDataEnso[0].push(response1.data.tx.data);
+  }
+
+  // Create decrease liquidity call data
+  const callDataDecreaseLiquidity: any = [];
+  let ABI = [
+    "function decreaseLiquidity(address _positionWrapper, uint256 _withdrawalAmount, uint256 _amount0Min, uint256 _amount1Min, address _swapDeployer, address tokenIn, address tokenOut, uint256 amountIn, uint24 _fee)",
+  ];
+  let abiEncode = new ethers.utils.Interface(ABI);
+
+  callDataDecreaseLiquidity[0] = abiEncode.encodeFunctionData(
+    "decreaseLiquidity",
+    [
+      sellPosition,
+      sellTokenBalance,
+      0, // _amount0Min
+      0, // _amount1Min
+      ethers.constants.AddressZero, // _swapDeployer
+      token0, // tokenIn
+      token1, // tokenOut
+      0, // amountIn
+      100, // _fee
+    ]
+  );
+
+  // Prepare underlying tokens array
+  const underlyingTokens = [];
+  if (withdrawAmounts.token0Amount.gt(0)) {
+    underlyingTokens.push(token0);
+  }
+  if (withdrawAmounts.token1Amount.gt(0)) {
+    underlyingTokens.push(token1);
+  }
+
+  const encodedParameters = ethers.utils.defaultAbiCoder.encode(
+    [
+      "bytes[][]", // callDataEnso
+      "bytes[]", // callDataDecreaseLiquidity
+      "bytes[][]", // callDataIncreaseLiquidity
+      "address[][]", // increaseLiquidityTarget
+      "address[]", // underlyingTokensDecreaseLiquidity
+      "address[][]", // tokensIn
+      "address[][]", // tokensOut
+      "uint256[][]", // minExpectedOutputAmounts (out)
+    ],
+    [
+      callDataEnso,
+      callDataDecreaseLiquidity,
+      [[]], // Empty callDataIncreaseLiquidity
+      [[]], // Empty increaseLiquidityTarget
+      underlyingTokens, // Underlying tokens from the position
+      [[sellPosition]], // tokensIn - the position being sold
+      [underlyingTokens], // tokensOut - underlying tokens being received
+      [[0, 0]], // minExpectedOutputAmounts
     ]
   );
 
