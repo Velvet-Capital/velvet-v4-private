@@ -1284,7 +1284,7 @@ describe.only("Tests for Deposit", () => {
         let tokens = await portfolio.getTokens();
 
         let flashloanBufferUnit = 23; //Flashloan buffer unit in 1/10000
-        let bufferUnit = 160; //Buffer unit for collateral amount in 1/100000
+        let bufferUnit = 300; //Buffer unit for collateral amount in 1/100000
 
         let balanceBorrowed =
           await portfolioCalculations.getVenusTokenBorrowedBalance(
@@ -1329,6 +1329,13 @@ describe.only("Tests for Deposit", () => {
         );
 
         let encodedParameters1 = [];
+
+        const flashLoanFee = await portfolioCalculations.getFlashLoanFeeFromPool(
+          addresses.thena_factory,
+          addresses.USDT, //USDT - Pool token
+          addresses.USDC_Address //USDC - Pool token
+        );
+
         //Because repay(rebalance) is one borrow token at a time
         const amounToSell =
           await portfolioCalculations.callStatic.getCollateralAmountToSell(
@@ -1338,7 +1345,7 @@ describe.only("Tests for Deposit", () => {
             [addresses.vDAI_Address],
             tokens,
             [balanceToRepay],
-            "10", //Flash loan fee
+            flashLoanFee, //Flash loan fee
             bufferUnit //Buffer unit for collateral amount
           );
         console.log("amounToSell", amounToSell);

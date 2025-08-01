@@ -731,7 +731,7 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
     uint256 borrowBalance,
     uint256 totalCollateral
   ) internal pure returns (uint256 debtValue, uint256 percentageToRemove) {
-    uint256 feeAmount = (_debtRepayAmount * 10 ** 18 * feeUnit) / 10 ** 22; // Calculate the fee amount
+    uint256 feeAmount = (_debtRepayAmount * 10 ** 18 * feeUnit) / 10 ** 24; // Calculate the fee amount
     uint256 debtAmountWithFee = _debtRepayAmount + feeAmount; // Add the fee to the debt repayment amount
     debtValue = (debtAmountWithFee * totalDebt * 10 ** 18) / borrowBalance; // Calculate the debt value
     percentageToRemove = debtValue / totalCollateral; // Calculate the percentage to remove from collateral
