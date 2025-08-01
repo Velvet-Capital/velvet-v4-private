@@ -843,7 +843,8 @@ describe.only("Tests for Deposit", () => {
             sellTokenBalance,
             ensoHandler.address,
             amountCalculationsAlgebra.address,
-            owner.address
+            owner.address,
+            priceOracle.address
           );
 
         await rebalancing.updateTokens({
@@ -938,7 +939,8 @@ describe.only("Tests for Deposit", () => {
             sellTokenBalance,
             ensoHandler.address,
             amountCalculationsAlgebra.address,
-            owner.address
+            owner.address,
+            priceOracle.address
           );
 
         await rebalancing.updateTokens({

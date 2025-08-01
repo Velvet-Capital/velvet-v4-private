@@ -724,7 +724,8 @@ export async function createEncodedParametersIncreaseLiquidity(
   sellTokenBalance: string,
   ensoHandlerAddress: string,
   amountCalculationsAddress: string,
-  dustReceiver: string
+  dustReceiver: string,
+  priceOracleAddress: string
 ) {
   const PositionWrapper = await ethers.getContractFactory("PositionWrapper");
   const positionWrapper = PositionWrapper.attach(position);
@@ -740,7 +741,7 @@ export async function createEncodedParametersIncreaseLiquidity(
       ensoHandlerAddress,
       position,
       sellTokenBalance,
-      true,
+      true, // can be false if no swap is needed (keep underlying tokens)
       amountCalculationsAddress
     );
 
@@ -761,6 +762,10 @@ export async function createEncodedParametersIncreaseLiquidity(
     }
   }
 
+  // Apply reduceAmount to account for slippage and ensure transaction success
+  const amount0ForDeposit = reduceAmount(amount0FromSwap);
+  const amount1ForDeposit = reduceAmount(amount1FromSwap);
+
   const callDataIncreaseLiquidity: any = [[]];
   // Encode the function call
   let ABIApprove = ["function approve(address spender, uint256 amount)"];
@@ -768,22 +773,22 @@ export async function createEncodedParametersIncreaseLiquidity(
 
   let approvalIndex = 0;
 
-  // Only approve token0 if amount > 0 (use actual expected amounts from swaps)
-  if (amount0FromSwap.gt(0)) {
+  // Only approve token0 if amount > 0 (use reduced amounts for consistency)
+  if (amount0ForDeposit.gt(0)) {
     callDataIncreaseLiquidity[0][approvalIndex] =
       abiEncodeApprove.encodeFunctionData("approve", [
         positionManagerAddress,
-        amount0FromSwap.toString(),
+        amount0ForDeposit.toString(),
       ]);
     approvalIndex++;
   }
 
-  // Only approve token1 if amount > 0 (use actual expected amounts from swaps)
-  if (amount1FromSwap.gt(0)) {
+  // Only approve token1 if amount > 0 (use reduced amounts for consistency)
+  if (amount1ForDeposit.gt(0)) {
     callDataIncreaseLiquidity[0][approvalIndex] =
       abiEncodeApprove.encodeFunctionData("approve", [
         positionManagerAddress,
-        amount1FromSwap.toString(),
+        amount1ForDeposit.toString(),
       ]);
     approvalIndex++;
   }
@@ -811,9 +816,9 @@ export async function createEncodedParametersIncreaseLiquidity(
       dustReceiver, // _dustReceiver
       position, // _positionWrapper
       {
-        // Use actual expected amounts from Enso swaps (or 0 if not swapping that token)
-        _amount0Desired: amount0FromSwap.toString(),
-        _amount1Desired: amount1FromSwap.toString(),
+        // Use reduced amounts for consistency with approvals
+        _amount0Desired: amount0ForDeposit.toString(),
+        _amount1Desired: amount1ForDeposit.toString(),
         _amount0Min: amount0Min.toString(),
         _amount1Min: amount1Min.toString(),
         _deployer: ethers.constants.AddressZero,
@@ -821,6 +826,13 @@ export async function createEncodedParametersIncreaseLiquidity(
     ];
   } else {
     // Subsequent deposit - use increaseLiquidity
+    // Get reinvestment swap info for existing position
+    const reinvestmentSwapInfo = await getReinvestmentSwapInfo(
+      position,
+      priceOracleAddress,
+      amountCalculationsAddress
+    );
+
     ABI = [
       "function increaseLiquidity((address _dustReceiver, address _positionWrapper, uint256 _amount0Desired, uint256 _amount1Desired, uint256 _amount0Min, uint256 _amount1Min, address _swapDeployer, address _tokenIn, address _tokenOut, uint256 _amountIn, uint24 _fee) _params)",
     ];
@@ -830,16 +842,16 @@ export async function createEncodedParametersIncreaseLiquidity(
       {
         _dustReceiver: dustReceiver,
         _positionWrapper: position,
-        // Use actual expected amounts from Enso swaps (or 0 if not swapping that token)
-        _amount0Desired: amount0FromSwap.toString(),
-        _amount1Desired: amount1FromSwap.toString(),
+        // Use reduced amounts for consistency with approvals
+        _amount0Desired: amount0ForDeposit.toString(),
+        _amount1Desired: amount1ForDeposit.toString(),
         _amount0Min: amount0Min.toString(),
         _amount1Min: amount1Min.toString(),
         _swapDeployer: ethers.constants.AddressZero,
-        // @todo add tokenIn and tokenOut and _amountIn
-        _tokenIn: ethers.constants.AddressZero,
-        _tokenOut: ethers.constants.AddressZero,
-        _amountIn: "0",
+        // Use reinvestment swap info for existing position
+        _tokenIn: reinvestmentSwapInfo.tokenIn,
+        _tokenOut: reinvestmentSwapInfo.tokenOut,
+        _amountIn: reinvestmentSwapInfo.swapAmount.toString(),
         _fee: 0,
       },
     ];
@@ -884,7 +896,8 @@ export async function createEncodedParametersDecreaseLiquidity(
   sellTokenBalance: string,
   ensoHandlerAddress: string,
   amountCalculationsAddress: string,
-  dustReceiver: string
+  dustReceiver: string,
+  priceOracleAddress: string
 ) {
   const PositionWrapper = await ethers.getContractFactory("PositionWrapper");
   const positionWrapper = PositionWrapper.attach(sellPosition);
@@ -912,6 +925,27 @@ export async function createEncodedParametersDecreaseLiquidity(
     percentage.toString()
   );
 
+  // Check if we're withdrawing less than total supply (need reinvestment swap info)
+  const totalSupply = await positionWrapper.totalSupply();
+  const isPartialWithdrawal = BigNumber.from(sellTokenBalance).lt(totalSupply);
+
+  let tokenIn = ethers.constants.AddressZero;
+  let tokenOut = ethers.constants.AddressZero;
+  let amountIn = BigNumber.from(0);
+
+  if (isPartialWithdrawal) {
+    // Get reinvestment swap info for partial withdrawal
+    const reinvestmentSwapInfo = await getReinvestmentSwapInfo(
+      sellPosition,
+      priceOracleAddress,
+      amountCalculationsAddress
+    );
+
+    tokenIn = reinvestmentSwapInfo.tokenIn;
+    tokenOut = reinvestmentSwapInfo.tokenOut;
+    amountIn = reinvestmentSwapInfo.swapAmount;
+  }
+
   // Create decrease liquidity call data
   const callDataDecreaseLiquidity: any = [];
   let ABI = [
@@ -927,9 +961,9 @@ export async function createEncodedParametersDecreaseLiquidity(
       0, // _amount0Min
       0, // _amount1Min
       ethers.constants.AddressZero, // _swapDeployer
-      token0, // tokenIn
-      token1, // tokenOut
-      0, // amountIn
+      tokenIn,
+      tokenOut,
+      amountIn.toString(),
       100, // _fee
     ]
   );
