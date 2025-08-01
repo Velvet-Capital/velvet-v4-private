@@ -565,15 +565,14 @@ export async function getSwapAmountsForInputExternalPositionRebalance(
     // create call data for swap
     for (let i = 0; i < sellTokens.length; i++) {
       if (sellTokens[i] != buyTokens[i]) {
-        callData.push(
-          await createEnsoCallDataRoute(
-            ensoHandlerAddress,
-            ensoHandlerAddress,
-            sellTokens[i],
-            buyTokens[i],
-            swapAmounts[i].toString()
-          )
+        let response = await createEnsoCallDataRoute(
+          ensoHandlerAddress,
+          ensoHandlerAddress,
+          sellTokens[i],
+          buyTokens[i],
+          swapAmounts[i].toString()
         );
+        callData.push(response.data.tx.data);
 
         sellTokensFinal.push(sellTokens[i]);
       }
@@ -609,20 +608,21 @@ export async function getSwapAmountsForOutputExternalPositionRebalance(
     amountCalculationsAddress
   );
 
+  // Always set swapAmounts[0] and swapAmounts[1] to align with token0 and token1
+  swapAmounts.push(BigNumber.from(depositAmounts.amount0 || 0)); // swapAmounts[0] = token0
+  swapAmounts.push(BigNumber.from(depositAmounts.amount1 || 0)); // swapAmounts[1] = token1
+
+  // Only add to buyTokens if amount > 0
   if (depositAmounts.amount0 > 0) {
     buyTokens.push(token0);
-    swapAmounts.push(BigNumber.from(depositAmounts.amount0));
   }
   if (depositAmounts.amount1 > 0) {
     buyTokens.push(token1);
-    swapAmounts.push(BigNumber.from(depositAmounts.amount1));
   }
 
   let buyTokensFinal = [];
+  let amountsOut = [];
   if (shouldSwap) {
-    console.log("sellTokens", sellTokens);
-    console.log("buyTokens", buyTokens);
-    console.log("swapAmounts", swapAmounts);
     // create call data for swap - one sellToken splits into multiple buyTokens
     const sellToken = sellTokens[0]; // Use the first (and likely only) sell token
     for (let i = 0; i < buyTokens.length; i++) {
@@ -635,12 +635,13 @@ export async function getSwapAmountsForOutputExternalPositionRebalance(
           swapAmounts[i].toString()
         );
         callData.push(response.data.tx.data);
+        amountsOut.push(response.data.amountOut);
         buyTokensFinal.push(buyTokens[i]);
       }
     }
   }
 
-  return { buyTokensFinal, swapAmounts, callData };
+  return { buyTokensFinal, swapAmounts, callData, amountsOut };
 }
 
 export async function calculateDepositAmounts(
@@ -733,7 +734,7 @@ export async function createEncodedParametersIncreaseLiquidity(
 
   const positionManagerAddress = await positionWrapper.parentPositionManager();
 
-  const { buyTokensFinal, swapAmounts, callData } =
+  const { buyTokensFinal, swapAmounts, callData, amountsOut } =
     await getSwapAmountsForOutputExternalPositionRebalance(
       [sellToken],
       ensoHandlerAddress,
@@ -748,49 +749,108 @@ export async function createEncodedParametersIncreaseLiquidity(
     throw new Error(`Expected 2 swap amounts, got ${swapAmounts.length}`);
   }
 
+  // Map amountsOut from Enso swaps back to token0 and token1 amounts
+  let amount0FromSwap = BigNumber.from(0);
+  let amount1FromSwap = BigNumber.from(0);
+
+  for (let i = 0; i < buyTokensFinal.length; i++) {
+    if (buyTokensFinal[i] === token0) {
+      amount0FromSwap = BigNumber.from(amountsOut[i]);
+    } else if (buyTokensFinal[i] === token1) {
+      amount1FromSwap = BigNumber.from(amountsOut[i]);
+    }
+  }
+
   const callDataIncreaseLiquidity: any = [[]];
   // Encode the function call
   let ABIApprove = ["function approve(address spender, uint256 amount)"];
   let abiEncodeApprove = new ethers.utils.Interface(ABIApprove);
 
-  // Approve token0 amount
-  callDataIncreaseLiquidity[0][0] = abiEncodeApprove.encodeFunctionData(
-    "approve",
-    [positionManagerAddress, swapAmounts[0].toString()]
-  );
+  let approvalIndex = 0;
 
-  // Approve token1 amount
-  callDataIncreaseLiquidity[0][1] = abiEncodeApprove.encodeFunctionData(
-    "approve",
-    [positionManagerAddress, swapAmounts[1].toString()]
-  );
+  // Only approve token0 if amount > 0 (use actual expected amounts from swaps)
+  if (amount0FromSwap.gt(0)) {
+    callDataIncreaseLiquidity[0][approvalIndex] =
+      abiEncodeApprove.encodeFunctionData("approve", [
+        positionManagerAddress,
+        amount0FromSwap.toString(),
+      ]);
+    approvalIndex++;
+  }
 
-  // Define the ABI with the correct structure of WrapperDepositParams
-  let ABI = [
-    "function initializePositionAndDeposit(address _dustReceiver, address _positionWrapper, (uint256 _amount0Desired, uint256 _amount1Desired, uint256 _amount0Min, uint256 _amount1Min, address _deployer) params)",
-  ];
+  // Only approve token1 if amount > 0 (use actual expected amounts from swaps)
+  if (amount1FromSwap.gt(0)) {
+    callDataIncreaseLiquidity[0][approvalIndex] =
+      abiEncodeApprove.encodeFunctionData("approve", [
+        positionManagerAddress,
+        amount1FromSwap.toString(),
+      ]);
+    approvalIndex++;
+  }
 
-  let abiEncode = new ethers.utils.Interface(ABI);
+  // Check if this is the first deposit by checking position totalSupply
+  const totalSupply = await positionWrapper.totalSupply();
+  const isFirstDeposit = totalSupply.eq(0);
 
-  // Calculate minimum amounts with 5% slippage tolerance
-  const slippageTolerance = 500; // 5% in basis points
-  const amount0Min = swapAmounts[0].mul(10000 - slippageTolerance).div(10000);
-  const amount1Min = swapAmounts[1].mul(10000 - slippageTolerance).div(10000);
+  // Set minimum amounts to 0 for now (proper slippage calculation would require token prices)
+  const amount0Min = BigNumber.from(0);
+  const amount1Min = BigNumber.from(0);
 
-  // Encode the initializePositionAndDeposit function call
-  callDataIncreaseLiquidity[0][2] = abiEncode.encodeFunctionData(
-    "initializePositionAndDeposit",
-    [
+  let ABI: string[];
+  let functionName: string;
+  let functionParams: any[];
+
+  if (isFirstDeposit) {
+    // First deposit - use initializePositionAndDeposit
+    ABI = [
+      "function initializePositionAndDeposit(address _dustReceiver, address _positionWrapper, (uint256 _amount0Desired, uint256 _amount1Desired, uint256 _amount0Min, uint256 _amount1Min, address _deployer) params)",
+    ];
+
+    functionName = "initializePositionAndDeposit";
+    functionParams = [
       dustReceiver, // _dustReceiver
       position, // _positionWrapper
       {
-        _amount0Desired: swapAmounts[0].toString(),
-        _amount1Desired: swapAmounts[1].toString(),
+        // Use actual expected amounts from Enso swaps (or 0 if not swapping that token)
+        _amount0Desired: amount0FromSwap.toString(),
+        _amount1Desired: amount1FromSwap.toString(),
         _amount0Min: amount0Min.toString(),
         _amount1Min: amount1Min.toString(),
         _deployer: ethers.constants.AddressZero,
       },
-    ]
+    ];
+  } else {
+    // Subsequent deposit - use increaseLiquidity
+    ABI = [
+      "function increaseLiquidity((address _dustReceiver, address _positionWrapper, uint256 _amount0Desired, uint256 _amount1Desired, uint256 _amount0Min, uint256 _amount1Min, address _swapDeployer, address _tokenIn, address _tokenOut, uint256 _amountIn, uint24 _fee) _params)",
+    ];
+
+    functionName = "increaseLiquidity";
+    functionParams = [
+      {
+        _dustReceiver: dustReceiver,
+        _positionWrapper: position,
+        // Use actual expected amounts from Enso swaps (or 0 if not swapping that token)
+        _amount0Desired: amount0FromSwap.toString(),
+        _amount1Desired: amount1FromSwap.toString(),
+        _amount0Min: amount0Min.toString(),
+        _amount1Min: amount1Min.toString(),
+        _swapDeployer: ethers.constants.AddressZero,
+        // @todo add tokenIn and tokenOut and _amountIn
+        _tokenIn: ethers.constants.AddressZero,
+        _tokenOut: ethers.constants.AddressZero,
+        _amountIn: "0",
+        _fee: 0,
+      },
+    ];
+  }
+
+  let abiEncode = new ethers.utils.Interface(ABI);
+
+  // Encode the function call at the next index after approvals
+  callDataIncreaseLiquidity[0][approvalIndex] = abiEncode.encodeFunctionData(
+    functionName,
+    functionParams
   );
 
   const encodedParameters = ethers.utils.defaultAbiCoder.encode(
