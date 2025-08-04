@@ -201,51 +201,24 @@ function getSwapInfoToDesiredRatioBN(
   const currentRatioPercent = currentRatio.mul(100).div(scale);
   const desiredRatioPercent = desiredRatio.mul(100).div(scale);
 
-  console.log(`Current ratio: ${currentRatioPercent.toString()}% token0`);
-  console.log(`Desired ratio: ${desiredRatioPercent.toString()}% token0`);
-  console.log(
-    `Current USD amounts: ${feeAmount0USD.toString()} token0, ${feeAmount1USD.toString()} token1`
-  );
-  console.log(
-    `Desired USD amounts: ${desiredAmount0USD.toString()} token0, ${desiredAmount1USD.toString()} token1`
-  );
-  console.log(
-    `Current token amounts: ${tokenBalance0.toString()} token0, ${tokenBalance1.toString()} token1`
-  );
-
   // Calculate what we should have based on current total and desired ratio
   const totalCurrentUSD = feeAmount0USD.add(feeAmount1USD);
   const targetToken0USD = totalCurrentUSD.mul(desiredRatio).div(scale);
   const targetToken1USD = totalCurrentUSD.sub(targetToken0USD);
 
-  console.log(
-    `Target USD amounts: ${targetToken0USD.toString()} token0, ${targetToken1USD.toString()} token1`
-  );
-
   // Determine which token has excess and needs to be sold
   const excessToken0USD = feeAmount0USD.sub(targetToken0USD);
   const excessToken1USD = feeAmount1USD.sub(targetToken1USD);
 
-  console.log(`Token0 excess USD: ${excessToken0USD.toString()}`);
-  console.log(`Token1 excess USD: ${excessToken1USD.toString()}`);
-
   if (excessToken0USD.gt(0)) {
     // Token0 has excess, need to sell token0 for token1
-    console.log(`Selling token0 to buy token1`);
 
     // Calculate swap amount: (excess_usd / current_usd) × tokenBalance
     let swapAmount = excessToken0USD.mul(tokenBalance0).div(feeAmount0USD);
 
-    console.log(`Calculated swap amount: ${swapAmount.toString()} token0`);
-    console.log(`Available token0 balance: ${tokenBalance0.toString()}`);
-
     // Check if swap amount exceeds available balance
     if (swapAmount.gt(tokenBalance0)) {
       swapAmount = tokenBalance0; // Cap at available balance
-      console.log(`Capped swap amount: ${swapAmount.toString()}`);
-      console.log(
-        `Note: Cannot achieve full desired ratio with available balance`
-      );
     }
 
     // Calculate expected ratio after swap
@@ -256,10 +229,6 @@ function getSwapInfoToDesiredRatioBN(
     const newRatio = newToken0USD.mul(scale).div(newTotal);
     const newRatioPercent = newRatio.mul(100).div(scale);
 
-    console.log(
-      `Expected ratio after swap: ${newRatioPercent.toString()}% token0`
-    );
-
     return {
       swapAmount,
       tokenIn: token0,
@@ -267,21 +236,13 @@ function getSwapInfoToDesiredRatioBN(
     };
   } else if (excessToken1USD.gt(0)) {
     // Token1 has excess, need to sell token1 for token0
-    console.log(`Selling token1 to buy token0`);
 
     // Calculate swap amount: (excess_usd / current_usd) × tokenBalance
     let swapAmount = excessToken1USD.mul(tokenBalance1).div(feeAmount1USD);
 
-    console.log(`Calculated swap amount: ${swapAmount.toString()} token1`);
-    console.log(`Available token1 balance: ${tokenBalance1.toString()}`);
-
     // Check if swap amount exceeds available balance
     if (swapAmount.gt(tokenBalance1)) {
       swapAmount = tokenBalance1; // Cap at available balance
-      console.log(`Capped swap amount: ${swapAmount.toString()}`);
-      console.log(
-        `Note: Cannot achieve full desired ratio with available balance`
-      );
     }
 
     // Calculate expected ratio after swap
@@ -291,10 +252,6 @@ function getSwapInfoToDesiredRatioBN(
     const newTotal = newToken0USD.add(newToken1USD);
     const newRatio = newToken0USD.mul(scale).div(newTotal);
     const newRatioPercent = newRatio.mul(100).div(scale);
-
-    console.log(
-      `Expected ratio after swap: ${newRatioPercent.toString()}% token0`
-    );
 
     return {
       swapAmount,
@@ -377,9 +334,6 @@ export async function getExpectedFeesExternalPosition(
     tokenBalance0 = BigNumber.from(amount0).add(contractBalanceT0);
 
     tokenBalance1 = BigNumber.from(amount1).add(contractBalanceT1);
-
-    console.log("tokenBalance0 actual balance", tokenBalance0.toString());
-    console.log("tokenBalance1 actual balance", tokenBalance1.toString());
 
     // Convert amount0, amount1 to USD (here we use stable coins for testing so we can skip)
     amount0USD = await getTokenUsdValue(
@@ -645,17 +599,6 @@ export async function getSwapAmountsForOutputExternalPositionRebalance(
       if (sellToken != buyTokens[i] && swapAmounts[i].gt(0)) {
         // We need to swap proportional amounts for each token
         const proportionalAmount = swapAmounts[i];
-        console.log(
-          `Swapping ${proportionalAmount.toString()} ${sellToken} to ${
-            buyTokens[i]
-          }`
-        );
-        console.log(
-          `This is ${proportionalAmount
-            .mul(100)
-            .div(BigNumber.from(swapAmount))
-            .toString()}% of total input`
-        );
 
         let response = await createEnsoCallDataRoute(
           ensoHandlerAddress,
@@ -666,8 +609,6 @@ export async function getSwapAmountsForOutputExternalPositionRebalance(
         );
         callData.push(response.data.tx.data);
         // Use the original calculated amount instead of Enso's inflated amountOut
-        console.log(`Enso amountOut: ${response.data.amountOut} (inflated)`);
-        console.log(`Using original amount: ${swapAmounts[i].toString()}`);
 
         amountsOut[i] = response.data.amountOut;
       }
@@ -768,13 +709,6 @@ export async function createEncodedParametersIncreaseLiquidity(
 
   const positionManagerAddress = await positionWrapper.parentPositionManager();
 
-  console.log("=== CREATE ENCODED PARAMETERS DEBUG ===");
-  console.log("position:", position);
-  console.log("sellToken:", sellToken);
-  console.log("sellTokenBalance:", sellTokenBalance);
-  console.log("ensoHandlerAddress:", ensoHandlerAddress);
-  console.log("amountCalculationsAddress:", amountCalculationsAddress);
-
   const { buyTokensFinal, swapAmounts, callData, amountsOut } =
     await getSwapAmountsForOutputExternalPositionRebalance(
       [sellToken],
@@ -785,17 +719,7 @@ export async function createEncodedParametersIncreaseLiquidity(
       amountCalculationsAddress
     );
 
-  console.log("buyTokensFinal:", buyTokensFinal);
-  console.log(
-    "swapAmounts:",
-    swapAmounts.map((s) => s.toString())
-  );
-  console.log("callData length:", callData.length);
-  console.log("amountsOut:", amountsOut);
-  console.log("=====================================");
-
   // We can have 1 or 2 swap amounts depending on how many different tokens we're swapping to
-  console.log(`swapAmounts.length: ${swapAmounts.length}`);
   if (swapAmounts.length === 0) {
     throw new Error(`No swap amounts calculated`);
   }
@@ -804,24 +728,13 @@ export async function createEncodedParametersIncreaseLiquidity(
   let amount0FromSwap = BigNumber.from(0);
   let amount1FromSwap = BigNumber.from(0);
 
-  console.log(
-    `Mapping amounts: buyTokensFinal=${buyTokensFinal}, amountsOut=${amountsOut}`
-  );
-  console.log(`token0=${token0}, token1=${token1}`);
-
   for (let i = 0; i < buyTokensFinal.length; i++) {
     if (buyTokensFinal[i] === token0) {
       amount0FromSwap = BigNumber.from(amountsOut[i]);
-      console.log(`Mapped ${amountsOut[i]} to token0`);
     } else if (buyTokensFinal[i] === token1) {
       amount1FromSwap = BigNumber.from(amountsOut[i]);
-      console.log(`Mapped ${amountsOut[i]} to token1`);
     }
   }
-
-  console.log(
-    `Final amounts: amount0FromSwap=${amount0FromSwap.toString()}, amount1FromSwap=${amount1FromSwap.toString()}`
-  );
 
   // Apply reduceAmount to account for slippage and ensure transaction success
   const amount0ForDeposit = reduceAmount(amount0FromSwap);
