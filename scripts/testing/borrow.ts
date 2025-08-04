@@ -116,11 +116,11 @@ async function main(): Promise<void> {
   const tokenToLend = addresses.vBTC_Address //AssetManagers Input
 
   await rebalancing.connect(owner2).borrow(
-    addresses.vBTC_Address, //vToken format of the token to borrow
+    addresses.vUSDT_Address, //vToken format of the token to borrow
     [tokenToLend], //vToken format of the tokens to lend
-    addresses.BTC_Address, //Underlying token of the token to borrow
+    addresses.USDT, //Underlying token of the token to borrow
     addresses.corePool_controller,
-    "8400000000000" // amount to borrow
+    "1000000000000000000" // amount to borrow
   );
 
   console.log(

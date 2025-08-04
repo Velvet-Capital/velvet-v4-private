@@ -85,7 +85,7 @@ async function main(): Promise<void> {
     deployedAddresses.portfolioFactory
   );
 
-  const portfolioInfo = await portfolioFactory.PortfolioInfolList(2);
+  const portfolioInfo = await portfolioFactory.PortfolioInfolList(9);
   const rebalancingAddress = await portfolioInfo.rebalancing;
 
   console.log("Rebalancing Address:", rebalancingAddress);
@@ -100,15 +100,61 @@ async function main(): Promise<void> {
     deployedAddresses.venusAssetHandler
   );
 
+  const PortfolioCalculations = await ethers.getContractFactory(
+    "PortfolioCalculations",
+    {
+      libraries: {
+        TokenBalanceLibrary: deployedAddresses.tokenBalanceLibrary,
+      },
+    }
+  );
+
+  const portfolioCalculations = await PortfolioCalculations.attach(
+    deployedAddresses.portfolioCalculations
+  );
+
   const vault = await portfolio.vault();
   console.log("Vault:", vault);
 
-  //This is used when we have vaultBalance of debt token > 0 abd after repay vault balance should be > 0
-  const tx = await rebalancing.directDebtRepayment(
-    addresses.BTC_Address, //DebtToken
-    addresses.vBTC_Address, //vToken format of debt token
-    "8400000000000" // Amount to repay, if full repayment then type(uint256).max
+  const vDebtToken = addresses.vUSDT_Address;
+
+  const debtAmount = await portfolioCalculations.getDebtAmount(
+    vDebtToken,
+    vault
   );
+  console.log("Debt Amount:", debtAmount);
+
+  // This is used when we have vaultBalance of debt token > 0 abd after repay vault balance should be > 0
+  const tx = await rebalancing.connect(owner2).populateTransaction.directDebtRepayment(
+    addresses.USDT, // DebtToken
+    addresses.vUSDT_Address, // vToken format of debt token
+    ethers.constants.MaxUint256 // Amount to repay, if full repayment then type(uint256).max
+  );
+  
+  // Add gas settings
+  tx.gasLimit = 10000000; // Set a high gas limit for complex repayment
+  tx.maxFeePerGas = maxFeePerGas;
+  tx.maxPriorityFeePerGas = adjustedPriorityFee;
+  
+  console.log("Transaction data:", tx.data);
+  console.log("To address:", tx.to);
+  console.log("Gas limit:", tx.gasLimit?.toString());
+  
+  // Send the transaction manually
+  const sentTx = await owner2.sendTransaction(tx);
+  console.log("Transaction hash:", sentTx.hash);
+  console.log("Transaction submitted! Check BSCScan for details.");
+  
+  // Wait for the transaction to be mined
+  try {
+    const receipt = await sentTx.wait();
+    console.log("Transaction succeeded! Block:", receipt.blockNumber);
+    console.log("Gas used:", receipt.gasUsed.toString());
+  } catch (error) {
+    console.log("Transaction failed as expected:", error.message);
+    console.log("Check BSCScan for the failed transaction details.");
+    console.log("Full error:", error);
+  }
 
   console.log(
     "------------------------------ Borrow Ended ------------------------------"

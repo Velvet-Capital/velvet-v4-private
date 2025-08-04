@@ -224,9 +224,9 @@ async function main(): Promise<void> {
 
   // await sleep(2000); // 2 seconds
 
-  await protocolConfig.enableTokens([
-    addresses.BTC_Address,
-  ]);
+  // await protocolConfig.enableTokens([
+  //   addresses.BTC_Address,
+  // ]);
 
   // await protocolConfig.updateProtocolFee(0);
   // await protocolConfig.updateProtocolStreamingFee(0);
@@ -487,18 +487,18 @@ async function main(): Promise<void> {
   //   address: withdrawBatch.address,
   // });
 
-  // const PortfolioCalculations = await ethers.getContractFactory(
-  //   "PortfolioCalculations",
-  //   {
-  //     libraries: {
-  //       TokenBalanceLibrary: "0xA769Fc0Eb074af2a7cd126555D8c87802739E9b2",
-  //     },
-  //   }
-  // );
-  // const portfolioCalculations = await PortfolioCalculations.deploy(overrides);
-  // await portfolioCalculations.deployed();
+  const PortfolioCalculations = await ethers.getContractFactory(
+    "PortfolioCalculations",
+    {
+      libraries: {
+        TokenBalanceLibrary: "0xA769Fc0Eb074af2a7cd126555D8c87802739E9b2",
+      },
+    }
+  );
+  const portfolioCalculations = await PortfolioCalculations.deploy(overrides);
+  await portfolioCalculations.deployed();
 
-  // console.log("portfolioCalculations address:", portfolioCalculations.address);
+  console.log("portfolioCalculations address:", portfolioCalculations.address);
 
   // await tenderly.verify({
   //   name: "PortfolioCalculations",

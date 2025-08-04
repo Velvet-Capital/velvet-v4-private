@@ -203,6 +203,19 @@ async function main(): Promise<void> {
     deployedAddresses.venusAssetHandler
   );
 
+  const PortfolioFactory = await ethers.getContractFactory("PortfolioFactory");
+  const portfolioFactory = await PortfolioFactory.attach(
+    deployedAddresses.portfolioFactory
+  );
+
+  const portfolioInfo = await portfolioFactory.PortfolioInfolList(9);
+  const rebalancingAddress = await portfolioInfo.rebalancing;
+
+  console.log("Rebalancing Address:", rebalancingAddress);
+
+  const Rebalancing = await ethers.getContractFactory("Rebalancing");
+  const rebalancing = await Rebalancing.attach(rebalancingAddress);
+
   console.log("------------- Before Withdraw Check -------------");
 
   let ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
@@ -231,28 +244,6 @@ async function main(): Promise<void> {
   let tokenOut = [];
   let amountIn = [];
 
-  if (isValidAddress(positionManagerAddress)) {
-    console.log("In Valid Address");
-  } else {
-    swapTokens = tokens;
-    for (let i = 0; i < tokens.length; i++) {
-      portfolioTokenIndex.push(i);
-    }
-    // positionWrapperIndex.push(0);
-    // positionWrappers.push(ZERO_ADDRESS);
-    isExternalPosition = Array(tokens.length).fill(false);
-    // isTokenExternalPosition.push(false);
-    // index0.push(0);
-    // index1.push(0);
-    // amount0Min.push(0);
-    // amount1Min.push(0);
-    // fee.push(0);
-    // swapDeployer.push(ZERO_ADDRESS);
-    // tokenIn.push(ZERO_ADDRESS);
-    // tokenOut.push(ZERO_ADDRESS);
-    // amountIn.push(0);
-  }
-
   console.log("------------- Calculating SwapAmounts Amounts -------------");
 
   const amountPortfolioToken = BigNumber.from(
@@ -272,249 +263,131 @@ async function main(): Promise<void> {
 
   let swapAmounts = [];
   let wrapperIndex = 0;
-  for (let i = 0; i < tokens.length; i++) {
-    // only push one amount
-    if (!isExternalPosition[i]) {
-      swapAmounts.push(withdrawalAmounts[i]);
-    } else {
-      const PositionWrapper = await ethers.getContractFactory(
-        "PositionWrapper"
-      );
-      const positionWrapperCurrent = PositionWrapper.attach(
-        positionWrappers[wrapperIndex]
-      );
-      let percentage = await amountCalculationsAlgebra.getPercentage(
-        withdrawalAmounts[i],
-        (await positionWrapperCurrent.totalSupply()).toString()
-      );
-
-      let withdrawAmounts = await calculateOutputAmounts(
-        tokens[i],
-        percentage.toString()
-      );
-      if (withdrawAmounts.token0Amount > 0) {
-        swapAmounts.push((withdrawAmounts.token0Amount * 0.99999).toFixed(0));
-      }
-      if (withdrawAmounts.token1Amount > 0) {
-        swapAmounts.push((withdrawAmounts.token1Amount * 0.99999).toFixed(0));
-      }
-      wrapperIndex++;
-    }
-  }
   console.log("------------- Calculating Pool Fees -------------");
 
   let flashLoanProtocolToken; // TakflashLoanProtocolTokening USDT as collateral token
   let flashLoanToken;
   let poolFees;
   let thenaPoolInfo;
-  const [lendTokens, borrowTokens] =
-    await venusAssetHandler.getAllProtocolAssets(
-      vault,
-      addresses.corePool_controller,
-      []
+  let balanceToSwap;
+  let balanceToRepay;
+  let flashloanBufferUnit = 18; //Flashloan buffer unit in 1/10000, extra flashlaon to take, to fulfil the swap(from flashlaon to debt token)
+  let bufferUnit = 500; //Buffer unit for collateral amount in 1/100000, extra collateral to take, to fulfil the swap(from collateral underlying to flashlaon token)
+  let isMaxRepayment = false;
+
+  const debtToken = addresses.vUSDT_Address;
+  const debtUnderlyingToken = addresses.USDT;
+
+  const userData = await venusAssetHandler.callStatic.getUserAccountData(
+    vault,
+    addresses.corePool_controller,
+    tokens
+  );
+
+  console.log("userData", userData);
+  const lendTokens = userData[1].lendTokens;
+
+  let balanceBorrowed =
+    await portfolioCalculations.getVenusTokenBorrowedBalance(
+      [debtToken],
+      vault
     );
 
-  // Replace the flash loan token selection logic with:
-  if (borrowTokens.length === 0) {
-    console.log("✅ No borrowed tokens - proceeding with simple withdrawal");
-    flashLoanProtocolToken = addresses.vUSDT_Address;
-    flashLoanToken = addresses.USDT;
-    poolFees = { poolFees: [[]] }; // Empty pool fees
-    thenaPoolInfo = {
-      _factory: "0x30055F87716d3DFD0E5198C27024481099fB4A98",
-      _token0: addresses.USDT,
-      _token1: addresses.USDC_Address,
-      _flashLoanToken: addresses.USDT
-    };
-  } else {
-    console.log(`🔍 ${borrowTokens.length === 1 ? 'Single' : 'Multiple'} borrowed tokens - selecting optimal flash loan token`);
+  balanceToRepay = balanceBorrowed.div(2);
 
-    const calculator = new PoolFeeCalculator(
-      addresses.PancakeSwapV3FactoryAddress,
-      chainId,
-      venusAssetHandler
-    );
+  //--- Calculate FlashLoan Token, thena pool and pool fees for swap---
 
-    try {
-      // Get optimal flash loan token AND Thena pool info
-      const flashLoanSelection = await calculator.selectOptimalFlashLoanToken(
-        borrowTokens,
-        lendTokens,
-        addresses
-      );
-
-      flashLoanProtocolToken = flashLoanSelection.flashLoanProtocolToken;
-      flashLoanToken = flashLoanSelection.flashLoanToken;
-
-      // Calculate pool fees
-      poolFees = await calculator.getPoolFeesForWithdrawal(
-        flashLoanToken,
-        borrowTokens,
-        lendTokens,
-        addresses
-      );
-
-      thenaPoolInfo = {
-        _factory: flashLoanSelection.thenaFactory,
-        _token0: flashLoanSelection.thenaToken0,
-        _token1: flashLoanSelection.thenaToken1,
-        _flashLoanToken: flashLoanSelection.flashLoanToken
-      };
-
-      console.log("Selected flash loan token:", flashLoanToken);
-      console.log("Selected Thena pool:", thenaPoolInfo);
-
-    } catch (error) {
-      console.log(`❌ Error in flash loan selection: ${error.message}`);
-      console.log("⚠️ Falling back to default USDT flash loan");
-
-      // Fallback to USDT
-      flashLoanProtocolToken = addresses.vUSDT_Address;
-      flashLoanToken = addresses.USDT;
-      poolFees = { poolFees: [[]] }; // Default empty pool fees
-      thenaPoolInfo = {
-        _factory: "0x30055F87716d3DFD0E5198C27024481099fB4A98",
-        _token0: addresses.USDT,
-        _token1: addresses.USDC_Address,
-        _flashLoanToken: addresses.USDT
-      };
-    }
-  }
-
-  console.log("Selected flash loan protocol token:", flashLoanProtocolToken);
-  console.log("Selected flash loan token:", flashLoanToken);
-  console.log("controller", addresses.corePool_controller);
-
-  const [accountData, tokenAddresses] = await venusAssetHandler.callStatic.getUserAccountData(vault, addresses.corePool_controller, []);
-
-  const bufferOptimizer = new BufferOptimizer(
+  const calculator = new PoolFeeCalculator(
     addresses.PancakeSwapV3FactoryAddress,
     chainId,
     venusAssetHandler
   );
 
-  const baseValues =
-    await portfolioCalculations.calculateBorrowedPortionAndFlashLoanDetails(
-      portfolio.address,
-      flashLoanProtocolToken,
-      vault,
-      addresses.corePool_controller,
-      venusAssetHandler.address,
-      amountPortfolioToken,
-      0,
-    );
-
-    const optimalBuffers = await bufferOptimizer.calculateOptimalBuffers({
-      flashLoanToken,
-      flashLoanProtocolToken,
-      borrowTokens,
+  try {
+    // Get optimal flash loan token AND Thena pool info
+    const flashLoanSelection = await calculator.selectOptimalFlashLoanToken(
+      [debtToken],
       lendTokens,
-      baseFlashLoanAmounts: baseValues[1].map((amount: any) => ethers.utils.formatEther(amount)),
-      totalCollateral: accountData.totalCollateral,
-      addresses,
-      chainId,
-      venusAssetHandler,
-      poolFees,
-      vault: vault, // Add missing vault parameter
-      pancakeSwapFactory: addresses.PancakeSwapV3FactoryAddress // Add missing factory parameter
-    });
-
-  console.log("Optimal Buffers:", optimalBuffers);
-
-
-  let flashLoanAmounts: string[][] = [];
-
-  let flashloanBufferUnit = optimalBuffers.flashLoanBufferUnit; //Flashloan buffer unit in 1/10000, extra flashlaon to take, to fulfil the swap(from flashlaon to debt token)
-  let bufferUnit = optimalBuffers.bufferUnit; //Buffer unit for collateral amount in 1/100000, extra collateral to take, to fulfil the swap(from collateral underlying to flashlaon token)
-
-  const values =
-    await portfolioCalculations.calculateBorrowedPortionAndFlashLoanDetails(
-      portfolio.address,
-      flashLoanProtocolToken,
-      vault,
-      addresses.corePool_controller,
-      venusAssetHandler.address,
-      amountPortfolioToken,
-      flashloanBufferUnit
+      addresses
     );
 
-  const debtRepayAmount = values[0];
+    flashLoanProtocolToken = flashLoanSelection.flashLoanProtocolToken;
+    flashLoanToken = flashLoanSelection.flashLoanToken;
 
-  console.log("debtRepayAmount:", debtRepayAmount);
+    // Calculate pool fees
+    poolFees = await calculator.getPoolFeesForWithdrawal(
+      flashLoanToken,
+      [debtToken],
+      lendTokens,
+      addresses
+    );
 
-  const lendTokensSet = new Set(lendTokens);
+    thenaPoolInfo = {
+      _factory: flashLoanSelection.thenaFactory,
+      _token0: flashLoanSelection.thenaToken0,
+      _token1: flashLoanSelection.thenaToken1,
+      _flashLoanToken: flashLoanSelection.flashLoanToken
+    };
 
-  console.log("lendTokens:", lendTokens);
-  console.log("borrowTokens:", borrowTokens);
+    console.log("Selected flash loan token:", flashLoanToken);
+    console.log("Selected Thena pool:", thenaPoolInfo);
 
-  // let poolFees = await getPoolFeesForWithdrawal(
-  //   flashLoanToken, // flashLoanToken (normal token)
-  //   borrowTokens, // vDebtTokens (vToken format)
-  //   lendTokens, // vLendTokens (vToken format)
-  //   addresses,
-  //   chainId,
-  //   venusAssetHandler // Pass the venusAssetHandler
-  // );
+  } catch (error) {
+    console.log(`❌ Error in flash loan selection: ${error.message}`);
+    console.log("⚠️ Falling back to default USDT flash loan");
 
-  // console.log("poolFees:", poolFees.poolFees);
+            // Fallback to USDT
+            flashLoanProtocolToken = addresses.vUSDT_Address;
+            flashLoanToken = addresses.USDT;
+            poolFees = { poolFees: [[]] }; // Default empty pool fees
+            thenaPoolInfo = {
+                _factory: "0x306F06C147f064A010530292A1EB6737c3e378e4",
+                _token0: addresses.USDT,
+                _token1: addresses.USDC_Address,
+                _flashLoanToken: addresses.USDT
+            };
+  }
+
+  if(flashLoanProtocolToken === debtToken){
+    balanceToSwap = balanceToRepay;
+  }else{
+    balanceToSwap = (
+      await portfolioCalculations.calculateFlashLoanAmountForRepayment(
+        debtToken,
+        flashLoanProtocolToken,
+        addresses.corePool_controller,
+        balanceToRepay,
+        flashloanBufferUnit
+      )
+    ).toString();
+  }
+
+  if(balanceToRepay === balanceBorrowed){
+    isMaxRepayment = true;
+  }
+
 
   console.log("------------- Calculating FlashLoanAmount -------------");
-  // the above 2 values are dependent, the more  weincrease flashlaon buffer unit, the more collateral we need to take, to fulfil the swap(i.e bufferUnit)
-  // Need a function ot predict the values correctly
 
-  // No.Of borrowed tokens, we can get from  calculateBorrowedPortionAndFlashLoanDetails(returns borrowed portion,FlashLoanAmount needed, underlyings of borrowedTokens, borrowedTokens(in VToken format))
-  // If 1, then take flashloan token == borrow token, and flashLaon amount == borrowed amount, only bufferUnit is needed
-  // If > 1, use data from calculateBorrowedPortionAndFlashLoanDetails and fetch flashLoanAmount, both bufferUnit and flashloanBufferUnit are needed
+  await rebalancing.repay(addresses.corePool_controller, {
+    _factory: thenaPoolInfo._factory,
+    _token0: thenaPoolInfo._token0, //USDT - Pool token
+    _token1: thenaPoolInfo._token1, //USDC - Pool token
+    _flashLoanToken: flashLoanToken, //Token to take flashlaon
+    _debtToken: [debtUnderlyingToken], //Token to pay debt of
+    _protocolToken: [debtToken], // lending token in case of venus
+    _bufferUnit: bufferUnit, //Buffer unit for collateral amount
+    _solverHandler: ensoHandler.address, //Handler to swap
+    _swapHandler: swapHandler.address,
+    _flashLoanAmount: [balanceToSwap.toString()],
+    _debtRepayAmount: [balanceToRepay.toString()],
+    firstSwapData: [],
+    secondSwapData: [],
+    isMaxRepayment: isMaxRepayment,
+    _poolFees: poolFees.poolFees,
+    isDexRepayment: true,
+  });
 
-  const amountToSell =
-    await portfolioCalculations.callStatic.getCollateralAmountToSell(
-      vault,
-      addresses.corePool_controller,
-      venusAssetHandler.address,
-      borrowTokens,
-      tokens,
-      debtRepayAmount,
-      "10", // 10 basis from thena pool fee(can be fetched from thena)
-      bufferUnit
-    );
-
-  if (values[3].length > 1) {
-    flashLoanAmounts.push(values[1]);
-  } else {
-    let borrowedToken = values[3][0]; // In vToken format
-    const balanceBorrowed =
-      await portfolioCalculations.getVenusTokenBorrowedBalance(
-        [borrowedToken],
-        vault
-      );
-    console.log("balanceBorrowed:", balanceBorrowed);
-    let borrowed = balanceBorrowed[0]
-      .mul(amountPortfolioToken)
-      .div(await portfolio.totalSupply());
-    flashLoanAmounts.push([borrowed.toString()]);
-  }
-
-  console.log("flashLoanAmounts:", flashLoanAmounts);
-  console.log("AmountToSell:", amountToSell);
-
-  console.log("------------- Creating Enso Call Data Route -------------");
-  let responses = [];
-
-  let tokenToSwapInto = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
-  let amountToSellCount = 0;
-
-  const lendTokenToAmountIndex = new Map();
-  for (let i = 0; i < lendTokens.length; i++) {
-    lendTokenToAmountIndex.set(lendTokens[i], i);
-  }
-
-  console.log("------------- Executing Withdraw Batch -------------");
-
-
-  // Add gas settings
-//   tx.gasLimit = 10000000; // Set a high gas limit for complex withdraw
-//   tx.maxFeePerGas = maxFeePerGas;
-//   tx.maxPriorityFeePerGas = adjustedPriorityFee;
 
   // Send the transaction manually
   const sentTx = await owner4.sendTransaction(tx);
