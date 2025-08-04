@@ -951,6 +951,60 @@ describe.only("Tests for Deposit", () => {
           _callData: encodedParameters,
         });
       });
+
+      it("should rebalance from BTC to existing position (increaseLiquidity)", async () => {
+        // Sell USDC completely and add liquidity to existing position2
+        let tokens = await portfolio.getTokens();
+        let sellToken = iaddress.btcAddress;
+        let buyToken = position3; // Use existing position2
+
+        let existingPosition = positionWrapper2;
+
+        console.log("current tokens", await portfolio.getTokens());
+
+        let newTokens = [
+          iaddress.usdcAddress,
+          position2,
+          iaddress.dogeAddress,
+          buyToken,
+        ];
+
+        let vault = await portfolio.vault();
+
+        let ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
+        let sellTokenBalance = BigNumber.from(
+          await ERC20.attach(sellToken).balanceOf(vault)
+        ).toString();
+
+        const encodedParameters =
+          await createEncodedParametersIncreaseLiquidity(
+            buyToken,
+            sellToken,
+            sellTokenBalance,
+            ensoHandler.address,
+            amountCalculationsAlgebra.address,
+            owner.address,
+            priceOracle.address
+          );
+
+        await rebalancing.updateTokens({
+          _newTokens: newTokens,
+          _sellTokens: [sellToken],
+          _sellAmounts: [sellTokenBalance],
+          _handler: ensoHandler.address,
+          _callData: encodedParameters,
+        });
+
+        console.log(
+          "Position2 totalSupply after:",
+          await existingPosition.totalSupply()
+        );
+        console.log(
+          "Token balance after:",
+          await ERC20.attach(sellToken).balanceOf(vault)
+        );
+        console.log("=== INCREASE LIQUIDITY TEST COMPLETE ===");
+      });
     });
   });
 });

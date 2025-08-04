@@ -564,7 +564,7 @@ export async function getSwapAmountsForInputExternalPositionRebalance(
   if (shouldSwap) {
     // create call data for swap
     for (let i = 0; i < sellTokens.length; i++) {
-      if (sellTokens[i] != buyTokens[i]) {
+      if (sellTokens[i] != buyTokens[i] && swapAmounts[i].gt(0)) {
         let response = await createEnsoCallDataRoute(
           ensoHandlerAddress,
           ensoHandlerAddress,
@@ -608,25 +608,55 @@ export async function getSwapAmountsForOutputExternalPositionRebalance(
     amountCalculationsAddress
   );
 
-  // Always set swapAmounts[0] and swapAmounts[1] to align with token0 and token1
-  swapAmounts.push(BigNumber.from(depositAmounts.amount0 || 0)); // swapAmounts[0] = token0
-  swapAmounts.push(BigNumber.from(depositAmounts.amount1 || 0)); // swapAmounts[1] = token1
+  // Always ensure we have amounts for both token0 and token1
+  // If we don't swap for a token, its amount will be 0
+  const sellToken = sellTokens[0];
 
-  // Only add to buyTokens if amount > 0
-  if (depositAmounts.amount0 > 0) {
+  // Initialize amounts for both tokens
+  let amount0ForSwap = BigNumber.from(0);
+  let amount1ForSwap = BigNumber.from(0);
+
+  if (token0 !== sellToken && depositAmounts.amount0 > 0) {
+    amount0ForSwap = BigNumber.from(depositAmounts.amount0);
+    swapAmounts.push(amount0ForSwap);
     buyTokens.push(token0);
   }
-  if (depositAmounts.amount1 > 0) {
+  if (token1 !== sellToken && depositAmounts.amount1 > 0) {
+    amount1ForSwap = BigNumber.from(depositAmounts.amount1);
+    swapAmounts.push(amount1ForSwap);
     buyTokens.push(token1);
   }
 
+  // Always add both tokens to buyTokensFinal with their amounts (0 if not swapped)
   let buyTokensFinal = [];
   let amountsOut = [];
+
+  buyTokensFinal.push(token0);
+  buyTokensFinal.push(token1);
+
+  // Create amountsOut array with amounts for both tokens
+  amountsOut.push(reduceAmount(BigNumber.from(depositAmounts.amount0)));
+  amountsOut.push(reduceAmount(BigNumber.from(depositAmounts.amount1)));
+
+  // Create call data for swaps
   if (shouldSwap) {
-    // create call data for swap - one sellToken splits into multiple buyTokens
-    const sellToken = sellTokens[0]; // Use the first (and likely only) sell token
+    const sellToken = sellTokens[0];
     for (let i = 0; i < buyTokens.length; i++) {
-      if (sellToken != buyTokens[i]) {
+      if (sellToken != buyTokens[i] && swapAmounts[i].gt(0)) {
+        // We need to swap proportional amounts for each token
+        const proportionalAmount = swapAmounts[i];
+        console.log(
+          `Swapping ${proportionalAmount.toString()} ${sellToken} to ${
+            buyTokens[i]
+          }`
+        );
+        console.log(
+          `This is ${proportionalAmount
+            .mul(100)
+            .div(BigNumber.from(swapAmount))
+            .toString()}% of total input`
+        );
+
         let response = await createEnsoCallDataRoute(
           ensoHandlerAddress,
           ensoHandlerAddress,
@@ -635,8 +665,11 @@ export async function getSwapAmountsForOutputExternalPositionRebalance(
           swapAmounts[i].toString()
         );
         callData.push(response.data.tx.data);
-        amountsOut.push(response.data.amountOut);
-        buyTokensFinal.push(buyTokens[i]);
+        // Use the original calculated amount instead of Enso's inflated amountOut
+        console.log(`Enso amountOut: ${response.data.amountOut} (inflated)`);
+        console.log(`Using original amount: ${swapAmounts[i].toString()}`);
+
+        amountsOut[i] = response.data.amountOut;
       }
     }
   }
@@ -713,7 +746,7 @@ export async function calculateDepositAmounts(
 
   // Calculate amounts using BigNumber arithmetic to maintain precision
   const amount0 = inputAmountBN.mul(amount0BN).div(totalAmount);
-  const amount1 = inputAmountBN.mul(amount1BN).div(totalAmount);
+  const amount1 = inputAmountBN.sub(amount0); // Ensure total equals inputAmount
 
   return { amount0: amount0.toString(), amount1: amount1.toString() };
 }
@@ -735,6 +768,13 @@ export async function createEncodedParametersIncreaseLiquidity(
 
   const positionManagerAddress = await positionWrapper.parentPositionManager();
 
+  console.log("=== CREATE ENCODED PARAMETERS DEBUG ===");
+  console.log("position:", position);
+  console.log("sellToken:", sellToken);
+  console.log("sellTokenBalance:", sellTokenBalance);
+  console.log("ensoHandlerAddress:", ensoHandlerAddress);
+  console.log("amountCalculationsAddress:", amountCalculationsAddress);
+
   const { buyTokensFinal, swapAmounts, callData, amountsOut } =
     await getSwapAmountsForOutputExternalPositionRebalance(
       [sellToken],
@@ -745,26 +785,50 @@ export async function createEncodedParametersIncreaseLiquidity(
       amountCalculationsAddress
     );
 
-  // Ensure we have the expected number of swap amounts (should be 2 for token0 and token1)
-  if (swapAmounts.length !== 2) {
-    throw new Error(`Expected 2 swap amounts, got ${swapAmounts.length}`);
+  console.log("buyTokensFinal:", buyTokensFinal);
+  console.log(
+    "swapAmounts:",
+    swapAmounts.map((s) => s.toString())
+  );
+  console.log("callData length:", callData.length);
+  console.log("amountsOut:", amountsOut);
+  console.log("=====================================");
+
+  // We can have 1 or 2 swap amounts depending on how many different tokens we're swapping to
+  console.log(`swapAmounts.length: ${swapAmounts.length}`);
+  if (swapAmounts.length === 0) {
+    throw new Error(`No swap amounts calculated`);
   }
 
   // Map amountsOut from Enso swaps back to token0 and token1 amounts
   let amount0FromSwap = BigNumber.from(0);
   let amount1FromSwap = BigNumber.from(0);
 
+  console.log(
+    `Mapping amounts: buyTokensFinal=${buyTokensFinal}, amountsOut=${amountsOut}`
+  );
+  console.log(`token0=${token0}, token1=${token1}`);
+
   for (let i = 0; i < buyTokensFinal.length; i++) {
     if (buyTokensFinal[i] === token0) {
       amount0FromSwap = BigNumber.from(amountsOut[i]);
+      console.log(`Mapped ${amountsOut[i]} to token0`);
     } else if (buyTokensFinal[i] === token1) {
       amount1FromSwap = BigNumber.from(amountsOut[i]);
+      console.log(`Mapped ${amountsOut[i]} to token1`);
     }
   }
+
+  console.log(
+    `Final amounts: amount0FromSwap=${amount0FromSwap.toString()}, amount1FromSwap=${amount1FromSwap.toString()}`
+  );
 
   // Apply reduceAmount to account for slippage and ensure transaction success
   const amount0ForDeposit = reduceAmount(amount0FromSwap);
   const amount1ForDeposit = reduceAmount(amount1FromSwap);
+
+  const increaseLiquidityAmount0 = reduceAmount(BigNumber.from(amountsOut[0]));
+  const increaseLiquidityAmount1 = reduceAmount(BigNumber.from(amountsOut[1]));
 
   const callDataIncreaseLiquidity: any = [[]];
   // Encode the function call
@@ -817,8 +881,8 @@ export async function createEncodedParametersIncreaseLiquidity(
       position, // _positionWrapper
       {
         // Use reduced amounts for consistency with approvals
-        _amount0Desired: amount0ForDeposit.toString(),
-        _amount1Desired: amount1ForDeposit.toString(),
+        _amount0Desired: increaseLiquidityAmount0,
+        _amount1Desired: increaseLiquidityAmount1,
         _amount0Min: amount0Min.toString(),
         _amount1Min: amount1Min.toString(),
         _deployer: ethers.constants.AddressZero,
@@ -843,8 +907,8 @@ export async function createEncodedParametersIncreaseLiquidity(
         _dustReceiver: dustReceiver,
         _positionWrapper: position,
         // Use reduced amounts for consistency with approvals
-        _amount0Desired: amount0ForDeposit.toString(),
-        _amount1Desired: amount1ForDeposit.toString(),
+        _amount0Desired: increaseLiquidityAmount0,
+        _amount1Desired: increaseLiquidityAmount1,
         _amount0Min: amount0Min.toString(),
         _amount1Min: amount1Min.toString(),
         _swapDeployer: ethers.constants.AddressZero,
