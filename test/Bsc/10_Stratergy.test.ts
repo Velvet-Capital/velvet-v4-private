@@ -20,7 +20,7 @@ import {
 
 import {
   createEnsoCallData,
-  createEnsoCallDataRoute,
+  createMetaAggregatorCalldata,
   calculateOutputAmounts,
   calculateDepositAmounts,
 } from "./IntentCalculations";
@@ -175,7 +175,7 @@ describe.only("Tests for Deposit", () => {
 
       const EnsoHandler = await ethers.getContractFactory("EnsoHandler");
       ensoHandler = await EnsoHandler.deploy(
-        "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
+        "0x9fdeAD3a24C8F0393B5a5a8CAf850BC99C70Fb9e"
       );
       await ensoHandler.deployed();
 
@@ -183,7 +183,7 @@ describe.only("Tests for Deposit", () => {
         "DepositBatchExternalPositions"
       );
       depositBatch = await DepositBatch.deploy(
-        "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
+        "0x9fdeAD3a24C8F0393B5a5a8CAf850BC99C70Fb9e"
       );
       await depositBatch.deployed();
 
@@ -195,7 +195,7 @@ describe.only("Tests for Deposit", () => {
 
       const DepositBatch2 = await ethers.getContractFactory("DepositBatch");
       depositBatch2 = await DepositBatch2.deploy(
-        "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
+        "0x9fdeAD3a24C8F0393B5a5a8CAf850BC99C70Fb9e"
       );
       await depositBatch2.deployed();
 
@@ -203,7 +203,7 @@ describe.only("Tests for Deposit", () => {
         "WithdrawBatchExternalPositions"
       );
       withdrawBatch = await WithdrawBatch.deploy(
-        "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
+        "0x9fdeAD3a24C8F0393B5a5a8CAf850BC99C70Fb9e"
       );
       await withdrawBatch.deployed();
 
@@ -684,14 +684,14 @@ describe.only("Tests for Deposit", () => {
         let postResponse = [];
 
         for (let i = 0; i < swapTokens.length; i++) {
-          let response = await createEnsoCallDataRoute(
+          let response = await createMetaAggregatorCalldata(
             depositBatch.address,
             depositBatch.address,
             "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
             swapTokens[i],
             "20000000000000000"
           );
-          postResponse.push(response.data.tx.data);
+          postResponse.push(response);
         }
 
         let balanceBeforeETH = await owner.getBalance();
@@ -763,14 +763,14 @@ describe.only("Tests for Deposit", () => {
             const encodedata = abiCoder.encode(["uint"], [amountIn]);
             postResponse.push(encodedata);
           } else {
-            let response = await createEnsoCallDataRoute(
+            let response = await createMetaAggregatorCalldata(
               depositBatch.address,
               depositBatch.address,
               tokenToSwap,
               swapTokens[i],
               Number(amountIn)
             );
-            postResponse.push(response.data.tx.data);
+            postResponse.push(response);
           }
         }
 
@@ -848,14 +848,14 @@ describe.only("Tests for Deposit", () => {
             const encodedata = abiCoder.encode(["uint"], [amountIn]);
             postResponse.push(encodedata);
           } else {
-            let response = await createEnsoCallDataRoute(
+            let response = await createMetaAggregatorCalldata(
               depositBatch.address,
               depositBatch.address,
               tokenToSwap,
               swapTokens[i],
               Number(amountIn)
             );
-            postResponse.push(response.data.tx.data);
+            postResponse.push(response);
           }
         }
 
@@ -918,7 +918,7 @@ describe.only("Tests for Deposit", () => {
         let balanceToSwap = BigNumber.from(balance).toString();
         console.log("Balance to rebalance", balanceToSwap);
 
-        const postResponse = await createEnsoCallDataRoute(
+        const postResponse = await createMetaAggregatorCalldata(
           ensoHandler.address,
           ensoHandler.address,
           sellToken,
@@ -938,7 +938,7 @@ describe.only("Tests for Deposit", () => {
             "uint256[][]", // minExpectedOutputAmounts
           ],
           [
-            [[postResponse.data.tx.data]],
+            [[postResponse]],
             [],
             [[]],
             [[]],
@@ -1112,27 +1112,27 @@ describe.only("Tests for Deposit", () => {
         let callDataEnso: any = [[]];
         if (sellToken != token0) {
           let swapAmount = depositAmounts.amount0;
-          const postResponse0 = await createEnsoCallDataRoute(
+          const postResponse0 = await createMetaAggregatorCalldata(
             ensoHandler.address,
             ensoHandler.address,
             sellToken,
             token0,
             swapAmount
           );
-          callDataEnso[0].push(postResponse0.data.tx.data);
+          callDataEnso[0].push(postResponse0);
         }
 
         if (sellToken != token1) {
           let swapAmount = depositAmounts.amount1;
 
-          const postResponse1 = await createEnsoCallDataRoute(
+          const postResponse1 = await createMetaAggregatorCalldata(
             ensoHandler.address,
             ensoHandler.address,
             sellToken,
             token1,
             swapAmount
           );
-          callDataEnso[0].push(postResponse1.data.tx.data);
+          callDataEnso[0].push(postResponse1);
         }
 
         const callDataIncreaseLiquidity: any = [[]];
@@ -1229,7 +1229,7 @@ describe.only("Tests for Deposit", () => {
 
         console.log("Balance to rebalance", balanceToSwap);
 
-        const postResponse = await createEnsoCallDataRoute(
+        const postResponse = await createMetaAggregatorCalldata(
           ensoHandler.address,
           ensoHandler.address,
           sellToken,
@@ -1249,7 +1249,7 @@ describe.only("Tests for Deposit", () => {
             " uint256[][]", // minExpectedOutputAmounts
           ],
           [
-            [[postResponse.data.tx.data]],
+            [[postResponse]],
             [],
             [[]],
             [[]],
@@ -1315,7 +1315,7 @@ describe.only("Tests for Deposit", () => {
         console.log("balanceToRepay", balanceToRepay);
         console.log("balanceToSwap", balanceToSwap);
 
-        const postResponse = await createEnsoCallDataRoute(
+        const postResponse = await createMetaAggregatorCalldata(
           ensoHandler.address,
           ensoHandler.address,
           addresses.USDT,
@@ -1325,16 +1325,17 @@ describe.only("Tests for Deposit", () => {
 
         const encodedParameters = ethers.utils.defaultAbiCoder.encode(
           ["bytes[]", "address[]", "uint256[]"],
-          [[postResponse.data.tx.data], [addresses.DAI_Address], [0]]
+          [[postResponse], [addresses.DAI_Address], [0]]
         );
 
         let encodedParameters1 = [];
 
-        const flashLoanFee = await portfolioCalculations.getFlashLoanFeeFromPool(
-          addresses.thena_factory,
-          addresses.USDT, //USDT - Pool token
-          addresses.USDC_Address //USDC - Pool token
-        );
+        const flashLoanFee =
+          await portfolioCalculations.getFlashLoanFeeFromPool(
+            addresses.thena_factory,
+            addresses.USDT, //USDT - Pool token
+            addresses.USDC_Address //USDC - Pool token
+          );
 
         //Because repay(rebalance) is one borrow token at a time
         const amounToSell =
@@ -1352,7 +1353,7 @@ describe.only("Tests for Deposit", () => {
         console.log("lendTokens", lendTokens);
 
         for (let j = 0; j < lendTokens.length; j++) {
-          const postResponse1 = await createEnsoCallDataRoute(
+          const postResponse1 = await createMetaAggregatorCalldata(
             ensoHandler.address,
             ensoHandler.address,
             lendTokens[j],
@@ -1363,7 +1364,7 @@ describe.only("Tests for Deposit", () => {
           encodedParameters1.push(
             ethers.utils.defaultAbiCoder.encode(
               ["bytes[]", "address[]", "uint256[]"],
-              [[postResponse1.data.tx.data], [addresses.USDT], [0]]
+              [[postResponse1], [addresses.USDT], [0]]
             )
           );
         }

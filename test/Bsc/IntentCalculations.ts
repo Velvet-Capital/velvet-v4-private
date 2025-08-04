@@ -642,3 +642,28 @@ export async function calculateDepositAmounts(
 }
 
 // for deposit/withdraw same as function before but with fee amounts
+
+export async function createMetaAggregatorCalldata(
+  handler: string,
+  receiver: string,
+  _tokenIn: any,
+  _tokenOut: any,
+  _amountIn: any
+): Promise<any> {
+  const priceParams = {
+    slippage: 10,
+    amount: _amountIn,
+    tokenIn: _tokenIn,
+    tokenOut: _tokenOut,
+    sender: handler,
+    receiver: receiver,
+    chainID: 56,
+    isDelegate: true,
+    skipSimulation: true,
+  };
+
+  const postUrl = "https://metaagg.velvetdao.xyz/api/v1/route/evm/swap?";
+  const response = await axios.get(postUrl, { params: priceParams });
+
+  return response.data.data[0].data;
+}
