@@ -74,13 +74,28 @@ async function main(): Promise<void> {
 
   await priceOracle.setFeeds(
     [
+      addresses.WETH_Address,
+      addresses.USDC_Address,
+      addresses.DAI_Address,
       addresses.BTC_Address,
+      addresses.ETH_Address,
+      addresses.USDT
     ],
     [
       "0x0000000000000000000000000000000000000348",
+      "0x0000000000000000000000000000000000000348",
+      "0x0000000000000000000000000000000000000348",
+      "0x0000000000000000000000000000000000000348",
+      "0x0000000000000000000000000000000000000348",
+      "0x0000000000000000000000000000000000000348",
     ],
     [
+      "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE", //chainlink price feed
+      "0x51597f405303C4377E36123cBc172b13269EA163",
+      "0x132d3C0B1D2cEa0BC552588063bdBb210FDeecfA",
       "0x264990fbd0A4796A3E3d8E37C4d5F87a3aCa5Ebf",
+      "0x9ef1B8c0E4F7dc8bF5719Ea496883DC6401d5b2e",
+      "0xB97Ad0E74fa7d920791E90258A6E2085088b4320"
     ]
   );
 
@@ -198,7 +213,7 @@ async function main(): Promise<void> {
   const ProtocolConfig = await ethers.getContractFactory("ProtocolConfig");
   const protocolConfig = await upgrades.deployProxy(
     ProtocolConfig,
-    [treasury.address, "0x139Dd769394FF8eDE4A0aC927a58cC9fe80Ca4E2"],
+    [treasury.address, priceOracle.address],
     { kind: "uups" }
   );
 
@@ -213,17 +228,15 @@ async function main(): Promise<void> {
     ethers.utils.toUtf8Bytes("THENA-CONCENTRATED-LIQUIDITY")
   );
 
-  await protocolConfig.enableProtocol(
-    thenaProtocolHash,
-    "0xa51adb08cbe6ae398046a23bec013979816b77ab",
-    "0x327dd3208f0bcf590a66110acb6e5e6941a4efa0",
-    "0x96a7e48d6f6248F214E5e7fDA57066D3F3C79dA4"
-  );
-
   await sleep(2000); // 2 seconds
 
   await protocolConfig.enableTokens([
+    addresses.WETH_Address,
+    addresses.USDC_Address,
+    addresses.DAI_Address,
     addresses.BTC_Address,
+    addresses.ETH_Address,
+    addresses.USDT
   ]);
 
   await protocolConfig.updateProtocolFee(0);
@@ -232,9 +245,11 @@ async function main(): Promise<void> {
 
   await protocolConfig.setCoolDownPeriod("60");
 
-  await protocolConfig.enableSolverHandler("0x3dd84Be9bF8019c6c7A9E8E1682A9a707b2FB79b");
+  await protocolConfig.updateMaxCollateralBufferUnit(1000);
 
-  await protocolConfig.enableSwapHandler("0x8317430C7B3873e63467276eBDBC6be91d7c747E");
+  await protocolConfig.enableSolverHandler(ensoHandler.address);
+
+  await protocolConfig.enableSwapHandler(swapHandler.address);
   await protocolConfig.enableSwapHandler(swapHandlerV3.address);
 
   await protocolConfig.setAssetHandlers(
@@ -243,9 +258,13 @@ async function main(): Promise<void> {
       addresses.vBTC_Address,
       addresses.vDAI_Address,
       addresses.vUSDT_Address,
+      addresses.vETH_Address,
+      addresses.vLINK_Address,
       addresses.corePool_controller,
     ],
     [
+      venusAssetHandler.address,
+      venusAssetHandler.address,
       venusAssetHandler.address,
       venusAssetHandler.address,
       venusAssetHandler.address,
@@ -292,7 +311,7 @@ async function main(): Promise<void> {
     "PositionManagerAlgebra",
     {
       libraries: {
-        SwapVerificationLibraryAlgebra: "0xE440CBE1fdcf83F70d3E298bFc844265C1b35e41",
+        SwapVerificationLibraryAlgebra: swapVerificationLibrary.address,
       },
     }
   );
@@ -303,12 +322,10 @@ async function main(): Promise<void> {
 
   await protocolConfig.enableProtocol(
     thenaProtocolHash,
-    "0xa51adb08cbe6ae398046a23bec013979816b77ab",
-    "0x327dd3208f0bcf590a66110acb6e5e6941a4efa0",
+    "0x643B68Bf3f855B8475C0A700b6D1020bfc21d02e",
+    "0xb85Fdbb78a735584592Df49ED7cD061b01A2e6B7",
     positionManagerBaseAddress.address
   );
-
-  console.log("PositionManager address:", positionManagerBaseAddress.address);
 
   const ExternalPositionStorage = await ethers.getContractFactory(
     "ExternalPositionStorage"
@@ -357,7 +374,7 @@ async function main(): Promise<void> {
 
   const Portfolio = await ethers.getContractFactory("Portfolio", {
     libraries: {
-      TokenBalanceLibrary: "0xA769Fc0Eb074af2a7cd126555D8c87802739E9b2",
+      TokenBalanceLibrary: tokenBalanceLibrary.address,
     },
   });
   const portfolioContract = await Portfolio.deploy(overrides);
@@ -483,7 +500,7 @@ async function main(): Promise<void> {
     "PortfolioCalculations",
     {
       libraries: {
-        TokenBalanceLibrary: "0xA769Fc0Eb074af2a7cd126555D8c87802739E9b2",
+        TokenBalanceLibrary: tokenBalanceLibrary.address,
       },
     }
   );
