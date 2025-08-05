@@ -15,9 +15,10 @@ require("dotenv").config();
 import { HardhatUserConfig } from "hardhat/types";
 import { chainIdToAddresses } from "./scripts/networkVariables";
 
-import "@tenderly/hardhat-tenderly";       
+import * as tdly from "@tenderly/hardhat-tenderly";       
 
-// tdly.setup({ automaticVerifications: false });
+tdly.setup({ automaticVerifications: true,
+ });
 
 const mnemonic = process.env.MNEMONIC;
 if (!mnemonic) {
