@@ -279,13 +279,13 @@ interface IProtocolConfig {
    * @param protocolId The identifier for the protocol (e.g., keccak256("UNISWAP_V3"))
    * @param nftManager The NFT manager contract address for the protocol
    * @param swapRouter The swap router contract address for the protocol
-   * @param positionWrapperBase The position wrapper base implementation address
+   * @param positionManagerBase The position wrapper base implementation address
    */
   function enableProtocol(
     bytes32 protocolId,
     address nftManager,
     address swapRouter,
-    address positionWrapperBase
+    address positionManagerBase
   ) external;
 
   /**
@@ -305,7 +305,7 @@ interface IProtocolConfig {
     bytes32 protocolId
   ) external view returns (address nftManager, address swapRouter);
 
-  function getPositionWrapperBaseImplementation(
+  function getPositionManagerBaseImplementation(
     bytes32 protocolId
   ) external view returns (address);
   function MAX_BORROW_TOKEN_LIMIT() external pure returns (uint256);

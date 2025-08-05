@@ -305,6 +305,8 @@ describe.only("Tests for Deposit", () => {
 
       await protocolConfig.setSupportedFactory(addresses.thena_factory);
 
+      protocolConfig.updateMaxCollateralBufferUnit(800);
+
       await protocolConfig.setAssetAndMarketControllers(
         [
           addresses.vBNB_Address,
@@ -391,7 +393,7 @@ describe.only("Tests for Deposit", () => {
             _feeModuleImplementationAddress: feeModule.address,
             _baseTokenRemovalVaultImplementation: tokenRemovalVault.address,
             _baseVelvetGnosisSafeModuleAddress: velvetSafeModule.address,
-            _basePositionManager: positionManagerBaseAddress.address,
+            _basePositionWrapper: positionWrapperBaseAddress.address,
             _baseExternalPositionStorage: externalPositionStorage.address,
             _baseBorrowManager: borrowManager.address,
             _gnosisSingleton: addresses.gnosisSingleton,
@@ -1008,8 +1010,8 @@ describe.only("Tests for Deposit", () => {
         let ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
         let tokens = await portfolio.getTokens();
 
-        let flashloanBufferUnit = 38; //Flashloan buffer unit in 1/10000
-        let bufferUnit = 363; //Buffer unit for collateral amount in 1/100000
+        let flashloanBufferUnit = 20; //Flashloan buffer unit in 1/10000
+        let bufferUnit = 600; //Buffer unit for collateral amount in 1/100000
         let borrowedToken = addresses.BTC_Address;
         let borrowedProtocolToken = addresses.vBTC_Address;
 
@@ -1055,6 +1057,14 @@ describe.only("Tests for Deposit", () => {
           [[postResponse.data.tx.data], [borrowedToken], [0]]
         );
 
+        const flashLoanFee = await portfolioCalculations.getFlashLoanFeeFromPool(
+          addresses.thena_factory,
+          addresses.USDT, //USDT - Pool token
+          addresses.USDC_Address //USDC - Pool token
+        );
+
+        console.log("flashLoanFee", flashLoanFee);
+
         let encodedParameters1 = [];
         //Because repay(rebalance) is one borrow token at a time
         const amounToSell =
@@ -1065,7 +1075,7 @@ describe.only("Tests for Deposit", () => {
             [borrowedProtocolToken],
             tokens,
             [balanceToRepay],
-            "10", //Flash loan fee
+            flashLoanFee, //Flash loan fee
             bufferUnit //Buffer unit for collateral amount
           );
         console.log("amounToSell", amounToSell);
@@ -1493,8 +1503,8 @@ describe.only("Tests for Deposit", () => {
         let ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
         let tokens = await portfolio.getTokens();
 
-        let flashloanBufferUnit = 30; //Flashloan buffer unit in 1/10000
-        let bufferUnit = 320; //Buffer unit for collateral amount in 1/100000
+        let flashloanBufferUnit = 20; //Flashloan buffer unit in 1/10000
+        let bufferUnit = 600; //Buffer unit for collateral amount in 1/100000
 
         let balanceBorrowed =
           await portfolioCalculations.getVenusTokenBorrowedBalance(
@@ -1540,6 +1550,13 @@ describe.only("Tests for Deposit", () => {
 
         let encodedParameters1 = [];
         //Because repay(rebalance) is one borrow token at a time
+        // Get flash loan fee from Thena pool
+        const flashLoanFee = await portfolioCalculations.getFlashLoanFeeFromPool(
+          addresses.thena_factory,
+          addresses.USDT, //USDT - Pool token
+          addresses.USDC_Address //USDC - Pool token
+        );
+
         const amounToSell =
           await portfolioCalculations.callStatic.getCollateralAmountToSell(
             vault,
@@ -1548,7 +1565,7 @@ describe.only("Tests for Deposit", () => {
             [addresses.vDAI_Address],
             tokens,
             [balanceToRepay],
-            "10", //Flash loan fee
+            flashLoanFee, //Flash loan fee from pool
             bufferUnit //Buffer unit for collateral amount
           );
         console.log("amounToSell", amounToSell);
@@ -1617,8 +1634,8 @@ describe.only("Tests for Deposit", () => {
 
         let vault = await portfolio.vault();
 
-        let flashloanBufferUnit = 11; //Flashloan buffer unit in 1/10000
-        let bufferUnit = 300; //Buffer unit for collateral amount in 1/100000
+        let flashloanBufferUnit = 15; //Flashloan buffer unit in 1/10000
+        let bufferUnit = 400; //Buffer unit for collateral amount in 1/100000
 
         let flashLoanToken = addresses.USDT;
         let flashLoanProtocolToken = addresses.vUSDT_Address;
@@ -1728,6 +1745,12 @@ describe.only("Tests for Deposit", () => {
           }
         }
 
+        const flashLoanFee = await portfolioCalculations.getFlashLoanFeeFromPool(
+          addresses.thena_factory,
+          addresses.USDT, //USDT - Pool token
+          addresses.USDC_Address //USDC - Pool token
+        );
+
         const amounToSell =
           await portfolioCalculations.callStatic.getCollateralAmountToSell(
             vault,
@@ -1736,7 +1759,7 @@ describe.only("Tests for Deposit", () => {
             borrowedTokens,
             tokens,
             borrowedPortion,
-            "10", //Flash loan fee
+            flashLoanFee, //Flash loan fee
             bufferUnit //Buffer unit for collateral amount
           );
 
@@ -1808,7 +1831,7 @@ describe.only("Tests for Deposit", () => {
         const user = nonOwner;
 
         let flashloanBufferUnit = 11; //Flashloan buffer unit in 1/10000.This value is used slightly increase the amount of flashLoanAmount, for any priceImpact (10000 = 100%)
-        let bufferUnit = 300; //The buffer unit used to slightly increase the amount of collateral to sell, expressed in 0.001% (100000 = 100%)
+        let bufferUnit = 350; //The buffer unit used to slightly increase the amount of collateral to sell, expressed in 0.001% (100000 = 100%)
 
         const ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
         const tokens = await portfolio.getTokens();
@@ -1925,6 +1948,12 @@ describe.only("Tests for Deposit", () => {
           }
         }
 
+        const flashLoanFee = await portfolioCalculations.getFlashLoanFeeFromPool(
+          addresses.thena_factory,
+          addresses.USDT, //USDT - Pool token
+          addresses.USDC_Address //USDC - Pool token
+        );
+
         const amounToSell =
           await portfolioCalculations.callStatic.getCollateralAmountToSell(
             vault,
@@ -1933,7 +1962,7 @@ describe.only("Tests for Deposit", () => {
             borrowedTokens,
             tokens,
             borrowedPortion,
-            "10", //Flash loan fee
+            flashLoanFee, //Flash loan fee
             bufferUnit //Buffer unit for collateral amount
           );
 

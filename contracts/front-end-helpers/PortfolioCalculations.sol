@@ -678,9 +678,18 @@ contract PortfolioCalculations is ExponentialNoError {
         }
     }
 
-    function getPoolFee(address _pool) external view returns (uint256) {
-        return IThena(_pool).globalState().lastFee;
-    }
+  function getPoolFee(address _pool) external view returns (uint256) {
+    return IThena(_pool).globalState().lastFee;
+  }
+
+  function getFlashLoanFeeFromPool(
+    address _factory,
+    address _token0,
+    address _token1
+  ) external view returns (uint256) {
+    address poolAddress = IThena(_factory).poolByPair(_token0, _token1);
+    return IThena(poolAddress).globalState().lastFee;
+  }
 
     function getCollateralAmountToSell(
         address _user,
@@ -750,18 +759,18 @@ contract PortfolioCalculations is ExponentialNoError {
         }
     }
 
-    function calculateDebtAndPercentage(
-        uint256 _debtRepayAmount,
-        uint256 feeUnit,
-        uint256 totalDebt,
-        uint256 borrowBalance,
-        uint256 totalCollateral
-    ) internal pure returns (uint256 debtValue, uint256 percentageToRemove) {
-        uint256 feeAmount = (_debtRepayAmount * 10 ** 18 * feeUnit) / 10 ** 22;
-        uint256 debtAmountWithFee = _debtRepayAmount + feeAmount;
-        debtValue = (debtAmountWithFee * totalDebt * 10 ** 18) / borrowBalance;
-        percentageToRemove = debtValue / totalCollateral;
-    }
+  function calculateDebtAndPercentage(
+    uint256 _debtRepayAmount,
+    uint256 feeUnit,
+    uint256 totalDebt,
+    uint256 borrowBalance,
+    uint256 totalCollateral
+  ) internal pure returns (uint256 debtValue, uint256 percentageToRemove) {
+    uint256 feeAmount = (_debtRepayAmount * 10 ** 18 * feeUnit) / 10 ** 24;
+    uint256 debtAmountWithFee = _debtRepayAmount + feeAmount;
+    debtValue = (debtAmountWithFee * totalDebt * 10 ** 18) / borrowBalance;
+    percentageToRemove = debtValue / totalCollateral;
+  }
 
     function getAaveCollateralAmountToSell(
         address _user,

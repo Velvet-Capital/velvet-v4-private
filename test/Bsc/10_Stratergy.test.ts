@@ -310,13 +310,6 @@ describe.only("Tests for Deposit", () => {
         iaddress.usdtAddress,
       ]);
 
-      await protocolConfig.enableProtocol(
-        thenaProtocolHash,
-        "0xa51adb08cbe6ae398046a23bec013979816b77ab",
-        "0x327dd3208f0bcf590a66110acb6e5e6941a4efa0",
-        positionWrapperBaseAddress.address
-      );
-
       const Rebalancing = await ethers.getContractFactory("Rebalancing");
       const rebalancingDefult = await Rebalancing.deploy();
       await rebalancingDefult.deployed();
@@ -432,6 +425,13 @@ describe.only("Tests for Deposit", () => {
       const positionManagerBaseAddress = await PositionManager.deploy();
       await positionManagerBaseAddress.deployed();
 
+      await protocolConfig.enableProtocol(
+        thenaProtocolHash,
+        "0xa51adb08cbe6ae398046a23bec013979816b77ab",
+        "0x327dd3208f0bcf590a66110acb6e5e6941a4efa0",
+        positionManagerBaseAddress.address
+      );
+
       const AmountCalculationsAlgebra = await ethers.getContractFactory(
         "AmountCalculationsAlgebra"
       );
@@ -481,7 +481,7 @@ describe.only("Tests for Deposit", () => {
             _baseTokenRemovalVaultImplementation: tokenRemovalVault.address,
             _baseVelvetGnosisSafeModuleAddress: velvetSafeModule.address,
             _baseBorrowManager: borrowManager.address,
-            _basePositionManager: positionManagerBaseAddress.address,
+            _basePositionWrapper: positionWrapperBaseAddress.address,
             _baseExternalPositionStorage: externalPositionStorage.address,
             _gnosisSingleton: addresses.gnosisSingleton,
             _gnosisFallbackLibrary: addresses.gnosisFallbackLibrary,
@@ -1284,7 +1284,7 @@ describe.only("Tests for Deposit", () => {
         let tokens = await portfolio.getTokens();
 
         let flashloanBufferUnit = 23; //Flashloan buffer unit in 1/10000
-        let bufferUnit = 160; //Buffer unit for collateral amount in 1/100000
+        let bufferUnit = 300; //Buffer unit for collateral amount in 1/100000
 
         let balanceBorrowed =
           await portfolioCalculations.getVenusTokenBorrowedBalance(
@@ -1329,6 +1329,13 @@ describe.only("Tests for Deposit", () => {
         );
 
         let encodedParameters1 = [];
+
+        const flashLoanFee = await portfolioCalculations.getFlashLoanFeeFromPool(
+          addresses.thena_factory,
+          addresses.USDT, //USDT - Pool token
+          addresses.USDC_Address //USDC - Pool token
+        );
+
         //Because repay(rebalance) is one borrow token at a time
         const amounToSell =
           await portfolioCalculations.callStatic.getCollateralAmountToSell(
@@ -1338,7 +1345,7 @@ describe.only("Tests for Deposit", () => {
             [addresses.vDAI_Address],
             tokens,
             [balanceToRepay],
-            "10", //Flash loan fee
+            flashLoanFee, //Flash loan fee
             bufferUnit //Buffer unit for collateral amount
           );
         console.log("amounToSell", amounToSell);
