@@ -219,10 +219,7 @@ async function main(): Promise<void> {
 
   console.log("protocolConfig address:", protocolConfig.address);
 
-  await tenderly.verify({
-    name: "ProtocolConfig",
-    address: protocolConfig.address,
-  });
+  safeVerify("ProtocolConfig", protocolConfig.address);
 
   const thenaProtocolHash = ethers.utils.keccak256(
     ethers.utils.toUtf8Bytes("THENA-CONCENTRATED-LIQUIDITY")
@@ -572,6 +569,20 @@ async function main(): Promise<void> {
     withdrawBatch.address,
     portfolioFactory.address
   );
+}
+
+
+async function safeVerify(
+  name: string,
+  address: string,
+  extra: Record<string, any> = {}
+) {
+  try {
+    await tenderly.verify({ name, address, ...extra });
+    console.log(`✅ verified ${name} at ${address}`);
+  } catch (err: any) {
+    console.warn(`⚠️  skipping verification of ${name}: ${err.message}`);
+  }
 }
 
 // We recommend this pattern to be able to use async/await everywhere
