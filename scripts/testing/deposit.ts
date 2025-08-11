@@ -216,7 +216,7 @@ async function main(): Promise<void> {
   console.log("------------- Creating Enso Call Data Route -------------");
 
   const totalSupply = await portfolio.totalSupply();
-  let amount = ethers.utils.parseUnits("0.0035", "ether");
+  let amount = ethers.utils.parseUnits("0.0070", "ether");
   let depositAmounts = [];
   let postResponse = [];
 

@@ -23,7 +23,7 @@ export const deployedAddresses = {
     depositManager: "0x1838CA4D121F47F77F11eA192E13780c697b93Aa",
     withdrawBatch: "0x2c8D1eFD398947Ce967f387E54A8cE2b30E03B60",
     withdrawManager: "0x1E0FeE15170D2A1504D862977B46C1a84e154C00",
-    portfolioCalculations: "0x337D9c8099d21AeBf992d9FAE7b6DFC25edFcD5F",
+    portfolioCalculations: "0x6B0c88b5A48BD9d7d099ab631e8cE1D7A3eDde2D",
     portfolioFactory: "0xd683eB75797FaCd7B18E97A8F1aDe660486B1DbC",
     wbnbAddress: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
     btcAddress: "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",

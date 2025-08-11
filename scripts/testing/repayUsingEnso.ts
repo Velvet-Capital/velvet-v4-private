@@ -388,7 +388,7 @@ async function main(): Promise<void> {
                 [debtToken],
                 tokens,
                 [balanceToRepay],
-                "10", //Flash loan fee
+                await portfolioCalculations.getFlashLoanFeeFromPool(thenaPoolInfo._factory, thenaPoolInfo._token0, thenaPoolInfo._token1), //Flash loan fee
                 bufferUnit //Buffer unit for collateral amount
             );
             console.log("amounToSell", amounToSell);

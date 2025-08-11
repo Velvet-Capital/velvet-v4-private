@@ -56,7 +56,7 @@ import {
 import { createEnsoCallDataRoute } from "../../test/Bsc/IntentCalculations";
 import { BigNumber } from "ethers";
 import { calculateOutputAmounts } from "../../test/Bsc/IntentCalculationsAlgebraV2";
-import { BufferOptimizer } from "../utils/bufferOptimizer";
+import { BufferOptimizer, WithdrawalParams } from "../utils/bufferOptimizer";
 
 function divideAmountEqually(amount: any, tokenCount: number) {
   const amountPerToken = amount.div(tokenCount);
@@ -271,8 +271,8 @@ async function main(): Promise<void> {
   let thenaPoolInfo;
   let balanceToSwap;
   let balanceToRepay;
-  let flashloanBufferUnit = 18; //Flashloan buffer unit in 1/10000, extra flashlaon to take, to fulfil the swap(from flashlaon to debt token)
-  let bufferUnit = 500; //Buffer unit for collateral amount in 1/100000, extra collateral to take, to fulfil the swap(from collateral underlying to flashlaon token)
+  let flashloanBufferUnitValue = 25; //Flashloan buffer unit in 1/10000, extra flashlaon to take, to fulfil the swap(from flashlaon to debt token)
+  let bufferUnitValue = 600; //Buffer unit for collateral amount in 1/100000, extra collateral to take, to fulfil the swap(from collateral underlying to flashlaon token)
   let isMaxRepayment = false;
 
   const debtToken = addresses.vUSDT_Address;
@@ -293,7 +293,7 @@ async function main(): Promise<void> {
       vault
     );
 
-  balanceToRepay = balanceBorrowed.div(2);
+  balanceToRepay = balanceBorrowed[0].div(2);
 
   //--- Calculate FlashLoan Token, thena pool and pool fees for swap---
 
@@ -348,16 +348,67 @@ async function main(): Promise<void> {
             };
   }
 
+  const optimalBuffers = new BufferOptimizer(
+    addresses.PancakeSwapV3FactoryAddress,
+    addresses.PancakeSwapV3RouterAddress,
+    chainId,
+    venusAssetHandler
+  );
+
   if(flashLoanProtocolToken === debtToken){
     balanceToSwap = balanceToRepay;
   }else{
+
+   let baseFlashLoanAmount = (
+      await portfolioCalculations.calculateFlashLoanAmountForRepayment(
+        debtToken,
+        flashLoanProtocolToken,
+        addresses.corePool_controller,
+        balanceToRepay,
+        0
+      )
+    ).toString();
+    
+    const params: WithdrawalParams = {
+      flashLoanToken,
+      flashLoanProtocolToken,
+      borrowTokens: [debtToken],
+      lendTokens,
+      baseFlashLoanAmounts: [baseFlashLoanAmount],
+      totalCollateral: userData[0].totalCollateral,
+      addresses,                      // your helper map (router, WBNB, etc.)
+      chainId,
+      venusAssetHandler,
+      poolFees: { poolFees: poolFees.poolFees },         // structure expected by optimiser
+      vault: vault,
+      pancakeSwapFactory: addresses.PancakeSwapV3FactoryAddress,
+      pancakeSwapQuoter: "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
+      // optional guardrails if you expose them in ProtocolConfig
+      maxFlashLoanBufferUnit: 40,    // 0.4 %
+      maxCollateralBufferUnit: 800   // 0.8 %
+    };
+
+
+    let {
+      flashLoanBufferUnit,
+      bufferUnit,
+      totalFlashLoanAmount,
+      totalCollateralAmount
+    } = await optimalBuffers.calculateOptimalBuffers(params);
+
+    flashloanBufferUnitValue = flashLoanBufferUnit;
+    bufferUnitValue = bufferUnit;
+
+    console.log("flashloanBufferUnitValue", flashloanBufferUnitValue);
+    console.log("bufferUnitValue", bufferUnitValue);  
+
     balanceToSwap = (
       await portfolioCalculations.calculateFlashLoanAmountForRepayment(
         debtToken,
         flashLoanProtocolToken,
         addresses.corePool_controller,
         balanceToRepay,
-        flashloanBufferUnit
+        flashloanBufferUnitValue
       )
     ).toString();
   }
@@ -369,39 +420,39 @@ async function main(): Promise<void> {
 
   console.log("------------- Calculating FlashLoanAmount -------------");
 
-  await rebalancing.repay(addresses.corePool_controller, {
-    _factory: thenaPoolInfo._factory,
-    _token0: thenaPoolInfo._token0, //USDT - Pool token
-    _token1: thenaPoolInfo._token1, //USDC - Pool token
-    _flashLoanToken: flashLoanToken, //Token to take flashlaon
-    _debtToken: [debtUnderlyingToken], //Token to pay debt of
-    _protocolToken: [debtToken], // lending token in case of venus
-    _bufferUnit: bufferUnit, //Buffer unit for collateral amount
-    _solverHandler: ensoHandler.address, //Handler to swap
-    _swapHandler: swapHandler.address,
-    _flashLoanAmount: [balanceToSwap.toString()],
-    _debtRepayAmount: [balanceToRepay.toString()],
-    firstSwapData: [],
-    secondSwapData: [],
-    isMaxRepayment: isMaxRepayment,
-    _poolFees: poolFees.poolFees,
-    isDexRepayment: true,
-  });
+  // await rebalancing.repay(addresses.corePool_controller, {
+  //   _factory: thenaPoolInfo._factory,
+  //   _token0: thenaPoolInfo._token0, //USDT - Pool token
+  //   _token1: thenaPoolInfo._token1, //USDC - Pool token
+  //   _flashLoanToken: flashLoanToken, //Token to take flashlaon
+  //   _debtToken: [debtUnderlyingToken], //Token to pay debt of
+  //   _protocolToken: [debtToken], // lending token in case of venus
+  //   _bufferUnit: bufferUnitValue.toString(), //Buffer unit for collateral amount
+  //   _solverHandler: ensoHandler.address, //Handler to swap
+  //   _swapHandler: swapHandler.address,
+  //   _flashLoanAmount: [balanceToSwap.toString()],
+  //   _debtRepayAmount: [balanceToRepay.toString()],
+  //   firstSwapData: [],
+  //   secondSwapData: [],
+  //   isMaxRepayment: isMaxRepayment,
+  //   _poolFees: poolFees.poolFees,
+  //   isDexRepayment: true,
+  // });
 
 
-  // Send the transaction manually
-  const sentTx = await owner4.sendTransaction(tx);
-  console.log("Transaction hash:", sentTx.hash);
-  console.log("Transaction submitted! Check BSCScan for details.");
+  // // Send the transaction manually
+  // const sentTx = await owner4.sendTransaction(tx);
+  // console.log("Transaction hash:", sentTx.hash);
+  // console.log("Transaction submitted! Check BSCScan for details.");
 
-  // Wait for the transaction to be mined
-  try {
-    const receipt = await sentTx.wait();
-    console.log("Transaction succeeded! Block:", receipt.blockNumber);
-  } catch (error) {
-    console.log("Transaction failed as expected:", error.message);
-    console.log("Check BSCScan for the failed transaction details.");
-  }
+  // // Wait for the transaction to be mined
+  // try {
+  //   const receipt = await sentTx.wait();
+  //   console.log("Transaction succeeded! Block:", receipt.blockNumber);
+  // } catch (error) {
+  //   console.log("Transaction failed as expected:", error.message);
+  //   console.log("Check BSCScan for the failed transaction details.");
+  // }
 
   console.log(
     "------------------------------ Withdraw Ended ------------------------------"

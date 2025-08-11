@@ -1610,7 +1610,7 @@
   dependencies:
     defer-to-connect "^2.0.1"
 
-"@tenderly/hardhat-tenderly@^1.7.7":
+"@tenderly/hardhat-tenderly@^1.7.6":
   version "1.7.7"
   resolved "https://registry.npmjs.org/@tenderly/hardhat-tenderly/-/hardhat-tenderly-1.7.7.tgz"
   integrity sha512-p/jLzRPpoD7J0LGvUFEQjgniDzmP5AzfTgy41qqzyjhOsW0voe7wZI8lXjadl5MEr7rAXN1iH3VncT13qG6+Zw==

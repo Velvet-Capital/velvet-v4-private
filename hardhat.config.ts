@@ -17,7 +17,7 @@ import { chainIdToAddresses } from "./scripts/networkVariables";
 
 import * as tdly from "@tenderly/hardhat-tenderly";       
 
-tdly.setup({ automaticVerifications: true,
+tdly.setup({ automaticVerifications: false,
  });
 
 const mnemonic = process.env.MNEMONIC;

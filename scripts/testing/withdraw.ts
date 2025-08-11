@@ -45,6 +45,7 @@ const { ethers, upgrades, tenderly } = require("hardhat");
 import { chainIdToAddresses } from "../networkVariables";
 import { deployedAddresses } from "./deployAddresses";
 import { PoolFeeCalculator } from "../utils/poolFeeCalculator";
+import { BufferOptimizer, WithdrawalParams } from "../utils/bufferOptimizer";
 
 import {
   Portfolio,
@@ -56,7 +57,6 @@ import {
 import { createEnsoCallDataRoute } from "../../test/Bsc/IntentCalculations";
 import { BigNumber } from "ethers";
 import { calculateOutputAmounts } from "../../test/Bsc/IntentCalculationsAlgebraV2";
-import { BufferOptimizer } from "../utils/bufferOptimizer";
 
 function divideAmountEqually(amount: any, tokenCount: number) {
   const amountPerToken = amount.div(tokenCount);
@@ -387,8 +387,15 @@ async function main(): Promise<void> {
 
   const [accountData, tokenAddresses] = await venusAssetHandler.callStatic.getUserAccountData(vault, addresses.corePool_controller, []);
 
-  const bufferOptimizer = new BufferOptimizer(
+  // const bufferOptimizer = new BufferOptimizer(
+  //   addresses.PancakeSwapV3FactoryAddress,
+  //   chainId,
+  //   venusAssetHandler
+  // );
+
+  const optimalBuffers = new BufferOptimizer(
     addresses.PancakeSwapV3FactoryAddress,
+    addresses.PancakeSwapV3RouterAddress,
     chainId,
     venusAssetHandler
   );
@@ -404,28 +411,59 @@ async function main(): Promise<void> {
       0,
     );
 
-    const optimalBuffers = await bufferOptimizer.calculateOptimalBuffers({
-      flashLoanToken,
-      flashLoanProtocolToken,
-      borrowTokens,
-      lendTokens,
-      baseFlashLoanAmounts: baseValues[1].map((amount: any) => ethers.utils.formatEther(amount)),
-      totalCollateral: accountData.totalCollateral,
-      addresses,
-      chainId,
-      venusAssetHandler,
-      poolFees,
-      vault: vault, // Add missing vault parameter
-      pancakeSwapFactory: addresses.PancakeSwapV3FactoryAddress // Add missing factory parameter
-    });
+  //   const optimalBuffers = await bufferOptimizer.calculateOptimalBuffers({
+  //     flashLoanToken,
+  //     flashLoanProtocolToken,
+  //     borrowTokens,
+  //     lendTokens,
+  //     baseFlashLoanAmounts: baseValues[1].map((amount: any) => ethers.utils.formatEther(amount)),
+  //     totalCollateral: accountData.totalCollateral,
+  //     addresses,
+  //     chainId,
+  //     venusAssetHandler,
+  //     poolFees,
+  //     vault: vault, // Add missing vault parameter
+  //     pancakeSwapFactory: addresses.PancakeSwapV3FactoryAddress // Add missing factory parameter
+  //   });
 
-  console.log("Optimal Buffers:", optimalBuffers);
+  // console.log("Optimal Buffers:", optimalBuffers);
+
+  const params: WithdrawalParams = {
+    flashLoanToken,
+    flashLoanProtocolToken,
+    borrowTokens,
+    lendTokens,
+    baseFlashLoanAmounts: baseValues[1],
+    totalCollateral: accountData.totalCollateral,
+    chainId,
+    venusAssetHandler,
+    poolFees: { poolFees: poolFees.poolFees },         // structure expected by optimiser
+    pancakeSwapFactory: addresses.PancakeSwapV3FactoryAddress,
+    pancakeSwapQuoter: "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
+    wbnb: addresses.WETH_Address,
+    // optional guardrails if you expose them in ProtocolConfig
+    maxFlashLoanBufferUnit: 40,    // 0.4 %
+    maxCollateralBufferUnit: 800   // 0.8 %
+  };
+
+
+  const {
+    flashLoanBufferUnit,
+    bufferUnit,
+    totalFlashLoanAmount,
+    totalCollateralAmount
+  } = await optimalBuffers.calculateOptimalBuffers(params);
+  
+  console.log(
+    `flash-loan buffer = ${flashLoanBufferUnit} bp,` +
+    ` collateral buffer = ${bufferUnit} bp`
+  );
 
 
   let flashLoanAmounts: string[][] = [];
 
-  let flashloanBufferUnit = optimalBuffers.flashLoanBufferUnit; //Flashloan buffer unit in 1/10000, extra flashlaon to take, to fulfil the swap(from flashlaon to debt token)
-  let bufferUnit = optimalBuffers.bufferUnit; //Buffer unit for collateral amount in 1/100000, extra collateral to take, to fulfil the swap(from collateral underlying to flashlaon token)
+  let flashloanBufferUnit = flashLoanBufferUnit; //Flashloan buffer unit in 1/10000, extra flashlaon to take, to fulfil the swap(from flashlaon to debt token)
+  let bufferUnitValue = bufferUnit; //Buffer unit for collateral amount in 1/100000, extra collateral to take, to fulfil the swap(from collateral underlying to flashlaon token)
 
   const values =
     await portfolioCalculations.calculateBorrowedPortionAndFlashLoanDetails(
@@ -466,6 +504,11 @@ async function main(): Promise<void> {
   // If 1, then take flashloan token == borrow token, and flashLaon amount == borrowed amount, only bufferUnit is needed
   // If > 1, use data from calculateBorrowedPortionAndFlashLoanDetails and fetch flashLoanAmount, both bufferUnit and flashloanBufferUnit are needed
 
+  const thenaPoolFee = await portfolioCalculations.getFlashLoanFeeFromPool(thenaPoolInfo._factory, thenaPoolInfo._token0, thenaPoolInfo._token1);
+
+  console.log("thenaPoolFee:", thenaPoolFee);
+
+  
   const amountToSell =
     await portfolioCalculations.callStatic.getCollateralAmountToSell(
       vault,
@@ -474,8 +517,8 @@ async function main(): Promise<void> {
       borrowTokens,
       tokens,
       debtRepayAmount,
-      "10", // 10 basis from thena pool fee(can be fetched from thena)
-      bufferUnit
+      thenaPoolFee,
+      bufferUnitValue
     );
 
   if (values[3].length > 1) {
@@ -516,16 +559,18 @@ async function main(): Promise<void> {
       if (lendTokensSet.has(swapTokens[i])) {
         const vaultBalance = await ERC20.attach(swapTokens[i]).balanceOf(vault);
         console.log("vaultBalance:", vaultBalance);
-        const userShare = vaultBalance
-          .mul(amountPortfolioToken)
-          .div(await portfolio.totalSupply());
-
 
         // Get the correct index for this lendToken in amountToSell
         const amountIndex = lendTokenToAmountIndex.get(swapTokens[i]);
         console.log("amountToSell[amountIndex]:", amountToSell[amountIndex]);
 
-        withdrawalAmount = userShare.sub(amountToSell[amountIndex]);
+        let updatedVaultBalance = vaultBalance.sub(amountToSell[amountIndex]);
+
+        let userShare = updatedVaultBalance
+          .mul(amountPortfolioToken)
+          .div(await portfolio.totalSupply());
+
+        withdrawalAmount = userShare;
         // Remove amountToSellCount++ since we're using the correct index now
       }
       let response = await createEnsoCallDataRoute(
@@ -542,58 +587,58 @@ async function main(): Promise<void> {
 
   console.log("------------- Executing Withdraw Batch -------------");
 
-  const tx = await withdrawManager.connect(owner4).populateTransaction.withdraw(
-    swapTokens,
-    portfolio.address,
-    tokenToSwapInto,
-    amountPortfolioToken,
-    responses,
-    0,
-    {
-      _factory: "0x30055F87716d3DFD0E5198C27024481099fB4A98",
-      _token0: addresses.USDT, // Pool token 0
-      _token1: addresses.USDC_Address, // Pool token 1
-      _flashLoanToken: addresses.USDT, // FlashLoanToken == token to repay
-      _bufferUnit: bufferUnit.toString(),
-      _solverHandler: ensoHandler.address,
-      _flashLoanAmount: flashLoanAmounts,
-      firstSwapData: [["0x"]], // will be empty used when repay using enso, swap flashloan token to debt token to repay
-      secondSwapData: [["0x"]], // will be empty used when repay using enso, swap collateral token to flashlaon token to pay loan back
-      _swapHandler: swapHandler.address,
-      _poolFees: poolFees.poolFees, //(used when dexRepayment is true) Pool fee should be v3 pool we want to include for swapping, flashlaon token to  underlying collateral token to flashLoanToken(current scenario swpaping btc to usdt, to repay the laon)
-      isDexRepayment: true,
-    },
-    {
-      // If only borrowed tokens, not used of below values
-      _positionWrappers: positionWrappers,
-      _amountsMin0: amount0Min,
-      _amountsMin1: amount1Min,
-      _swapDeployer: [],
-      _tokenIn: [],
-      _tokenOut: [],
-      _amountIn: [],
-      _fee: [],
-    }
-  );
+  // const tx = await withdrawManager.connect(owner4).populateTransaction.withdraw(
+  //   swapTokens,
+  //   portfolio.address,
+  //   tokenToSwapInto,
+  //   amountPortfolioToken,
+  //   responses,
+  //   0,
+  //   {
+  //     _factory: "0x30055F87716d3DFD0E5198C27024481099fB4A98",
+  //     _token0: addresses.USDT, // Pool token 0
+  //     _token1: addresses.USDC_Address, // Pool token 1
+  //     _flashLoanToken: addresses.USDT, // FlashLoanToken == token to repay
+  //     _bufferUnit: bufferUnitValue.toString(),
+  //     _solverHandler: ensoHandler.address,
+  //     _flashLoanAmount: flashLoanAmounts,
+  //     firstSwapData: [["0x"]], // will be empty used when repay using enso, swap flashloan token to debt token to repay
+  //     secondSwapData: [["0x"]], // will be empty used when repay using enso, swap collateral token to flashlaon token to pay loan back
+  //     _swapHandler: swapHandler.address,
+  //     _poolFees: poolFees.poolFees, //(used when dexRepayment is true) Pool fee should be v3 pool we want to include for swapping, flashlaon token to  underlying collateral token to flashLoanToken(current scenario swpaping btc to usdt, to repay the laon)
+  //     isDexRepayment: true,
+  //   },
+  //   {
+  //     // If only borrowed tokens, not used of below values
+  //     _positionWrappers: positionWrappers,
+  //     _amountsMin0: amount0Min,
+  //     _amountsMin1: amount1Min,
+  //     _swapDeployer: [],
+  //     _tokenIn: [],
+  //     _tokenOut: [],
+  //     _amountIn: [],
+  //     _fee: [],
+  //   }
+  // );
 
-  // Add gas settings
-  tx.gasLimit = 10000000; // Set a high gas limit for complex withdraw
-  tx.maxFeePerGas = maxFeePerGas;
-  tx.maxPriorityFeePerGas = adjustedPriorityFee;
+  // // Add gas settings
+  // tx.gasLimit = 10000000; // Set a high gas limit for complex withdraw
+  // tx.maxFeePerGas = maxFeePerGas;
+  // tx.maxPriorityFeePerGas = adjustedPriorityFee;
 
-  // Send the transaction manually
-  const sentTx = await owner4.sendTransaction(tx);
-  console.log("Transaction hash:", sentTx.hash);
-  console.log("Transaction submitted! Check BSCScan for details.");
+  // // Send the transaction manually
+  // const sentTx = await owner4.sendTransaction(tx);
+  // console.log("Transaction hash:", sentTx.hash);
+  // console.log("Transaction submitted! Check BSCScan for details.");
 
-  // Wait for the transaction to be mined
-  try {
-    const receipt = await sentTx.wait();
-    console.log("Transaction succeeded! Block:", receipt.blockNumber);
-  } catch (error) {
-    console.log("Transaction failed as expected:", error.message);
-    console.log("Check BSCScan for the failed transaction details.");
-  }
+  // // Wait for the transaction to be mined
+  // try {
+  //   const receipt = await sentTx.wait();
+  //   console.log("Transaction succeeded! Block:", receipt.blockNumber);
+  // } catch (error) {
+  //   console.log("Transaction failed as expected:", error.message);
+  //   console.log("Check BSCScan for the failed transaction details.");
+  // }
 
   console.log(
     "------------------------------ Withdraw Ended ------------------------------"

@@ -434,7 +434,7 @@ async function main(): Promise<void> {
             borrowTokens,
             tokens,
             debtRepayAmount,
-            "10", // 10 basis from thena pool fee(can be fetched from thena)
+            await portfolioCalculations.getFlashLoanFeeFromPool(thenaPoolInfo._factory, thenaPoolInfo._token0, thenaPoolInfo._token1), // 10 basis from thena pool fee(can be fetched from thena)
             bufferUnit
         );
 

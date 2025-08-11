@@ -110,11 +110,11 @@ async function main(): Promise<void> {
 
   console.log("Vault:", vault);
 
-  let sellToken = addresses.WETH_Address;
-  let buyToken = addresses.vBTC_Address;
+  let sellToken = addresses.BTC_Address;
+  let buyToken = addresses.vBNB_Address;
 
   let balance = await ERC20.attach(sellToken).balanceOf(vault);
-  let balanceToSwap = BigNumber.from(balance).div(2);
+  let balanceToSwap = BigNumber.from(balance);
   let ensoHandlerBalance = await ERC20.attach(sellToken).balanceOf(ensoHandler.address);
   let totalBalanceToSwap = balanceToSwap.add(ensoHandlerBalance);
 
@@ -153,7 +153,7 @@ async function main(): Promise<void> {
 
   console.log("------------- Updating Tokens -------------");
 
-  const newTokens = [tokens[0], tokens[1], tokens[2], buyToken]; // End state of vault
+  const newTokens = [tokens[0], tokens[1], tokens[2], tokens[3]]; // End state of vault
 
   const tx = await rebalancing.connect(owner2).populateTransaction.updateTokens({
     _newTokens: newTokens,
