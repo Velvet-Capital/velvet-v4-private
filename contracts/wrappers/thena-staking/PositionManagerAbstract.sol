@@ -419,7 +419,7 @@ abstract contract PositionManagerAbstract is
   function claimRewards(
     IFarmingCenter.IncentiveKey calldata key,
     uint256 tokenId
-  ) external notEmergencyPaused nonReentrant {
+  ) external notEmergencyPaused nonReentrant onlyAssetManager {
     // @todo set variable as constant
     IFarmingCenter(0x0cd53EeB75D72EE0E3e64206b63d7204351d08Bf)
       .collectAndClaimRewards(vault, key, tokenId);
