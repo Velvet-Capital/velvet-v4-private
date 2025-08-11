@@ -81,10 +81,11 @@ abstract contract ExternalPositionManagement is AccessRoles {
 
   /**
    * @notice Enables the Uniswap V3 wrapper if it is not already enabled and the caller has the asset manager role.
-     * @param protocolId The identifier for the protocol (e.g., keccak256("UNISWAP_V3"))
-
+   * @param protocolId The identifier for the protocol (e.g., keccak256("UNISWAP_V3"))
    */
-  function enableUniSwapV3Manager(bytes32 protocolId) external {
+
+  // @todo add vault from the portfolio to avoid user error
+  function enableUniSwapV3Manager(bytes32 protocolId, address _vault) external {
     // Ensure the caller has the asset manager role.
     if (
       !IAccessController(accessControllerAddress).hasRole(
@@ -123,6 +124,7 @@ abstract contract ExternalPositionManagement is AccessRoles {
         accessControllerAddress,
         nftManagerAddress,
         swapRouterAddress,
+        _vault,
         protocolId
       )
     );

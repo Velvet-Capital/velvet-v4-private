@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
-import { PositionManagerAbstractAlgebraV1_2, ErrorLibrary } from "./PositionManagerAbstractAlgebraV1_2.sol";
+import { PositionManagerAbstractThenaV3, ErrorLibrary } from "./PositionManagerAbstractThenaV3.sol";
 
 /**
  * @title PositionManager
  * @dev Concrete implementation of the PositionManagerAbstract contract.
  * This contract inherits all functionalities from PositionManagerAbstract and serves as the final implementation.
  */
-contract PositionManagerAlgebraV1_2 is PositionManagerAbstractAlgebraV1_2 {
+contract PositionManagerThenaV3 is PositionManagerAbstractThenaV3 {
   function init(
     address _externalPositionStorage,
     address _protocolConfig,

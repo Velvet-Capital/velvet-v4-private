@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
-import { PositionManagerAbstract, IPositionWrapper, WrapperFunctionParameters, ErrorLibrary, IERC20Upgradeable, IProtocolConfig } from "../abstract/PositionManagerAbstract.sol";
-import { INonfungiblePositionManager } from "./INonfungiblePositionManager.sol";
+import { PositionManagerAbstract, IPositionWrapper, WrapperFunctionParameters, ErrorLibrary, IERC20Upgradeable, IProtocolConfig } from "./PositionManagerAbstract.sol";
+import { INonfungiblePositionManager } from "../algebra-v1.2/INonfungiblePositionManager.sol";
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import { IFactory } from "./IFactory.sol";
+import { IFactory } from "../algebra/IFactory.sol";
 import { IPool } from "../interfaces/IPool.sol";
 import { IPriceOracle } from "../../oracle/IPriceOracle.sol";
 
@@ -39,6 +39,7 @@ abstract contract PositionManagerAlgebraBase is PositionManagerAbstract {
       _protocolConfig,
       _assetManagerConfig,
       _accessController,
+      _vault,
       _protocolId
     );
 
