@@ -37,4 +37,9 @@ contract PositionManagerThenaV3 is PositionManagerAbstractThenaV3 {
       _protocolId
     );
   }
+
+  /**
+   * @dev Allows the contract to receive ETH
+   */
+  receive() external payable {}
 }

@@ -134,6 +134,7 @@ library FunctionParameters {
     uint256 _initialPortfolioAmount;
     uint256 _minPortfolioTokenHoldingAmount;
     address _protocolConfig;
+    address _portfolio;
     address _accessController;
     address _feeModule;
     address _assetManagerTreasury;

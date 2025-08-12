@@ -18,6 +18,9 @@ import { AccessRoles } from "../../access/AccessRoles.sol";
 import { IPriceOracle } from "../../oracle/IPriceOracle.sol";
 import { IExternalPositionStorage } from "../abstract/IExternalPositionStorage.sol";
 import { IFarmingCenter } from "./IFarmingCenter.sol";
+import { INonfungiblePositionManagerThena } from "./INonfungiblePositionManagerThena.sol";
+import { IFactory } from "../algebra/IFactory.sol";
+import { IPool } from "../algebra-v1.2/IPool.sol";
 
 /**
  * @title PositionManagerAbstract
@@ -47,6 +50,9 @@ abstract contract PositionManagerAbstract is
   /// @notice List of addresses for all deployed position wrapper contracts.
   address[] public deployedPositionWrappers;
 
+  address public constant FARMING_CENTER_ADDRESS =
+    0x0cd53EeB75D72EE0E3e64206b63d7204351d08Bf;
+
   /// @notice The identifier for the protocol that this position manager supports.
   bytes32 public protocolId;
 
@@ -68,6 +74,8 @@ abstract contract PositionManagerAbstract is
     int24 tickLower,
     int24 tickUpper
   );
+  event TokenTransferredToVault(address indexed token, uint256 amount);
+  event ETHTransferredToVault(uint256 amount);
 
   /**
    * @dev Restricts function access to asset managers only.
@@ -259,6 +267,32 @@ abstract contract PositionManagerAbstract is
     emit LiquidityDecreased(msg.sender, liquidityToDecrease);
   }
 
+  /*function approveAndAddForFarming(
+    uint256 tokenId,
+    address token0,
+    address token1,
+    address rewardToken,
+    address bonusRewardToken,
+    uint256 nonce
+  ) external notEmergencyPaused nonReentrant onlyAssetManager {
+    INonfungiblePositionManagerThena(address(uniswapV3PositionManager))
+      .approveForFarming(tokenId, true, FARMING_CENTER_ADDRESS);
+
+    IFactory factory = IFactory(
+      INonfungiblePositionManager(address(uniswapV3PositionManager)).factory()
+    );
+
+    IFarmingCenter(FARMING_CENTER_ADDRESS).enterFarming(
+      IFarmingCenter.IncentiveKey({
+        rewardToken: rewardToken,
+        bonusRewardToken: bonusRewardToken,
+        pool: address(IPool(factory.poolByPair(token0, token1))),
+        nonce: nonce
+      }),
+      tokenId
+    );
+  }*/
+
   /**
    * @notice Approves the Non-Fungible Position Manager to spend tokens on behalf of this contract.
    * @param _token0 The address of token0.
@@ -416,34 +450,76 @@ abstract contract PositionManagerAbstract is
     );
   }
 
+  /*function collectFees(
+    uint256 _tokenId
+  ) external notEmergencyPaused nonReentrant onlyAssetManager {
+    // Collect the tokens released from the decrease in liquidity
+    uniswapV3PositionManager.collect(
+      INonfungiblePositionManager.CollectParams({
+        tokenId: _tokenId,
+        recipient: vault,
+        amount0Max: type(uint128).max,
+        amount1Max: type(uint128).max
+      })
+    );
+  }*/
+
+  /**
+   * @notice Claims rewards from the farming center.
+   * @param key The key of the incentive to claim rewards for.
+   * @param tokenId The ID of the token to claim rewards for.
+   */
   function claimRewards(
     IFarmingCenter.IncentiveKey calldata key,
     uint256 tokenId
   ) external notEmergencyPaused nonReentrant onlyAssetManager {
-    // @todo set variable as constant
-    IFarmingCenter(0x0cd53EeB75D72EE0E3e64206b63d7204351d08Bf)
-      .collectAndClaimRewards(vault, key, tokenId);
-  }
-
-  function transferTokenToVault(
-    address _token
-  ) external notEmergencyPaused nonReentrant onlyAssetManager {
-    IERC20Upgradeable(_token).transfer(
+    // The position manager must be the owner of the position NFT to claim rewards
+    // This function assumes the position NFT has been transferred to this contract
+    // or this contract has been approved to spend the NFT
+    IFarmingCenter(FARMING_CENTER_ADDRESS).collectAndClaimRewards(
       vault,
-      IERC20Upgradeable(_token).balanceOf(address(this))
+      key,
+      tokenId
     );
   }
 
+  /**
+   * @notice Transfers a token to the vault.
+   * @param _token The address of the token to transfer.
+   */
+  function transferTokenToVault(
+    address _token
+  ) external notEmergencyPaused nonReentrant onlyAssetManager {
+    uint256 balance = IERC20Upgradeable(_token).balanceOf(address(this));
+    if (balance == 0) return;
+
+    IERC20Upgradeable(_token).transfer(vault, balance);
+    emit TokenTransferredToVault(_token, balance);
+  }
+
+  /**
+   * @notice Transfers ETH to the vault.
+   */
   function transferETHToVault()
     external
     notEmergencyPaused
     nonReentrant
     onlyAssetManager
   {
-    (bool success, ) = vault.call{ value: address(this).balance }("");
+    uint256 balance = address(this).balance;
+    if (balance == 0) return;
+
+    (bool success, ) = vault.call{ value: balance }("");
     if (!success) revert ErrorLibrary.TransferFailed();
+    emit ETHTransferredToVault(balance);
   }
 
+  /**
+   * @notice Swaps tokens for the update range.
+   * @param _params The parameters for the swap.
+   * @return balance0 The balance of token0 after the swap.
+   * @return balance1 The balance of token1 after the swap.
+   */
   function _swapTokensForAmountUpdateRange(
     WrapperFunctionParameters.SwapParams memory _params
   ) internal returns (uint256 balance0, uint256 balance1) {

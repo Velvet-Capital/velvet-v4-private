@@ -211,6 +211,8 @@ contract PortfolioFactory is
       bytes("")
     );
 
+    ERC1967Proxy portfolio = new ERC1967Proxy(basePortfolioAddress, bytes(""));
+
     // Access Controller
     AccessController accessController = new AccessController();
     ERC1967Proxy _assetManagementConfig = new ERC1967Proxy(
@@ -226,6 +228,7 @@ contract PortfolioFactory is
           _minPortfolioTokenHoldingAmount: initData
             ._minPortfolioTokenHoldingAmount,
           _protocolConfig: protocolConfig,
+          _portfolio: address(portfolio),
           _accessController: address(accessController),
           _feeModule: address(_feeModule),
           _assetManagerTreasury: initData._assetManagerTreasury,
@@ -240,8 +243,6 @@ contract PortfolioFactory is
         })
       )
     );
-
-    ERC1967Proxy portfolio = new ERC1967Proxy(basePortfolioAddress, bytes(""));
 
     whitelistedPortfolioAddress[address(portfolio)] = true;
 

@@ -12,6 +12,7 @@ import { AccessRoles } from "../../access/AccessRoles.sol";
 import { IProtocolConfig } from "../../config/protocol/IProtocolConfig.sol";
 import { IAssetManagementConfig } from "../../config/assetManagement/IAssetManagementConfig.sol";
 import { IExternalPositionStorage } from "../../wrappers/abstract/IExternalPositionStorage.sol";
+import { IPortfolio } from "../../core/interfaces/IPortfolio.sol";
 
 /**
  * @title External Position Management
@@ -26,6 +27,7 @@ abstract contract ExternalPositionManagement is AccessRoles {
   address accessControllerAddress; // Address of the access controller for role management.
 
   address public protocolConfig; // Address of the protocol config.
+  address public portfolio; // Address of the portfolio.
 
   mapping(bytes32 => IPositionManager) public positionManagers;
 
@@ -48,6 +50,7 @@ abstract contract ExternalPositionManagement is AccessRoles {
    */
   function ExternalPositionManagement__init(
     address _protocolConfig,
+    address _portfolio,
     address _accessControllerAddress,
     address _basePositionWrapper,
     address _baseExternalPositionStorage,
@@ -70,6 +73,7 @@ abstract contract ExternalPositionManagement is AccessRoles {
     whitelistProtocols(_witelistedProtocolIds);
 
     protocolConfig = _protocolConfig;
+    portfolio = _portfolio;
   }
 
   function whitelistProtocols(bytes32[] calldata protocolIds) internal {
@@ -85,7 +89,7 @@ abstract contract ExternalPositionManagement is AccessRoles {
    */
 
   // @todo add vault from the portfolio to avoid user error
-  function enableUniSwapV3Manager(bytes32 protocolId, address _vault) external {
+  function enableUniSwapV3Manager(bytes32 protocolId) external {
     // Ensure the caller has the asset manager role.
     if (
       !IAccessController(accessControllerAddress).hasRole(
@@ -124,7 +128,7 @@ abstract contract ExternalPositionManagement is AccessRoles {
         accessControllerAddress,
         nftManagerAddress,
         swapRouterAddress,
-        _vault,
+        IPortfolio(portfolio).vault(),
         protocolId
       )
     );
