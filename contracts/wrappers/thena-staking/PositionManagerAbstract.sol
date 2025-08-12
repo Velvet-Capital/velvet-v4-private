@@ -267,31 +267,23 @@ abstract contract PositionManagerAbstract is
     emit LiquidityDecreased(msg.sender, liquidityToDecrease);
   }
 
-  /*function approveAndAddForFarming(
+  function _approveAndAddForFarming(
     uint256 tokenId,
-    address token0,
-    address token1,
+    address pool,
     address rewardToken,
     address bonusRewardToken,
     uint256 nonce
-  ) external notEmergencyPaused nonReentrant onlyAssetManager {
-    INonfungiblePositionManagerThena(address(uniswapV3PositionManager))
-      .approveForFarming(tokenId, true, FARMING_CENTER_ADDRESS);
-
-    IFactory factory = IFactory(
-      INonfungiblePositionManager(address(uniswapV3PositionManager)).factory()
-    );
-
+  ) external {
     IFarmingCenter(FARMING_CENTER_ADDRESS).enterFarming(
       IFarmingCenter.IncentiveKey({
         rewardToken: rewardToken,
         bonusRewardToken: bonusRewardToken,
-        pool: address(IPool(factory.poolByPair(token0, token1))),
+        pool: pool,
         nonce: nonce
       }),
       tokenId
     );
-  }*/
+  }
 
   /**
    * @notice Approves the Non-Fungible Position Manager to spend tokens on behalf of this contract.
@@ -440,19 +432,10 @@ abstract contract PositionManagerAbstract is
     );
 
     // Collect the tokens released from the decrease in liquidity
-    uniswapV3PositionManager.collect(
-      INonfungiblePositionManager.CollectParams({
-        tokenId: _tokenId,
-        recipient: _recipient,
-        amount0Max: type(uint128).max,
-        amount1Max: type(uint128).max
-      })
-    );
+    _collectFees(_tokenId);
   }
 
-  /*function collectFees(
-    uint256 _tokenId
-  ) external notEmergencyPaused nonReentrant onlyAssetManager {
+  function _collectFees(uint256 _tokenId) internal {
     // Collect the tokens released from the decrease in liquidity
     uniswapV3PositionManager.collect(
       INonfungiblePositionManager.CollectParams({
@@ -462,7 +445,14 @@ abstract contract PositionManagerAbstract is
         amount1Max: type(uint128).max
       })
     );
-  }*/
+  }
+
+  function collectFees(
+    uint256 _tokenId
+  ) external notEmergencyPaused nonReentrant onlyAssetManager {
+    // Collect the tokens released from the decrease in liquidity
+    _collectFees(_tokenId);
+  }
 
   /**
    * @notice Claims rewards from the farming center.
