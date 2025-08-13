@@ -210,7 +210,7 @@ async function main(): Promise<void> {
   // await swapHandlerV3.deployed();
 
   // await sleep(2000); // 2 seconds
-  const ProtocolConfig = await ethers.getContractFactory("ProtocolConfig");
+  // const ProtocolConfig = await ethers.getContractFactory("ProtocolConfig");
   const protocolConfig = await ethers.getContractAt(
     "ProtocolConfig",
     "0xE4Bf904bbB3E4013c845A18e1C6F8FA99316945f",
@@ -345,18 +345,18 @@ async function main(): Promise<void> {
 
   // await sleep(2000); // 2 seconds
 
-  // const AmountCalculationsAlgebra = await ethers.getContractFactory(
-  //   "AmountCalculationsAlgebraV2"
-  // );
-  // const amountCalculationsAlgebra = await AmountCalculationsAlgebra.deploy();
-  // await amountCalculationsAlgebra.deployed();
+  const AmountCalculationsAlgebra = await ethers.getContractFactory(
+    "AmountCalculationsAlgebraV2"
+  );
+  const amountCalculationsAlgebra = await AmountCalculationsAlgebra.deploy();
+  await amountCalculationsAlgebra.deployed();
 
-  // console.log(
-  //   "amountCalculationsAlgebra address:",
-  //   amountCalculationsAlgebra.address
-  // );
+  console.log(
+    "amountCalculationsAlgebra address:",
+    amountCalculationsAlgebra.address
+  );
 
-  // safeVerify("AmountCalculationsAlgebraV2", amountCalculationsAlgebra.address);
+  safeVerify("AmountCalculationsAlgebraV2", amountCalculationsAlgebra.address);
 
 
   // const AssetManagementConfig = await ethers.getContractFactory(
