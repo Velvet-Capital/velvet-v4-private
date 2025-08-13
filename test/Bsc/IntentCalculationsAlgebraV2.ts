@@ -253,7 +253,7 @@ export async function increaseLiquidity(
   await swapVerificationLibrary.deployed();
 
   const PositionManager = await ethers.getContractFactory(
-    "PositionManagerAlgebraV1_2",
+    "PositionManagerThenaV3",
     {
       libraries: {
         SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
@@ -299,7 +299,7 @@ export async function decreaseLiquidity(
   await swapVerificationLibrary.deployed();
 
   const PositionManager = await ethers.getContractFactory(
-    "PositionManagerAlgebraV1_2",
+    "PositionManagerThenaV3",
     {
       libraries: {
         SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
@@ -394,7 +394,7 @@ export async function calculateSwapAmountUpdateRange(
   await swapVerificationLibrary.deployed();
 
   const PositionManager = await ethers.getContractFactory(
-    "PositionManagerAlgebraV1_2",
+    "PositionManagerThenaV3",
     {
       libraries: {
         SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,

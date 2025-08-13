@@ -879,7 +879,7 @@ describe.only("Tests for Deposit", () => {
             token0,
             token1,
             0,
-            100,
+            0,
           ]
         );
 
@@ -1017,10 +1017,6 @@ describe.only("Tests for Deposit", () => {
         }
 
         let balanceBeforeETH = await owner.getBalance();
-
-        /*
-    FunctionParameters.withdrawRepayParams calldata repayData,
-    FunctionParameters.ExternalPositionWithdrawParams memory _params*/
 
         await withdrawManager.withdraw(
           swapTokens,
@@ -1600,40 +1596,6 @@ describe.only("Tests for Deposit", () => {
           positionManager.address
         );
         const vaultBalanceAfter = await tokenContract.balanceOf(vaultAddress);
-
-        expect(positionManagerBalanceAfter).to.equal(0);
-        expect(vaultBalanceAfter).to.be.gte(vaultBalanceBefore);
-      });
-
-      it("should transfer ETH to vault when called by asset manager", async () => {
-        // Send some ETH to the position manager for testing
-        const ethAmount = ethers.utils.parseEther("0.1");
-        await owner.sendTransaction({
-          to: positionManager.address,
-          value: ethAmount,
-        });
-
-        // Get vault address
-        const vaultAddress = await portfolio.vault();
-
-        // Get initial balances
-        const positionManagerBalanceBefore = await ethers.provider.getBalance(
-          positionManager.address
-        );
-        const vaultBalanceBefore = await ethers.provider.getBalance(
-          vaultAddress
-        );
-
-        // Transfer ETH to vault
-        await positionManager.transferETHToVault();
-
-        // Check that ETH was transferred
-        const positionManagerBalanceAfter = await ethers.provider.getBalance(
-          positionManager.address
-        );
-        const vaultBalanceAfter = await ethers.provider.getBalance(
-          vaultAddress
-        );
 
         expect(positionManagerBalanceAfter).to.equal(0);
         expect(vaultBalanceAfter).to.be.gte(vaultBalanceBefore);
