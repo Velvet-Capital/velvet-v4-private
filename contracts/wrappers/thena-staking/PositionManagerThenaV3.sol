@@ -4,8 +4,9 @@ pragma solidity 0.8.17;
 import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/utils/UUPSUpgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable-4.9.6/security/ReentrancyGuardUpgradeable.sol";
-import { TransferHelper } from "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import { INonfungiblePositionManager } from "../algebra-v1.2/INonfungiblePositionManager.sol";
+import { ISwapRouter } from "../algebra-v1.2/ISwapRouter.sol";
+import { SwapVerificationLibraryAlgebraV2 } from "../algebra-v1.2/SwapVerificationLibraryAlgebraV2.sol";
 import { TokenCalculations } from "../../core/calculations/TokenCalculations.sol";
 import { ErrorLibrary } from "../../library/ErrorLibrary.sol";
 import { IPositionWrapper } from "../abstract/IPositionWrapper.sol";
@@ -15,23 +16,19 @@ import { IAssetManagementConfig } from "../../config/assetManagement/IAssetManag
 import { IProtocolConfig } from "../../config/protocol/IProtocolConfig.sol";
 import { IAccessController } from "../../access/IAccessController.sol";
 import { AccessRoles } from "../../access/AccessRoles.sol";
-import { IPriceOracle } from "../../oracle/IPriceOracle.sol";
 import { IExternalPositionStorage } from "../abstract/IExternalPositionStorage.sol";
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import { SwapVerificationLibraryAlgebraV2 } from "../algebra-v1.2/SwapVerificationLibraryAlgebraV2.sol";
 import { FunctionParameters } from "../../FunctionParameters.sol";
-import { ISwapRouter } from "../algebra-v1.2/ISwapRouter.sol";
-import { IFactory } from "../algebra/IFactory.sol";
-import { IPool } from "../interfaces/IPool.sol";
-import { IERC20MetadataUpgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import { IFarmingCenter } from "./IFarmingCenter.sol";
 import { INonfungiblePositionManagerThena } from "./INonfungiblePositionManagerThena.sol";
 
+// Import our comprehensive library
+import { ThenaPositionLibrary } from "./libraries/ThenaPositionLibrary.sol";
+
 /**
- * @title PositionManagerThenaV3Copy
- * @notice Flattened version of PositionManagerAlgebraV1_2 with all parent contracts consolidated
- * @dev This contract combines PositionManagerAlgebraV1_2, PositionManagerAbstractAlgebraV1_2,
- * PositionManagerAlgebraBase, and PositionManagerAbstract into a single contract
+ * @title PositionManagerThenaV3Optimized
+ * @notice Optimized version of PositionManagerThenaV3 using libraries to reduce contract size
+ * @dev This contract uses libraries to manage liquidity, token operations, position management, and swaps
  */
 contract PositionManagerThenaV3 is
   UUPSUpgradeable,
@@ -39,6 +36,8 @@ contract PositionManagerThenaV3 is
   ReentrancyGuardUpgradeable,
   AccessRoles
 {
+  using ThenaPositionLibrary for *;
+
   /// @dev Reference to the Uniswap V3 Non-Fungible Position Manager for managing liquidity positions.
   INonfungiblePositionManager internal uniswapV3PositionManager;
 
@@ -184,7 +183,14 @@ contract PositionManagerThenaV3 is
     );
 
     // Initialize the Uniswap V3 position with specified liquidity and mint wrapper tokens
-    _initializePositionAndDeposit(_dustReceiver, positionWrapper, params);
+    ThenaPositionLibrary.initializePositionAndDeposit(
+      _dustReceiver,
+      positionWrapper,
+      params,
+      uniswapV3PositionManager
+    );
+
+    emit PositionInitializedAndDeposited(address(positionWrapper));
 
     // Return the address of the new wrapper position
     return address(positionWrapper);
@@ -192,7 +198,6 @@ contract PositionManagerThenaV3 is
 
   /**
    * @notice Initializes a new Uniswap V3 position with liquidity for the first time and mints wrapper tokens.
-   * @notice Adjusts the price range and liquidity of an existing Algebra V3 position.
    * @param _positionWrapper The wrapper of the position to be adjusted.
    * @param params The liquidity parameters including the desired amounts of token0 and token1, and slippage protections.
    */
@@ -202,7 +207,7 @@ contract PositionManagerThenaV3 is
     WrapperFunctionParameters.InitialMintParamsAlgebra memory params
   ) external notPaused nonReentrant {
     // Mint the new Algebra V3 position using the provided liquidity parameters.
-    _initializePositionAndDeposit(
+    ThenaPositionLibrary.initializePositionAndDeposit(
       _dustReceiver,
       _positionWrapper,
       WrapperFunctionParameters.PositionMintParamsAlgebra({
@@ -213,8 +218,11 @@ contract PositionManagerThenaV3 is
         _tickLower: _positionWrapper.initialTickLower(),
         _tickUpper: _positionWrapper.initialTickUpper(),
         _deployer: params._deployer
-      })
+      }),
+      uniswapV3PositionManager
     );
+
+    emit PositionInitializedAndDeposited(address(_positionWrapper));
   }
 
   /**
@@ -232,18 +240,23 @@ contract PositionManagerThenaV3 is
     address token1 = params._positionWrapper.token1();
 
     // Retrieve existing liquidity to be removed.
-    uint128 existingLiquidity = _getExistingLiquidity(tokenId);
-
-    // Remove all liquidity and collect the underlying tokens to this contract.
-    _decreaseLiquidityAndCollect(
-      existingLiquidity,
+    uint128 existingLiquidity = ThenaPositionLibrary.getExistingLiquidity(
       tokenId,
-      params._underlyingAmountOut0, // Minimal acceptable token amounts set to 1 as a formality; all liquidity is being removed.
-      params._underlyingAmountOut1,
-      address(this)
+      uniswapV3PositionManager
     );
 
-    _swapTokensForAmountUpdateRange(
+    // Remove all liquidity and collect the underlying tokens to this contract.
+    ThenaPositionLibrary.decreaseLiquidityAndCollect(
+      existingLiquidity,
+      tokenId,
+      params._underlyingAmountOut0,
+      params._underlyingAmountOut1,
+      address(this),
+      uniswapV3PositionManager
+    );
+
+    // Use library function for swap with proper verification
+    ThenaPositionLibrary.swapTokensForAmountUpdateRange(
       WrapperFunctionParameters.SwapParams({
         _positionWrapper: params._positionWrapper,
         _tokenId: tokenId,
@@ -256,22 +269,61 @@ contract PositionManagerThenaV3 is
         _tickLower: params._tickLower,
         _tickUpper: params._tickUpper,
         _fee: params._fee
-      })
+      }),
+      router,
+      protocolConfig,
+      uniswapV3PositionManager
     );
 
-    // Mint a new position with the adjusted range and fee, using the tokens just collected.
-    (uint256 newTokenId, ) = _mintNewUniswapPosition(
-      params._positionWrapper,
-      WrapperFunctionParameters.PositionMintParamsAlgebra({
-        _amount0Desired: IERC20Upgradeable(token0).balanceOf(address(this)),
-        _amount1Desired: IERC20Upgradeable(token1).balanceOf(address(this)),
+    // Get token balances first to reduce stack variables
+    uint256 amount0 = ThenaPositionLibrary.getTokenBalance(
+      token0,
+      address(this)
+    );
+    uint256 amount1 = ThenaPositionLibrary.getTokenBalance(
+      token1,
+      address(this)
+    );
+
+    // Create mint params separately to reduce stack depth
+    WrapperFunctionParameters.PositionMintParamsAlgebra
+      memory mintParams = WrapperFunctionParameters.PositionMintParamsAlgebra({
+        _amount0Desired: amount0,
+        _amount1Desired: amount1,
         _amount0Min: 0,
         _amount1Min: 0,
         _tickLower: params._tickLower,
         _tickUpper: params._tickUpper,
         _deployer: params._deployer
-      })
+      });
+
+    // Approve tokens to position manager before minting
+    IERC20Upgradeable(token0).approve(
+      address(uniswapV3PositionManager),
+      amount0
     );
+    IERC20Upgradeable(token1).approve(
+      address(uniswapV3PositionManager),
+      amount1
+    );
+
+    // Inline mint logic to avoid library call stack overhead
+    INonfungiblePositionManager.MintParams
+      memory nftMintParams = INonfungiblePositionManager.MintParams({
+        token0: params._positionWrapper.token0(),
+        token1: params._positionWrapper.token1(),
+        deployer: mintParams._deployer,
+        tickLower: mintParams._tickLower,
+        tickUpper: mintParams._tickUpper,
+        amount0Desired: mintParams._amount0Desired,
+        amount1Desired: mintParams._amount1Desired,
+        amount0Min: mintParams._amount0Min,
+        amount1Min: mintParams._amount1Min,
+        recipient: address(this),
+        deadline: block.timestamp
+      });
+
+    (uint256 newTokenId, , , ) = uniswapV3PositionManager.mint(nftMintParams);
 
     // Update the wrapper with the new token ID to reflect the repositioned state.
     params._positionWrapper.updateTokenId(
@@ -323,7 +375,8 @@ contract PositionManagerThenaV3 is
       !protocolConfig.isTokenEnabled(_token1)
     ) revert ErrorLibrary.TokenNotEnabled();
 
-    (address token0, address token1) = _getTokensInPoolOrder(_token0, _token1);
+    (address token0, address token1) = ThenaPositionLibrary
+      .getTokensInPoolOrder(_token0, _token1, uniswapV3PositionManager);
 
     // Deploy and initialize the position wrapper.
     ERC1967Proxy positionWrapperProxy = new ERC1967Proxy(
@@ -367,62 +420,9 @@ contract PositionManagerThenaV3 is
       _params._dustReceiver == address(0)
     ) revert ErrorLibrary.InvalidAddress();
 
-    uint256 tokenId = _params._positionWrapper.tokenId();
-    address token0 = _params._positionWrapper.token0();
-    address token1 = _params._positionWrapper.token1();
-
-    // Record balances of token0 and token1 before the transfer to calculate dust later.
-    uint256 balance0Before = IERC20Upgradeable(token0).balanceOf(address(this));
-    uint256 balance1Before = IERC20Upgradeable(token1).balanceOf(address(this));
-
-    // Transfer the desired liquidity tokens from the caller to this contract.
-    _transferTokensFromSender(
-      token0,
-      token1,
-      _params._amount0Desired,
-      _params._amount1Desired
-    );
-
-    uint256 balance0After = IERC20Upgradeable(token0).balanceOf(address(this));
-    uint256 balance1After = IERC20Upgradeable(token1).balanceOf(address(this));
-
-    _params._amount0Desired = balance0After - balance0Before;
-    _params._amount1Desired = balance1After - balance1Before;
-
-    // Approve the Uniswap manager to use the tokens for liquidity.
-    _approveNonFungiblePositionManager(
-      token0,
-      token1,
-      _params._amount0Desired,
-      _params._amount1Desired
-    );
-
-    // Increase liquidity at the position.
-    (uint128 liquidity, , ) = uniswapV3PositionManager.increaseLiquidity(
-      INonfungiblePositionManager.IncreaseLiquidityParams({
-        tokenId: tokenId,
-        amount0Desired: _params._amount0Desired,
-        amount1Desired: _params._amount1Desired,
-        amount0Min: _params._amount0Min,
-        amount1Min: _params._amount1Min,
-        deadline: block.timestamp
-      })
-    );
-
-    // Mint wrapper tokens corresponding to the liquidity added.
-    _mintTokens(_params._positionWrapper, tokenId, liquidity);
-
-    // Calculate token balances after the operation to determine any remaining dust.
-    balance0After = IERC20Upgradeable(token0).balanceOf(address(this));
-    balance1After = IERC20Upgradeable(token1).balanceOf(address(this));
-
-    // Return any dust to the caller.
-    _returnDust(
-      _params._dustReceiver,
-      token0,
-      token1,
-      balance0After - balance0Before,
-      balance1After - balance1Before
+    uint128 liquidity = ThenaPositionLibrary.handleLiquidityIncrease(
+      _params,
+      uniswapV3PositionManager
     );
 
     emit LiquidityIncreased(msg.sender, liquidity);
@@ -472,17 +472,20 @@ contract PositionManagerThenaV3 is
 
     // Calculate the proportionate amount of liquidity to decrease based on the total supply and withdrawal amount.
     uint128 liquidityToDecrease = MathUtils.safe128(
-      (_getExistingLiquidity(tokenId) * _withdrawalAmount) /
-        totalSupplyBeforeBurn
+      (ThenaPositionLibrary.getExistingLiquidity(
+        tokenId,
+        uniswapV3PositionManager
+      ) * _withdrawalAmount) / totalSupplyBeforeBurn
     );
 
     // Execute the decrease liquidity operation and collect the freed assets.
-    _decreaseLiquidityAndCollect(
+    ThenaPositionLibrary.decreaseLiquidityAndCollect(
       liquidityToDecrease,
       tokenId,
       _amount0Min,
       _amount1Min,
-      msg.sender
+      msg.sender,
+      uniswapV3PositionManager
     );
 
     emit LiquidityDecreased(msg.sender, liquidityToDecrease);
@@ -511,9 +514,6 @@ contract PositionManagerThenaV3 is
     IFarmingCenter.IncentiveKey calldata key,
     uint256 tokenId
   ) external notEmergencyPaused nonReentrant onlyAssetManager {
-    // The position manager must be the owner of the position NFT to claim rewards
-    // This function assumes the position NFT has been transferred to this contract
-    // or this contract has been approved to spend the NFT
     IFarmingCenter(FARMING_CENTER_ADDRESS).collectAndClaimRewards(
       vault,
       key,
@@ -548,10 +548,13 @@ contract PositionManagerThenaV3 is
   function transferTokenToVault(
     address _token
   ) external notEmergencyPaused nonReentrant onlyAssetManager {
-    uint256 balance = IERC20Upgradeable(_token).balanceOf(address(this));
+    uint256 balance = ThenaPositionLibrary.getTokenBalance(
+      _token,
+      address(this)
+    );
     if (balance == 0) return;
 
-    IERC20Upgradeable(_token).transfer(vault, balance);
+    ThenaPositionLibrary.transferToken(_token, vault, balance);
     emit TokenTransferredToVault(_token, balance);
   }
 
@@ -567,507 +570,8 @@ contract PositionManagerThenaV3 is
     uint256 balance = address(this).balance;
     if (balance == 0) return;
 
-    (bool success, ) = vault.call{ value: balance }("");
-    if (!success) revert ErrorLibrary.TransferFailed();
+    ThenaPositionLibrary.transferETH(vault, balance);
     emit ETHTransferredToVault(balance);
-  }
-
-  /**
-   * @dev Initializes the position and deposits tokens into it while taking care of dust returns.
-   * @param _dustReceiver Address to send any excess tokens.
-   * @param _positionWrapper Wrapper contract of the position.
-   * @param params Parameters for the position including amounts and ticks.
-   */
-  function _initializePositionAndDeposit(
-    address _dustReceiver,
-    IPositionWrapper _positionWrapper,
-    WrapperFunctionParameters.PositionMintParamsAlgebra memory params
-  ) internal {
-    address token0 = _positionWrapper.token0();
-    address token1 = _positionWrapper.token1();
-
-    // Record balances of token0 and token1 before the transfer to calculate dust later.
-    uint256 balance0Before = IERC20Upgradeable(token0).balanceOf(address(this));
-    uint256 balance1Before = IERC20Upgradeable(token1).balanceOf(address(this));
-
-    // Transfer the specified amounts of token0 and token1 from the sender to this contract.
-    _transferTokensFromSender(
-      token0,
-      token1,
-      params._amount0Desired,
-      params._amount1Desired
-    );
-
-    uint256 balance0After = IERC20Upgradeable(token0).balanceOf(address(this));
-    uint256 balance1After = IERC20Upgradeable(token1).balanceOf(address(this));
-
-    params._amount0Desired = balance0After - balance0Before;
-    params._amount1Desired = balance1After - balance1Before;
-
-    // Mint the new Uniswap V3 position using the provided liquidity parameters.
-    (uint256 tokenId, uint128 liquidity) = _mintNewUniswapPosition(
-      _positionWrapper,
-      params
-    );
-
-    // Set the token ID of the newly minted Uniswap V3 position in the wrapper.
-    _positionWrapper.setTokenId(tokenId);
-
-    // Mint wrapper tokens equivalent to the amount of liquidity added to the Uniswap position.
-    _positionWrapper.mint(msg.sender, liquidity);
-
-    // Calculate the difference in token balances to determine dust.
-    balance0After = IERC20Upgradeable(token0).balanceOf(address(this));
-    balance1After = IERC20Upgradeable(token1).balanceOf(address(this));
-
-    // Return any excess tokens (dust) that weren't used in liquidity addition back to the sender.
-    _returnDust(
-      _dustReceiver,
-      token0,
-      token1,
-      balance0After - balance0Before,
-      balance1After - balance1Before
-    );
-
-    emit PositionInitializedAndDeposited(address(_positionWrapper));
-  }
-
-  /**
-   * @dev Mints a new Uniswap V3 position with specific liquidity parameters.
-   * @param _positionWrapper Wrapper of the position.
-   * @param params Liquidity parameters including token amounts and price range.
-   * @return tokenId ID of the new Uniswap position.
-   * @return liquidity Amount of liquidity added.
-   */
-  function _mintNewUniswapPosition(
-    IPositionWrapper _positionWrapper,
-    WrapperFunctionParameters.PositionMintParamsAlgebra memory params
-  ) internal returns (uint256 tokenId, uint128 liquidity) {
-    address token0 = _positionWrapper.token0();
-    address token1 = _positionWrapper.token1();
-
-    // Approve the Uniswap V3 Non-Fungible Position Manager to use the tokens needed for the new position.
-    _approveNonFungiblePositionManager(
-      token0,
-      token1,
-      params._amount0Desired,
-      params._amount1Desired
-    );
-
-    // Mint the new position using the specified parameters and return the tokenId and liquidity amount.
-    (tokenId, liquidity, , ) = INonfungiblePositionManager(
-      address(uniswapV3PositionManager)
-    ).mint(
-        INonfungiblePositionManager.MintParams({
-          token0: token0,
-          token1: token1,
-          deployer: params._deployer,
-          tickLower: params._tickLower,
-          tickUpper: params._tickUpper,
-          amount0Desired: params._amount0Desired,
-          amount1Desired: params._amount1Desired,
-          amount0Min: params._amount0Min,
-          amount1Min: params._amount1Min,
-          recipient: address(this),
-          deadline: block.timestamp
-        })
-      );
-  }
-
-  /**
-   * @notice Approves the Non-Fungible Position Manager to spend tokens on behalf of this contract.
-   * @param _token0 The address of token0.
-   * @param _token1 The address of token1.
-   * @param _amount0 The amount of token0 to approve.
-   * @param _amount1 The amount of token1 to approve.
-   */
-  function _approveNonFungiblePositionManager(
-    address _token0,
-    address _token1,
-    uint256 _amount0,
-    uint256 _amount1
-  ) internal {
-    // Reset the allowance for token1 to zero before setting it to a new value
-    _safeApprove(_token0, address(uniswapV3PositionManager), _amount0);
-    _safeApprove(_token1, address(uniswapV3PositionManager), _amount1);
-  }
-
-  /**
-   * @notice Transfers specified amounts of token0 and token1 from the sender to this contract.
-   * @dev Uses the TransferHelper library to safely transfer tokens from the function caller to this contract.
-   *      This function is typically used to prepare tokens for liquidity operations in Uniswap V3.
-   * @param _token0 The contract address of the first token (token0).
-   * @param _token1 The contract address of the second token (token1).
-   * @param _amount0 The amount of token0 to transfer from the sender to this contract.
-   * @param _amount1 The amount of token1 to transfer from the sender to this contract.
-   */
-  function _transferTokensFromSender(
-    address _token0,
-    address _token1,
-    uint256 _amount0,
-    uint256 _amount1
-  ) internal {
-    // Safely transfer token0 from the sender to this contract.
-
-    if (_amount0 > 0) {
-      TransferHelper.safeTransferFrom(
-        _token0,
-        msg.sender,
-        address(this),
-        _amount0
-      );
-    }
-
-    // Safely transfer token1 from the sender to this contract.
-    if (_amount1 > 0) {
-      TransferHelper.safeTransferFrom(
-        _token1,
-        msg.sender,
-        address(this),
-        _amount1
-      );
-    }
-  }
-
-  /**
-   * @notice Helper function to safely approve a token for a spender.
-   * @param token The address of the token to approve.
-   * @param spender The address of the spender.
-   * @param amount The amount to approve.
-   */
-  function _safeApprove(
-    address token,
-    address spender,
-    uint256 amount
-  ) internal virtual {
-    try IERC20Upgradeable(token).approve(spender, 0) {} catch {}
-    TransferHelper.safeApprove(token, spender, amount);
-  }
-
-  /**
-   * @notice Returns any excess tokens to the sender after operations are completed.
-   * @param _token0 The address of token0.
-   * @param _token1 The address of token1.
-   * @param _amount0 The amount of token0 to return.
-   * @param _amount1 The amount of token1 to return.
-   */
-  function _returnDust(
-    address _dustReceiver,
-    address _token0,
-    address _token1,
-    uint256 _amount0,
-    uint256 _amount1
-  ) internal {
-    if (_amount0 > 0)
-      TransferHelper.safeTransfer(_token0, _dustReceiver, _amount0);
-    if (_amount1 > 0)
-      TransferHelper.safeTransfer(_token1, _dustReceiver, _amount1);
-  }
-
-  /**
-   * @notice Mints wrapper tokens corresponding to the provided liquidity in the Uniswap V3 position.
-   * @dev Calculates the amount of wrapper tokens to mint based on the liquidity added.
-   *      If it's the first time liquidity is added, the mint amount equals the liquidity.
-   *      Otherwise, it calculates a share based on existing liquidity.
-   * @param _positionWrapper The position wrapper associated with the Uniswap V3 position.
-   * @param _tokenId The ID of the Uniswap V3 position token.
-   * @param _liquidity The amount of liquidity that has been added to the position.
-   */
-  function _mintTokens(
-    IPositionWrapper _positionWrapper,
-    uint256 _tokenId,
-    uint128 _liquidity
-  ) internal {
-    uint256 totalSupply = _positionWrapper.totalSupply();
-    uint256 mintAmount;
-
-    // If this is the first liquidity being added, mint tokens equal to the amount of liquidity.
-    if (totalSupply == 0) {
-      mintAmount = _liquidity;
-    } else {
-      // Calculate the proportionate amount of tokens to mint based on the added liquidity.
-      uint256 userShare = (_liquidity * ONE_ETH_IN_WEI) /
-        _getExistingLiquidity(_tokenId);
-      mintAmount = _calculateMintAmount(userShare, totalSupply);
-    }
-
-    // Mint the calculated amount of wrapper tokens to the sender.
-    _positionWrapper.mint(msg.sender, mintAmount);
-  }
-
-  /**
-   * @notice Decreases liquidity and collects the tokens from a Uniswap V3 position.
-   * @param _liquidityToDecrease The amount of liquidity to decrease.
-   * @param _tokenId The ID of the Uniswap V3 position.
-   * @param _amount0Min The minimum amount of token0 that must be returned.
-   * @param _amount1Min The minimum amount of token1 that must be returned.
-   * @param _recipient The address that will receive the withdrawn tokens.
-   */
-  function _decreaseLiquidityAndCollect(
-    uint128 _liquidityToDecrease,
-    uint256 _tokenId,
-    uint256 _amount0Min,
-    uint256 _amount1Min,
-    address _recipient
-  ) internal {
-    // Decrease liquidity at Uniswap V3 Nonfungible Position Manager
-    uniswapV3PositionManager.decreaseLiquidity(
-      INonfungiblePositionManager.DecreaseLiquidityParams({
-        tokenId: _tokenId,
-        liquidity: _liquidityToDecrease,
-        amount0Min: _amount0Min,
-        amount1Min: _amount1Min,
-        deadline: block.timestamp
-      })
-    );
-
-    // Collect the tokens released from the decrease in liquidity
-    uniswapV3PositionManager.collect(
-      INonfungiblePositionManager.CollectParams({
-        tokenId: _tokenId,
-        recipient: _recipient,
-        amount0Max: type(uint128).max,
-        amount1Max: type(uint128).max
-      })
-    );
-  }
-
-  /**
-   * @dev Handles swapping tokens to achieve a desired pool ratio.
-   * @param _params Parameters including tokens and amounts for the swap.
-   * @return balance0 Updated balance of token0.
-   * @return balance1 Updated balance of token1.
-   */
-  function _swapTokensForAmountUpdateRange(
-    WrapperFunctionParameters.SwapParams memory _params
-  ) internal returns (uint256 balance0, uint256 balance1) {
-    // Swap tokens to the token0 or token1 pool ratio
-    if (_params._amountIn > 0) {
-      (balance0, balance1) = _swapTokenToToken(_params);
-    } else {
-      _verifyZeroSwapAmount(protocolConfig, _params);
-    }
-  }
-
-  /**
-   * @dev Retrieves tokens in the correct pool order.
-   * @param _token0 First token address.
-   * @param _token1 Second token address.
-   * @return token0 Token address that is token0 in the pool.
-   * @return token1 Token address that is token1 in the pool.
-   */
-  function _getTokensInPoolOrder(
-    address _token0,
-    address _token1
-  ) internal view returns (address token0, address token1) {
-    IFactory factory = IFactory(
-      INonfungiblePositionManager(address(uniswapV3PositionManager)).factory()
-    );
-    IPool pool = IPool(factory.poolByPair(_token0, _token1));
-
-    token0 = pool.token0();
-    token1 = pool.token1();
-  }
-
-  /**
-   * @dev Retrieves the tokens owed amounts for a given position.
-   * @param _tokenId Identifier of the Uniswap position.
-   * @return tokensOwed0 Amount of token0 owed.
-   * @return tokensOwed1 Amount of token1 owed.
-   */
-  function _getTokensOwed(
-    uint256 _tokenId
-  ) internal view returns (uint128 tokensOwed0, uint128 tokensOwed1) {
-    (
-      ,
-      ,
-      ,
-      ,
-      ,
-      ,
-      ,
-      ,
-      ,
-      ,
-      tokensOwed0,
-      tokensOwed1
-    ) = INonfungiblePositionManager(address(uniswapV3PositionManager))
-      .positions(_tokenId);
-  }
-
-  /**
-   * @dev Retrieves the tick bounds for a given position.
-   * @param _tokenId Identifier of the Uniswap position.
-   * @return tickLower Lower tick of the position.
-   * @return tickUpper Upper tick of the position.
-   */
-  function _getTicksFromPosition(
-    uint256 _tokenId
-  ) internal view returns (int24 tickLower, int24 tickUpper) {
-    (, , , , , tickLower, tickUpper, , , , , ) = INonfungiblePositionManager(
-      address(uniswapV3PositionManager)
-    ).positions(_tokenId);
-  }
-
-  /**
-   * @notice Retrieves the current liquidity amount for a given position.
-   * @param _tokenId The ID of the position.
-   * @return existingLiquidity The current amount of liquidity in the position.
-   */
-  function _getExistingLiquidity(
-    uint256 _tokenId
-  ) internal view returns (uint128 existingLiquidity) {
-    (, , , , , , , existingLiquidity, , , , ) = INonfungiblePositionManager(
-      address(uniswapV3PositionManager)
-    ).positions(_tokenId);
-  }
-
-  function _verifySwap(
-    uint256 _amountIn,
-    uint256 /* _balanceTokenInBeforeSwap */,
-    uint256 _balanceTokenOutBeforeSwap,
-    address _tokenIn,
-    address _tokenOut,
-    address /* _uniswapV3PositionManager */
-  ) internal view {
-    SwapVerificationLibraryAlgebraV2.verifySwap(
-      _tokenIn,
-      _tokenOut,
-      _amountIn,
-      IERC20Upgradeable(_tokenOut).balanceOf(address(this)) -
-        _balanceTokenOutBeforeSwap,
-      protocolConfig.acceptedSlippageFeeReinvestment(),
-      IPriceOracle(protocolConfig.oracle())
-    );
-  }
-
-  function _verifyRatioAfterSwap(
-    WrapperFunctionParameters.SwapParams memory _params,
-    uint256 _balanceTokenInBeforeSwap,
-    address _tokenIn,
-    address /* _uniswapV3PositionManager */
-  ) internal returns (uint256 balance0, uint256 balance1) {
-    (balance0, balance1) = SwapVerificationLibraryAlgebraV2
-      .verifyRatioAfterSwap(
-        protocolConfig,
-        _params._positionWrapper,
-        address(uniswapV3PositionManager),
-        _params._tickLower,
-        _params._tickUpper,
-        _params._token0,
-        _params._token1,
-        _tokenIn,
-        _balanceTokenInBeforeSwap,
-        IERC20Upgradeable(_tokenIn).balanceOf(address(this))
-      );
-  }
-
-  function _verifyZeroSwapAmount(
-    IProtocolConfig _protocolConfig,
-    WrapperFunctionParameters.SwapParams memory _params
-  ) internal {
-    SwapVerificationLibraryAlgebraV2.verifyZeroSwapAmount(
-      _protocolConfig,
-      _params,
-      address(uniswapV3PositionManager)
-    );
-  }
-
-  /**
-   * @dev Executes a token swap via a router.
-   * @param _params Swap parameters including input and output tokens and amounts.
-   * @return balance0 New balance of token0 after swap.
-   * @return balance1 New balance of token1 after swap.
-   */
-  function _swapTokenToToken(
-    WrapperFunctionParameters.SwapParams memory _params
-  ) internal returns (uint256 balance0, uint256 balance1) {
-    address tokenIn = _params._tokenIn;
-    address tokenOut = _params._tokenOut;
-
-    if (
-      tokenIn == tokenOut ||
-      !(tokenOut == _params._token0 || tokenOut == _params._token1) ||
-      !(tokenIn == _params._token0 || tokenIn == _params._token1)
-    ) {
-      revert ErrorLibrary.InvalidTokenAddress();
-    }
-
-    IERC20Upgradeable(tokenIn).approve(router, _params._amountIn);
-
-    uint256 balanceTokenInBeforeSwap = IERC20Upgradeable(tokenIn).balanceOf(
-      address(this)
-    );
-    uint256 balanceTokenOutBeforeSwap = IERC20Upgradeable(tokenOut).balanceOf(
-      address(this)
-    );
-
-    ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
-      .ExactInputSingleParams({
-        tokenIn: tokenIn,
-        tokenOut: tokenOut,
-        deployer: _params._swapDeployer,
-        recipient: address(this),
-        deadline: block.timestamp,
-        amountIn: _params._amountIn,
-        amountOutMinimum: 0,
-        limitSqrtPrice: 0
-      });
-
-    ISwapRouter(router).exactInputSingle(params);
-
-    _verifySwap(
-      _params._amountIn,
-      balanceTokenInBeforeSwap,
-      balanceTokenOutBeforeSwap,
-      tokenIn,
-      tokenOut,
-      address(uniswapV3PositionManager)
-    );
-
-    (balance0, balance1) = _verifyRatioAfterSwap(
-      _params,
-      balanceTokenInBeforeSwap,
-      tokenIn,
-      address(uniswapV3PositionManager)
-    );
-  }
-
-  /**
-   * @dev Handles swapping tokens to achieve a desired pool ratio.
-   * @param _params Parameters including tokens and amounts for the swap.
-   * @return balance0 Updated balance of token0.
-   * @return balance1 Updated balance of token1.
-   */
-  function _swapTokensForAmount(
-    WrapperFunctionParameters.SwapParams memory _params
-  ) internal returns (uint256 balance0, uint256 balance1) {
-    // Swap tokens to the token0 or token1 pool ratio
-    if (_params._amountIn > 0) {
-      // check if the amount in is greater than the dust threshold
-      bool isDust = SwapVerificationLibraryAlgebraV2.checkSwapAmountIsDust(
-        protocolConfig,
-        _params
-      );
-
-      if (!isDust) {
-        (balance0, balance1) = _swapTokenToToken(_params);
-      } else {
-        (balance0, balance1) = SwapVerificationLibraryAlgebraV2
-          .verifyDustSwapAmount(
-            protocolConfig,
-            _params,
-            address(uniswapV3PositionManager)
-          );
-      }
-    } else {
-      (balance0, balance1) = SwapVerificationLibraryAlgebraV2
-        .verifyZeroSwapAmountForReinvestFees(
-          protocolConfig,
-          _params,
-          address(uniswapV3PositionManager)
-        );
-    }
   }
 
   /**

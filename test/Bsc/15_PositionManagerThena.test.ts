@@ -9,7 +9,7 @@ import {
   increaseLiquidity,
   decreaseLiquidity,
   calculateSwapAmountUpdateRange,
-} from "./IntentCalculationsAlgebraV2";
+} from "./IntentCalculationsThena";
 
 import {
   PERMIT2_ADDRESS,
@@ -117,6 +117,7 @@ describe.only("Tests for Deposit", () => {
     ethers.utils.toUtf8Bytes("ASSET_MANAGER")
   );
   let swapVerificationLibrary: any;
+  let thenaPositionLibrary: any;
 
   let positionWrappers: any = [];
   let swapTokens: any = [];
@@ -164,6 +165,17 @@ describe.only("Tests for Deposit", () => {
       );
       swapVerificationLibrary = await SwapVerificationLibrary.deploy();
       await swapVerificationLibrary.deployed();
+
+      const ThenaPositionLibrary = await ethers.getContractFactory(
+        "ThenaPositionLibrary",
+        {
+          libraries: {
+            SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
+          },
+        }
+      );
+      thenaPositionLibrary = await ThenaPositionLibrary.deploy();
+      await thenaPositionLibrary.deployed();
 
       const TokenBalanceLibrary = await ethers.getContractFactory(
         "TokenBalanceLibrary"
@@ -294,7 +306,7 @@ describe.only("Tests for Deposit", () => {
         "PositionManagerThenaV3",
         {
           libraries: {
-            SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
+            ThenaPositionLibrary: thenaPositionLibrary.address,
           },
         }
       );
@@ -1575,7 +1587,7 @@ describe.only("Tests for Deposit", () => {
           "PositionManagerThenaV3",
           {
             libraries: {
-              SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
+              ThenaPositionLibrary: thenaPositionLibrary.address,
             },
           }
         );
@@ -1599,7 +1611,7 @@ describe.only("Tests for Deposit", () => {
           "PositionManagerThenaV3",
           {
             libraries: {
-              SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
+              ThenaPositionLibrary: thenaPositionLibrary.address,
             },
           }
         );
@@ -1617,7 +1629,7 @@ describe.only("Tests for Deposit", () => {
           "PositionManagerThenaV3",
           {
             libraries: {
-              SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
+              ThenaPositionLibrary: thenaPositionLibrary.address,
             },
           }
         );

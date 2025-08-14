@@ -21,7 +21,7 @@ import {
   createEnsoCallDataRoute,
   calculateOutputAmounts,
   calculateDepositAmounts,
-} from "./IntentCalculationsAlgebraV2";
+} from "./IntentCalculationsThena";
 
 import { tokenAddresses, IAddresses, priceOracle } from "./Deployments.test";
 
@@ -292,11 +292,22 @@ describe.only("Tests for Deposit", () => {
 
       let whitelist = [owner.address];
 
+      const ThenaPositionLibrary = await ethers.getContractFactory(
+        "ThenaPositionLibrary",
+        {
+          libraries: {
+            SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
+          },
+        }
+      );
+      const thenaPositionLibrary = await ThenaPositionLibrary.deploy();
+      await thenaPositionLibrary.deployed();
+
       const PositionManager = await ethers.getContractFactory(
         "PositionManagerThenaV3",
         {
           libraries: {
-            SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
+            ThenaPositionLibrary: thenaPositionLibrary.address,
           },
         }
       );
