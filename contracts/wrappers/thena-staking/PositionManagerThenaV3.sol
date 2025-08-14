@@ -527,7 +527,7 @@ contract PositionManagerThenaV3 is
     address rewardToken,
     address bonusRewardToken,
     uint256 nonce
-  ) internal notEmergencyPaused nonReentrant onlyAssetManager {
+  ) external notEmergencyPaused nonReentrant onlyAssetManager {
     INonfungiblePositionManagerThena(address(uniswapV3PositionManager))
       .approveForFarming(tokenId, true, FARMING_CENTER_ADDRESS);
     IFarmingCenter(FARMING_CENTER_ADDRESS).enterFarming(
