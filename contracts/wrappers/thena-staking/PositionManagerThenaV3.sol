@@ -19,8 +19,12 @@ import { AccessRoles } from "../../access/AccessRoles.sol";
 import { IExternalPositionStorage } from "../abstract/IExternalPositionStorage.sol";
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import { FunctionParameters } from "../../FunctionParameters.sol";
-import { IFarmingCenter } from "./IFarmingCenter.sol";
-import { INonfungiblePositionManagerThena } from "./INonfungiblePositionManagerThena.sol";
+import { IFarmingCenter } from "./interfaces/IFarmingCenter.sol";
+import { INonfungiblePositionManagerThena } from "./interfaces/INonfungiblePositionManagerThena.sol";
+import { IAlgebraEternalFarming } from "./interfaces/IAlgebraEternalFarming.sol";
+import { TransferHelper } from "@uniswap/lib/contracts/libraries/TransferHelper.sol";
+import { IPriceOracle } from "../../oracle/IPriceOracle.sol";
+
 
 // Import our comprehensive library
 import { ThenaPositionLibrary } from "./libraries/ThenaPositionLibrary.sol";
@@ -35,9 +39,7 @@ contract PositionManagerThenaV3 is
   TokenCalculations,
   ReentrancyGuardUpgradeable,
   AccessRoles
-{
-  using ThenaPositionLibrary for *;
-
+{ 
   /// @dev Reference to the Uniswap V3 Non-Fungible Position Manager for managing liquidity positions.
   INonfungiblePositionManager internal uniswapV3PositionManager;
 
@@ -49,8 +51,10 @@ contract PositionManagerThenaV3 is
   /// @dev Access control contract for managing permissions and roles within the ecosystem.
   IAccessController accessController;
 
-  address public constant FARMING_CENTER_ADDRESS =
-    0x0cd53EeB75D72EE0E3e64206b63d7204351d08Bf;
+  address public immutable ETHERNAL_FARMING_ADDRESS =
+    0x6F866dFb4eC07864807217c48E4Ff58b137C15a7;
+
+  address public FARMING_CENTER_ADDRESS;
 
   /// @notice List of addresses for all deployed position wrapper contracts.
   address[] public deployedPositionWrappers;
@@ -148,6 +152,8 @@ contract PositionManagerThenaV3 is
     accessController = IAccessController(_accessController);
     protocolId = _protocolId;
 
+    FARMING_CENTER_ADDRESS = IAlgebraEternalFarming(ETHERNAL_FARMING_ADDRESS).farmingCenter();
+
     router = _swapRouter;
     vault = _vault;
   }
@@ -183,11 +189,10 @@ contract PositionManagerThenaV3 is
     );
 
     // Initialize the Uniswap V3 position with specified liquidity and mint wrapper tokens
-    ThenaPositionLibrary.initializePositionAndDeposit(
+    _initializePositionAndDeposit(
       _dustReceiver,
       positionWrapper,
-      params,
-      uniswapV3PositionManager
+      params
     );
 
     emit PositionInitializedAndDeposited(address(positionWrapper));
@@ -207,7 +212,7 @@ contract PositionManagerThenaV3 is
     WrapperFunctionParameters.InitialMintParamsAlgebra memory params
   ) external notPaused nonReentrant {
     // Mint the new Algebra V3 position using the provided liquidity parameters.
-    ThenaPositionLibrary.initializePositionAndDeposit(
+    _initializePositionAndDeposit(
       _dustReceiver,
       _positionWrapper,
       WrapperFunctionParameters.PositionMintParamsAlgebra({
@@ -218,8 +223,7 @@ contract PositionManagerThenaV3 is
         _tickLower: _positionWrapper.initialTickLower(),
         _tickUpper: _positionWrapper.initialTickUpper(),
         _deployer: params._deployer
-      }),
-      uniswapV3PositionManager
+      })
     );
 
     emit PositionInitializedAndDeposited(address(_positionWrapper));
@@ -245,18 +249,17 @@ contract PositionManagerThenaV3 is
       uniswapV3PositionManager
     );
 
-    // Remove all liquidity and collect the underlying tokens to this contract.
-    ThenaPositionLibrary.decreaseLiquidityAndCollect(
+    // Remove all liquidity
+    _decreaseLiquidity(
       existingLiquidity,
       tokenId,
       params._underlyingAmountOut0,
       params._underlyingAmountOut1,
-      address(this),
-      uniswapV3PositionManager
+      address(this)
     );
 
     // Use library function for swap with proper verification
-    ThenaPositionLibrary.swapTokensForAmountUpdateRange(
+    _swapTokensForAmountUpdateRange(
       WrapperFunctionParameters.SwapParams({
         _positionWrapper: params._positionWrapper,
         _tokenId: tokenId,
@@ -276,49 +279,42 @@ contract PositionManagerThenaV3 is
     );
 
     // Get token balances first to reduce stack variables
-    uint256 amount0 = ThenaPositionLibrary.getTokenBalance(
+    uint256 amount0 = _getTokenBalance(
       token0,
       address(this)
     );
-    uint256 amount1 = ThenaPositionLibrary.getTokenBalance(
+    uint256 amount1 = _getTokenBalance(
       token1,
       address(this)
     );
 
     // Create mint params separately to reduce stack depth
-    WrapperFunctionParameters.PositionMintParamsAlgebra
-      memory mintParams = WrapperFunctionParameters.PositionMintParamsAlgebra({
-        _amount0Desired: amount0,
-        _amount1Desired: amount1,
-        _amount0Min: 0,
-        _amount1Min: 0,
-        _tickLower: params._tickLower,
-        _tickUpper: params._tickUpper,
-        _deployer: params._deployer
-      });
+    // WrapperFunctionParameters.PositionMintParamsAlgebra
+    //   memory mintParams = WrapperFunctionParameters.PositionMintParamsAlgebra({
+    //     _amount0Desired: amount0,
+    //     _amount1Desired: amount1,
+    //     _amount0Min: 0,
+    //     _amount1Min: 0,
+    //     _tickLower: params._tickLower,
+    //     _tickUpper: params._tickUpper,
+    //     _deployer: params._deployer
+    //   });
 
     // Approve tokens to position manager before minting
-    IERC20Upgradeable(token0).approve(
-      address(uniswapV3PositionManager),
-      amount0
-    );
-    IERC20Upgradeable(token1).approve(
-      address(uniswapV3PositionManager),
-      amount1
-    );
+    _approveNonFungiblePositionManager(token0, token1, amount0, amount1);
 
     // Inline mint logic to avoid library call stack overhead
     INonfungiblePositionManager.MintParams
       memory nftMintParams = INonfungiblePositionManager.MintParams({
-        token0: params._positionWrapper.token0(),
-        token1: params._positionWrapper.token1(),
-        deployer: mintParams._deployer,
-        tickLower: mintParams._tickLower,
-        tickUpper: mintParams._tickUpper,
-        amount0Desired: mintParams._amount0Desired,
-        amount1Desired: mintParams._amount1Desired,
-        amount0Min: mintParams._amount0Min,
-        amount1Min: mintParams._amount1Min,
+        token0: token0,
+        token1: token1,
+        deployer: params._deployer,
+        tickLower: params._tickLower,
+        tickUpper: params._tickUpper,
+        amount0Desired: amount0,
+        amount1Desired: amount1,
+        amount0Min: 0,
+        amount1Min: 0,
         recipient: address(this),
         deadline: block.timestamp
       });
@@ -420,9 +416,8 @@ contract PositionManagerThenaV3 is
       _params._dustReceiver == address(0)
     ) revert ErrorLibrary.InvalidAddress();
 
-    uint128 liquidity = ThenaPositionLibrary.handleLiquidityIncrease(
-      _params,
-      uniswapV3PositionManager
+    uint128 liquidity = _handleLiquidityIncrease(
+      _params
     );
 
     emit LiquidityIncreased(msg.sender, liquidity);
@@ -478,14 +473,13 @@ contract PositionManagerThenaV3 is
       ) * _withdrawalAmount) / totalSupplyBeforeBurn
     );
 
-    // Execute the decrease liquidity operation and collect the freed assets.
-    ThenaPositionLibrary.decreaseLiquidityAndCollect(
+    // Execute the decrease liquidity operation
+    _decreaseLiquidity(
       liquidityToDecrease,
       tokenId,
       _amount0Min,
       _amount1Min,
-      msg.sender,
-      uniswapV3PositionManager
+      msg.sender
     );
 
     emit LiquidityDecreased(msg.sender, liquidityToDecrease);
@@ -541,6 +535,8 @@ contract PositionManagerThenaV3 is
     );
   }
 
+  //@audit-question: Also need exit farming function?
+
   /**
    * @notice Transfers a token to the vault.
    * @param _token The address of the token to transfer.
@@ -548,30 +544,368 @@ contract PositionManagerThenaV3 is
   function transferTokenToVault(
     address _token
   ) external notEmergencyPaused nonReentrant onlyAssetManager {
-    uint256 balance = ThenaPositionLibrary.getTokenBalance(
+    uint256 balance = _getTokenBalance(
       _token,
       address(this)
     );
-    if (balance == 0) return;
 
-    ThenaPositionLibrary.transferToken(_token, vault, balance);
+    TransferHelper.safeTransfer(_token, vault, balance);
     emit TokenTransferredToVault(_token, balance);
   }
 
-  /**
-   * @notice Transfers ETH to the vault.
-   */
-  function transferETHToVault()
-    external
-    notEmergencyPaused
-    nonReentrant
-    onlyAssetManager
-  {
-    uint256 balance = address(this).balance;
-    if (balance == 0) return;
+  function _decreaseLiquidity(
+    uint128 _liquidityToDecrease,
+    uint256 _tokenId,
+    uint256 _amount0Min,
+    uint256 _amount1Min,
+    address _recipient
+  ) internal {
+    uniswapV3PositionManager.decreaseLiquidity(
+      INonfungiblePositionManager.DecreaseLiquidityParams({
+        tokenId: _tokenId,
+        liquidity: _liquidityToDecrease,
+        amount0Min: _amount0Min,
+        amount1Min: _amount1Min,
+        deadline: block.timestamp
+      })
+    );
 
-    ThenaPositionLibrary.transferETH(vault, balance);
-    emit ETHTransferredToVault(balance);
+    // Collect the tokens released from the decrease in liquidity
+    uniswapV3PositionManager.collect(
+      INonfungiblePositionManager.CollectParams({
+        tokenId: _tokenId,
+        recipient: _recipient,
+        amount0Max: type(uint128).max,
+        amount1Max: type(uint128).max
+      })
+    );
+  }
+
+  function _handleLiquidityIncrease(
+    WrapperFunctionParameters.WrapperDepositParams memory _params
+  ) internal returns (uint128 liquidity) {
+    uint256 tokenId = _params._positionWrapper.tokenId();
+    address token0 = _params._positionWrapper.token0();
+    address token1 = _params._positionWrapper.token1();
+
+    uint256 balance0Before = _getTokenBalance(token0, address(this));
+    uint256 balance1Before = _getTokenBalance(token1, address(this));
+
+    _transferTokensFromSender(
+      token0,
+      token1,
+      _params._amount0Desired,
+      _params._amount1Desired
+    );
+
+    uint256 balance0After = _getTokenBalance(token0, address(this));
+    uint256 balance1After = _getTokenBalance(token1, address(this));
+
+    _params._amount0Desired = balance0After - balance0Before;
+    _params._amount1Desired = balance1After - balance1Before;
+
+    _approveNonFungiblePositionManager(
+      token0,
+      token1,
+      _params._amount0Desired,
+      _params._amount1Desired
+    );
+
+    (liquidity, , ) = uniswapV3PositionManager.increaseLiquidity(
+      INonfungiblePositionManager.IncreaseLiquidityParams({
+        tokenId: tokenId,
+        amount0Desired: _params._amount0Desired,
+        amount1Desired: _params._amount1Desired,
+        amount0Min: _params._amount0Min,
+        amount1Min: _params._amount1Min,
+        deadline: block.timestamp
+      })
+    );
+
+    _mintTokens(
+      _params._positionWrapper,
+      tokenId,
+      liquidity,
+      msg.sender
+    );
+
+    balance0After = _getTokenBalance(token0, address(this));
+    balance1After = _getTokenBalance(token1, address(this));
+
+    _returnDust(
+      _params._dustReceiver,
+      token0,
+      token1,
+      balance0After - balance0Before,
+      balance1After - balance1Before
+    );
+  }
+
+
+  function _initializePositionAndDeposit(
+    address _dustReceiver,
+    IPositionWrapper _positionWrapper,
+    WrapperFunctionParameters.PositionMintParamsAlgebra memory params
+  ) internal {
+    address token0 = _positionWrapper.token0();
+    address token1 = _positionWrapper.token1();
+
+    uint256 balance0Before = _getTokenBalance(token0, address(this));
+    uint256 balance1Before = _getTokenBalance(token1, address(this));
+
+    _transferTokensFromSender(
+      token0,
+      token1,
+      params._amount0Desired,
+      params._amount1Desired
+    );
+
+    uint256 balance0After = _getTokenBalance(token0, address(this));
+    uint256 balance1After = _getTokenBalance(token1, address(this));
+
+    params._amount0Desired = balance0After - balance0Before;
+    params._amount1Desired = balance1After - balance1Before;
+
+    _approveNonFungiblePositionManager(
+      token0,
+      token1,
+      params._amount0Desired,
+      params._amount1Desired
+    );
+
+    (uint256 tokenId, uint128 liquidity) = _mintNewUniswapPosition(
+      _positionWrapper,
+      params
+    );
+
+    _positionWrapper.setTokenId(tokenId);
+    _positionWrapper.mint(msg.sender, liquidity);
+
+    balance0After = _getTokenBalance(token0, address(this));
+    balance1After = _getTokenBalance(token1, address(this));
+
+    _returnDust(
+      _dustReceiver,
+      token0,
+      token1,
+      balance0After - balance0Before,
+      balance1After - balance1Before
+    );
+  }
+
+  function _swapTokensForAmountUpdateRange(
+    WrapperFunctionParameters.SwapParams memory _params,
+    address router,
+    IProtocolConfig protocolConfig,
+    INonfungiblePositionManager uniswapV3PositionManager
+  ) internal returns (uint256 balance0, uint256 balance1) {
+    // Swap tokens to the token0 or token1 pool ratio
+    if (_params._amountIn > 0) {
+      (balance0, balance1) = _executeSwapWithVerification(
+      _params,
+      router,
+      protocolConfig
+    );
+    } else {
+      _verifyZeroSwapAmount(_params, protocolConfig, uniswapV3PositionManager);
+      balance0 = IERC20Upgradeable(_params._token0).balanceOf(address(this));
+      balance1 = IERC20Upgradeable(_params._token1).balanceOf(address(this));
+    }
+  }
+
+  function _executeSwapWithVerification(
+    WrapperFunctionParameters.SwapParams memory _params,
+    address router,
+    IProtocolConfig protocolConfig
+  ) internal returns (uint256 balance0, uint256 balance1) {
+    address tokenIn = _params._tokenIn;
+    address tokenOut = _params._tokenOut;
+    address token0 = _params._token0;
+    address token1 = _params._token1;
+
+    // Validate tokens
+    // _validateSwapTokens(tokenIn, tokenOut, _params._token0, _params._token1);
+    if (
+      tokenIn == tokenOut ||
+      !(tokenOut == token0 || tokenOut == token1) ||
+      !(tokenIn == token0 || tokenIn == token1)
+    ) {
+      revert ErrorLibrary.InvalidTokenAddress();
+    }
+
+    // Get balance before swap for verification
+    uint256 balanceTokenOutBefore = IERC20Upgradeable(tokenOut).balanceOf(
+      address(this)
+    );
+
+    // Execute the swap
+    _performSwap(_params, router);
+
+    // Verify swap
+    _verifySwapResult( //@audit-question: Should we remove this to get all type of tokens?
+      _params,
+      protocolConfig,
+      tokenIn,
+      tokenOut,
+      balanceTokenOutBefore
+    );
+
+    //@audit-bug: We need _verifyRatioAfterSwap here to calculate the ratio after swap
+
+    balance0 = IERC20Upgradeable(_params._token0).balanceOf(address(this));
+    balance1 = IERC20Upgradeable(_params._token1).balanceOf(address(this));
+  }
+
+  function _performSwap(
+    WrapperFunctionParameters.SwapParams memory _params,
+    address router
+  ) internal {
+    IERC20Upgradeable(_params._tokenIn).approve(router, _params._amountIn);
+
+    ISwapRouter(router).exactInputSingle(
+      ISwapRouter.ExactInputSingleParams({
+        tokenIn: _params._tokenIn,
+        tokenOut: _params._tokenOut,
+        deployer: _params._swapDeployer,
+        recipient: address(this),
+        deadline: block.timestamp,
+        amountIn: _params._amountIn,
+        amountOutMinimum: 0,
+        limitSqrtPrice: 0
+      })
+    );
+  }
+
+  function _verifySwapResult(
+    WrapperFunctionParameters.SwapParams memory _params,
+    IProtocolConfig protocolConfig,
+    address tokenIn,
+    address tokenOut,
+    uint256 balanceTokenOutBefore
+  ) internal view {
+    SwapVerificationLibraryAlgebraV2.verifySwap(
+      tokenIn,
+      tokenOut,
+      _params._amountIn,
+      IERC20Upgradeable(tokenOut).balanceOf(address(this)) -
+        balanceTokenOutBefore,
+      protocolConfig.acceptedSlippageFeeReinvestment(),
+      IPriceOracle(protocolConfig.oracle())
+    );
+  }
+
+  function _verifyZeroSwapAmount(
+    WrapperFunctionParameters.SwapParams memory _params,
+    IProtocolConfig protocolConfig,
+    INonfungiblePositionManager uniswapV3PositionManager
+  ) public {
+    SwapVerificationLibraryAlgebraV2.verifyZeroSwapAmount(
+      protocolConfig,
+      _params,
+      address(uniswapV3PositionManager)
+    );
+  }
+
+  function _transferTokensFromSender(
+    address _token0,
+    address _token1,
+    uint256 _amount0,
+    uint256 _amount1
+  ) internal {
+    if (_amount0 > 0) {
+      TransferHelper.safeTransferFrom(_token0, msg.sender, address(this), _amount0);
+    }
+    if (_amount1 > 0) {
+      TransferHelper.safeTransferFrom(_token1, msg.sender, address(this), _amount1);
+    }
+  }
+
+  function _approveNonFungiblePositionManager(
+    address _token0,
+    address _token1,
+    uint256 _amount0,
+    uint256 _amount1
+  ) internal {
+    if (_amount0 > 0) { 
+      _safeApprove(_token0, address(uniswapV3PositionManager), _amount0);
+    }
+    if (_amount1 > 0) {
+      _safeApprove(_token1, address(uniswapV3PositionManager), _amount1);
+    }
+  }
+
+  function _mintNewUniswapPosition(
+    IPositionWrapper _positionWrapper,
+    WrapperFunctionParameters.PositionMintParamsAlgebra memory params
+  ) internal returns (uint256 tokenId, uint128 liquidity) {
+    // Create mint params to reduce stack depth
+    INonfungiblePositionManager.MintParams
+      memory mintParams = INonfungiblePositionManager.MintParams({
+        token0: _positionWrapper.token0(),
+        token1: _positionWrapper.token1(),
+        deployer: params._deployer,
+        tickLower: params._tickLower,
+        tickUpper: params._tickUpper,
+        amount0Desired: params._amount0Desired,
+        amount1Desired: params._amount1Desired,
+        amount0Min: params._amount0Min,
+        amount1Min: params._amount1Min,
+        recipient: address(this),
+        deadline: block.timestamp
+      });
+
+    (tokenId, liquidity, , ) = uniswapV3PositionManager.mint(mintParams); //@audit-question: Does it return in uint256,uint128?
+  }
+
+  function _mintTokens(
+    IPositionWrapper _positionWrapper,
+    uint256 _tokenId,
+    uint128 _liquidity,
+    address _recipient
+  ) internal { //@audit-bug : This should not be public
+    uint256 totalSupply = _positionWrapper.totalSupply();
+    uint256 mintAmount;
+
+    if (totalSupply == 0) {
+      mintAmount = _liquidity;
+    } else {
+      uint256 userShare = (_liquidity * ONE_ETH_IN_WEI) /
+        ThenaPositionLibrary.getExistingLiquidity(_tokenId, uniswapV3PositionManager);
+      mintAmount = ThenaPositionLibrary.calculateMintAmount(userShare, totalSupply);
+    }
+
+    _positionWrapper.mint(_recipient, mintAmount);
+  }
+
+  function _returnDust(
+    address _recipient,
+    address _token0,
+    address _token1,
+    uint256 _balance0,
+    uint256 _balance1
+  ) internal {
+    if (_balance0 > 0) {
+      TransferHelper.safeTransfer(_token0, _recipient, _balance0);
+    }
+    if (_balance1 > 0) {
+      TransferHelper.safeTransfer(_token1, _recipient, _balance1);
+    }
+  }
+
+  function _safeApprove(
+    address _token,
+    address _spender,
+    uint256 _amount
+  ) internal {
+    try IERC20Upgradeable(_token).approve(_spender, 0) {} catch {}
+    TransferHelper.safeApprove(_token, _spender, _amount);
+  }
+
+  function _getTokenBalance(
+    address _token,
+    address _owner
+  ) internal view returns (uint256) {
+    return IERC20Upgradeable(_token).balanceOf(_owner);
   }
 
   /**

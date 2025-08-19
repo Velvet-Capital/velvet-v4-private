@@ -107,6 +107,7 @@ abstract contract ExternalPositionManagement is AccessRoles {
       revert ErrorLibrary.ProtocolNotEnabled(protocolId);
 
     // Check if protocol is whitelisted for this portfolio
+    //@audit-question: should we remove this check or add "OR" condition?
     if (!IAssetManagementConfig(address(this)).whitelistedProtocols(protocolId))
       revert ErrorLibrary.ProtocolNotWhitelisted(protocolId);
 
