@@ -211,11 +211,11 @@ async function main(): Promise<void> {
 
   // await sleep(2000); // 2 seconds
   // const ProtocolConfig = await ethers.getContractFactory("ProtocolConfig");
-  const protocolConfig = await ethers.getContractAt(
-    "ProtocolConfig",
-    "0xE4Bf904bbB3E4013c845A18e1C6F8FA99316945f",
-    owner
-  );
+  // const protocolConfig = await ethers.getContractAt(
+  //   "ProtocolConfig",
+  //   "0xE4Bf904bbB3E4013c845A18e1C6F8FA99316945f",
+  //   owner
+  // );
   // const protocolConfig = await upgrades.deployProxy(
   //   ProtocolConfig,
   //   [treasury.address, priceOracle.address],
@@ -325,12 +325,12 @@ async function main(): Promise<void> {
 
   // console.log("PositionManager address:", positionManagerBaseAddress.address);
 
-  await protocolConfig.enableProtocol(
-    thenaProtocolHash,
-    "0x643B68Bf3f855B8475C0A700b6D1020bfc21d02e",
-    "0xb85Fdbb78a735584592Df49ED7cD061b01A2e6B7",
-    "0xe107A03AdE94f2a2CBC808ddaA93B6179235A0B9"
-  );
+  // await protocolConfig.enableProtocol(
+  //   thenaProtocolHash,
+  //   "0x643B68Bf3f855B8475C0A700b6D1020bfc21d02e",
+  //   "0xb85Fdbb78a735584592Df49ED7cD061b01A2e6B7",
+  //   "0xe107A03AdE94f2a2CBC808ddaA93B6179235A0B9"
+  // );
 
   // const ExternalPositionStorage = await ethers.getContractFactory(
   //   "ExternalPositionStorage"
@@ -345,18 +345,18 @@ async function main(): Promise<void> {
 
   // await sleep(2000); // 2 seconds
 
-  const AmountCalculationsAlgebra = await ethers.getContractFactory(
-    "AmountCalculationsAlgebraV2"
-  );
-  const amountCalculationsAlgebra = await AmountCalculationsAlgebra.deploy();
-  await amountCalculationsAlgebra.deployed();
+  // const AmountCalculationsAlgebra = await ethers.getContractFactory(
+  //   "AmountCalculationsAlgebraV2"
+  // );
+  // const amountCalculationsAlgebra = await AmountCalculationsAlgebra.deploy();
+  // await amountCalculationsAlgebra.deployed();
 
-  console.log(
-    "amountCalculationsAlgebra address:",
-    amountCalculationsAlgebra.address
-  );
+  // console.log(
+  //   "amountCalculationsAlgebra address:",
+  //   amountCalculationsAlgebra.address
+  // );
 
-  safeVerify("AmountCalculationsAlgebraV2", amountCalculationsAlgebra.address);
+  // safeVerify("AmountCalculationsAlgebraV2", amountCalculationsAlgebra.address);
 
 
   // const AssetManagementConfig = await ethers.getContractFactory(
@@ -453,35 +453,35 @@ async function main(): Promise<void> {
 
   // await sleep(2000); // 2 seconds
 
-  // const DepositBatch = await ethers.getContractFactory(
-  //   "DepositBatchExternalPositions"
-  // );
-  // const depositBatch = await DepositBatch.deploy(
-  //   "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
-  // );
-  // await depositBatch.deployed();
+  const DepositBatch = await ethers.getContractFactory(
+    "DepositBatchExternalPositions"
+  );
+  const depositBatch = await DepositBatch.deploy(
+    "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
+  );
+  await depositBatch.deployed();
 
-  // console.log("depositBatch address:", depositBatch.address);
+  console.log("depositBatch address:", depositBatch.address);
 
-  // await tenderly.verify({
-  //   name: "DepositBatchExternalPositions",
-  //   address: depositBatch.address,
-  // });
+  await tenderly.verify({
+    name: "DepositBatchExternalPositions",
+    address: depositBatch.address,
+  });
 
-  // const DepositManager = await ethers.getContractFactory(
-  //   "DepositManagerExternalPositions"
-  // );
-  // const depositManager = await DepositManager.deploy(depositBatch.address);
-  // await depositManager.deployed();
+  const DepositManager = await ethers.getContractFactory(
+    "DepositManagerExternalPositions"
+  );
+  const depositManager = await DepositManager.deploy(depositBatch.address);
+  await depositManager.deployed();
 
-  // console.log("depositManager address:", depositManager.address);
+  console.log("depositManager address:", depositManager.address);
 
-  // await tenderly.verify({
-  //   name: "DepositManagerExternalPositions",
-  //   address: depositManager.address,
-  // });
+  await tenderly.verify({
+    name: "DepositManagerExternalPositions",
+    address: depositManager.address,
+  });
 
-  // await sleep(2000); // 2 seconds
+  await sleep(2000); // 2 seconds
 
   // const WithdrawBatch = await ethers.getContractFactory(
   //   "WithdrawBatchExternalPositions"

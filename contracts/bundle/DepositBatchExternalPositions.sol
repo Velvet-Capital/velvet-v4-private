@@ -167,21 +167,25 @@ contract DepositBatchExternalPositions is ReentrancyGuard {
     for (uint256 i; i < swapTokenLength; i++) {
       address _token = _params._swapTokens[i];
       uint256 balance;
-      if (_token == _depositToken) {
-        //Sending encoded balance instead of swap calldata
-        balance = abi.decode(data._callData[i], (uint256));
-      } else {
-        uint256 balanceBefore = _getTokenBalance(_token, address(this));
-        (bool success, ) = SWAP_TARGET.delegatecall(data._callData[i]);
-        if (!success) revert ErrorLibrary.DepositBatchCallFailed();
-        uint256 balanceAfter = _getTokenBalance(_token, address(this));
-        balance = balanceAfter - balanceBefore;
-      }
-      if (balance == 0) revert ErrorLibrary.InvalidBalanceDiff();
-
-      swapResults[i] = balance;
-      if (!_params._isExternalPosition[i])
+      if (data._callData[i].length > 0) {
+          if (_token == _depositToken) {
+          //Sending encoded balance instead of swap calldata
+          balance = abi.decode(data._callData[i], (uint256));
+        } else {
+          uint256 balanceBefore = _getTokenBalance(_token, address(this));
+          (bool success, ) = SWAP_TARGET.delegatecall(data._callData[i]);
+          if (!success) revert ErrorLibrary.DepositBatchCallFailed();
+          uint256 balanceAfter = _getTokenBalance(_token, address(this));
+          balance = balanceAfter - balanceBefore;
+        }
+        if (balance == 0) revert ErrorLibrary.InvalidBalanceDiff();
+        swapResults[i] = balance;
+        if (!_params._isExternalPosition[i])
         depositAmounts[_params._portfolioTokenIndex[i]] = balance;
+      }else{
+        // No calldata - for one-sided positions where no swap is needed
+        swapResults[i] = 0;
+      }
     }
 
     return (swapResults, depositAmounts);
@@ -257,26 +261,31 @@ contract DepositBatchExternalPositions is ReentrancyGuard {
     IPositionManager positionManager,
     IPositionWrapper positionWrapper
   ) internal {
+    uint256 index0 = _params._index0[i];
+    uint256 index1 = _params._index1[i];
+    if(_swapResults[index0] > 0){
     _safeApprove(
-      _params._swapTokens[_params._index0[i]],
+      _params._swapTokens[index0],
       address(positionManager),
-      _swapResults[_params._index0[i]]
+      _swapResults[index0]
     );
-
+  }
+  if(_swapResults[index1] > 0){
     _safeApprove(
-      _params._swapTokens[_params._index1[i]],
+      _params._swapTokens[index1],
       address(positionManager),
-      _swapResults[_params._index1[i]]
+      _swapResults[index1]
     );
-
+  }
+  
     if (positionWrapper.totalSupply() == 0) {
       // Initial mint to external position
       positionManager.initializePositionAndDeposit(
         _user,
         positionWrapper,
         WrapperFunctionParameters.InitialMintParams({
-          _amount0Desired: _swapResults[_params._index0[i]],
-          _amount1Desired: _swapResults[_params._index1[i]],
+          _amount0Desired: _swapResults[index0],
+          _amount1Desired: _swapResults[index1],
           _amount0Min: _params._amount0Min[i],
           _amount1Min: _params._amount1Min[i],
           _deployer: _params._deployer
@@ -288,8 +297,8 @@ contract DepositBatchExternalPositions is ReentrancyGuard {
         WrapperFunctionParameters.WrapperDepositParams({
           _dustReceiver: _user,
           _positionWrapper: positionWrapper,
-          _amount0Desired: _swapResults[_params._index0[i]],
-          _amount1Desired: _swapResults[_params._index1[i]],
+          _amount0Desired: _swapResults[index0],
+          _amount1Desired: _swapResults[index1],
           _amount0Min: _params._amount0Min[i],
           _amount1Min: _params._amount1Min[i],
           _swapDeployer: _params._swapDeployer[i],
