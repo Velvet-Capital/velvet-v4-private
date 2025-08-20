@@ -55,6 +55,50 @@ import {
   IPool__factory,
 } from "../../typechain";
 
+const POOL_TO_KEY_ABI = [
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      }
+    ],
+    "name": "poolToKey",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "rewardToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "bonusRewardToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "pool",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IFarmingCenter.IncentiveKey",
+        "name": "key",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+];
+
 import { chainIdToAddresses } from "../../scripts/networkVariables";
 
 var chai = require("chai");
@@ -294,11 +338,6 @@ describe.only("Tests for Deposit", () => {
 
       const ThenaPositionLibrary = await ethers.getContractFactory(
         "ThenaPositionLibrary",
-        {
-          libraries: {
-            SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
-          },
-        }
       );
       const thenaPositionLibrary = await ThenaPositionLibrary.deploy();
       await thenaPositionLibrary.deployed();
@@ -307,6 +346,7 @@ describe.only("Tests for Deposit", () => {
         "PositionManagerThenaV3",
         {
           libraries: {
+            SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
             ThenaPositionLibrary: thenaPositionLibrary.address,
           },
         }
@@ -476,8 +516,8 @@ describe.only("Tests for Deposit", () => {
 
       await protocolConfig.enableProtocol(
         thenaProtocolHash,
-        "0xbf77b742eE1c0a6883c009Ce590A832DeBe74064",
-        "0x76689a9Be4759F9cEcb5a1d86d4f371b6DB4C7a6",
+        "0x643B68Bf3f855B8475C0A700b6D1020bfc21d02e",
+        "0xb85Fdbb78a735584592Df49ED7cD061b01A2e6B7",
         positionManagerBaseAddress.address
       );
 
@@ -491,6 +531,7 @@ describe.only("Tests for Deposit", () => {
       console.log("portfolio deployed to:", portfolio.address);
 
       console.log("rebalancing:", rebalancing1.address);
+
     });
 
     describe("Deposit Tests", function () {
@@ -625,6 +666,68 @@ describe.only("Tests for Deposit", () => {
 
         console.log("SupplyAfter", await portfolio.totalSupply());
       });
+
+      it("should approve and add for farming for position1", async () => {
+
+        const tokenId = await positionWrapper.tokenId();
+        const token0 = await positionWrapper.token0();
+        const token1 = await positionWrapper.token1();
+
+        const factoryContract = await ethers.getContractAt(
+          "contracts/wrappers/algebra/IFactory.sol:IFactory", 
+          addresses.thena_factory
+        );
+
+        const poolAddress = await factoryContract.poolByPair(token0, token1);
+        console.log("poolAddress", poolAddress);
+
+        const poolToKeyContract = new ethers.Contract(
+          "0x80ad2f2Ed4F00b152D7cA5E74920c944BFEF0701",
+          POOL_TO_KEY_ABI,
+          ethers.provider
+        );
+
+        const incentiveKey = await poolToKeyContract.poolToKey(poolAddress);
+
+        await positionManager.approveAndAddForFarming(
+          tokenId,
+          poolAddress,
+          incentiveKey.rewardToken,
+          incentiveKey.bonusRewardToken,
+          incentiveKey.nonce
+        );
+      })
+
+      it("should approve and add for farming for position2", async () => {
+
+        const tokenId = await positionWrapper2.tokenId();
+        const token0 = await positionWrapper2.token0();
+        const token1 = await positionWrapper2.token1();
+
+        const factoryContract = await ethers.getContractAt(
+          "contracts/wrappers/algebra/IFactory.sol:IFactory", 
+          addresses.thena_factory
+        );
+
+        const poolAddress = await factoryContract.poolByPair(token0, token1);
+        console.log("poolAddress", poolAddress);
+
+        const poolToKeyContract = new ethers.Contract(
+          "0x80ad2f2Ed4F00b152D7cA5E74920c944BFEF0701",
+          POOL_TO_KEY_ABI,
+          ethers.provider
+        );
+
+        const incentiveKey = await poolToKeyContract.poolToKey(poolAddress);
+
+        await positionManager.approveAndAddForFarming(
+          tokenId,
+          poolAddress,
+          incentiveKey.rewardToken,
+          incentiveKey.bonusRewardToken,
+          incentiveKey.nonce
+        );
+      })
 
       it("user should invest (investment token equals one portfolio token)", async () => {
         let tokens = await portfolio.getTokens();
@@ -1516,55 +1619,6 @@ describe.only("Tests for Deposit", () => {
         expect(Number(supplyBefore)).to.be.greaterThan(Number(supplyAfter));
       });
 
-      it("should claim rewards from farming center", async () => {
-        // Create incentive key for testing
-        const incentiveKey = {
-          rewardToken: addresses.THE_Address, // Example reward token
-          bonusRewardToken: ZERO_ADDRESS, // No bonus reward
-          pool: addresses.thena_factory, // Example pool address
-          nonce: 0, // Example nonce
-        };
-
-        // Get the token ID from the position wrapper
-        const tokenId = await positionWrapper.tokenId();
-
-        // Get vault address
-        const vaultAddress = await portfolio.vault();
-
-        // Get initial balance of reward token in vault
-        const ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
-        const rewardTokenContract = ERC20.attach(incentiveKey.rewardToken);
-
-        const vaultRewardBalanceBefore = await rewardTokenContract.balanceOf(
-          vaultAddress
-        );
-
-        // Note: This will likely revert in test environment since the farming center
-        // contract at the hardcoded address doesn't exist on testnet
-        // In a real environment, this would claim rewards
-        try {
-          await positionManager.claimRewards(incentiveKey, tokenId);
-
-          // If successful, check that rewards were claimed
-          const vaultRewardBalanceAfter = await rewardTokenContract.balanceOf(
-            vaultAddress
-          );
-          expect(vaultRewardBalanceAfter).to.be.gte(vaultRewardBalanceBefore);
-
-          console.log(
-            "Rewards claimed:",
-            vaultRewardBalanceAfter.sub(vaultRewardBalanceBefore).toString()
-          );
-        } catch (error: any) {
-          // Expected to fail in test environment due to hardcoded farming center address
-          console.log(
-            "claimRewards failed as expected in test environment:",
-            error.message
-          );
-          expect(error.message).to.include("revert");
-        }
-      });
-
       it("should fail to claim rewards when called by non-asset manager", async () => {
         const incentiveKey = {
           rewardToken: iaddress.usdcAddress,
@@ -1623,14 +1677,69 @@ describe.only("Tests for Deposit", () => {
         );
       });
 
-      it("should fail to transfer ETH to vault when called by non-asset manager", async () => {
-        await expect(
-          positionManager.connect(nonOwner).transferETHToVault()
-        ).to.be.revertedWithCustomError(
-          positionManager,
-          "CallerNotAssetManager"
+      it("should collect rewards from farming center for position1", async () => {
+        await ethers.provider.send("evm_increaseTime", [9999]);
+        
+        const tokenId = await positionWrapper.tokenId();
+        const token0 = await positionWrapper.token0();
+        const token1 = await positionWrapper.token1();
+
+        const factoryContract = await ethers.getContractAt(
+          "contracts/wrappers/algebra/IFactory.sol:IFactory", 
+          addresses.thena_factory
         );
-      });
+
+        const poolAddress = await factoryContract.poolByPair(token0, token1);
+        console.log("poolAddress", poolAddress);
+
+        const poolToKeyContract = new ethers.Contract(
+          "0x80ad2f2Ed4F00b152D7cA5E74920c944BFEF0701",
+          POOL_TO_KEY_ABI,
+          ethers.provider
+        );
+
+        const incentiveKey = await poolToKeyContract.poolToKey(poolAddress);
+
+        const ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
+
+        await positionManager.claimRewards(
+          incentiveKey,
+          tokenId
+        );
+
+        console.log("balance of reward token in vault", await ERC20.attach(incentiveKey.rewardToken).balanceOf(await portfolio.vault()));      
+      })
+
+      it("should exit from farming for position1", async () => {
+
+        const tokenId = await positionWrapper.tokenId();
+        const token0 = await positionWrapper.token0();
+        const token1 = await positionWrapper.token1();
+
+        const factoryContract = await ethers.getContractAt(
+          "contracts/wrappers/algebra/IFactory.sol:IFactory", 
+          addresses.thena_factory
+        );
+
+        const poolAddress = await factoryContract.poolByPair(token0, token1);
+        console.log("poolAddress", poolAddress);
+
+        const poolToKeyContract = new ethers.Contract(
+          "0x80ad2f2Ed4F00b152D7cA5E74920c944BFEF0701",
+          POOL_TO_KEY_ABI,
+          ethers.provider
+        );
+
+        const incentiveKey = await poolToKeyContract.poolToKey(poolAddress);
+
+        await positionManager.exitFarming(
+          tokenId,
+          poolAddress,
+          incentiveKey.rewardToken,
+          incentiveKey.bonusRewardToken,
+          incentiveKey.nonce
+        );
+      })
     });
   });
 });

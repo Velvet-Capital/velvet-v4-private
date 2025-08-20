@@ -53,6 +53,50 @@ import {
   SwapHandlerAlgebraV2,
 } from "../../typechain";
 
+const POOL_TO_KEY_ABI = [
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      }
+    ],
+    "name": "poolToKey",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "rewardToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "bonusRewardToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "pool",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IFarmingCenter.IncentiveKey",
+        "name": "key",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+];
+
 import { chainIdToAddresses } from "../../scripts/networkVariables";
 import { max } from "bn.js";
 import { config } from "process";
@@ -166,14 +210,7 @@ describe.only("Tests for Deposit", () => {
       swapVerificationLibrary = await SwapVerificationLibrary.deploy();
       await swapVerificationLibrary.deployed();
 
-      const ThenaPositionLibrary = await ethers.getContractFactory(
-        "ThenaPositionLibrary",
-        {
-          libraries: {
-            SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
-          },
-        }
-      );
+      const ThenaPositionLibrary = await ethers.getContractFactory("ThenaPositionLibrary");
       thenaPositionLibrary = await ThenaPositionLibrary.deploy();
       await thenaPositionLibrary.deployed();
 
@@ -306,6 +343,7 @@ describe.only("Tests for Deposit", () => {
         "PositionManagerThenaV3",
         {
           libraries: {
+            SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
             ThenaPositionLibrary: thenaPositionLibrary.address,
           },
         }
@@ -477,8 +515,8 @@ describe.only("Tests for Deposit", () => {
 
       await protocolConfig.enableProtocol(
         thenaProtocolHash,
-        "0xbf77b742eE1c0a6883c009Ce590A832DeBe74064",
-        "0x76689a9Be4759F9cEcb5a1d86d4f371b6DB4C7a6",
+        "0x643B68Bf3f855B8475C0A700b6D1020bfc21d02e",
+        "0xb85Fdbb78a735584592Df49ED7cD061b01A2e6B7",
         positionManagerBaseAddress.address
       );
 
@@ -613,28 +651,6 @@ describe.only("Tests for Deposit", () => {
           iaddress.usdtAddress,
           addresses.WETH_Address,
         ]);
-      });
-
-      it("owner should create new position", async () => {
-        // UniswapV3 position
-        const token0 = iaddress.usdtAddress;
-        const token1 = addresses.WETH_Address;
-
-        await positionManager.createNewWrapperPosition(
-          token0,
-          token1,
-          "Test",
-          "t",
-          MIN_TICK,
-          MAX_TICK
-        );
-
-        position1 = await positionManager.deployedPositionWrappers(0);
-
-        const PositionWrapper = await ethers.getContractFactory(
-          "PositionWrapper"
-        );
-        positionWrapper = PositionWrapper.attach(position1);
       });
 
       it("owner should create new position", async () => {
@@ -954,6 +970,37 @@ describe.only("Tests for Deposit", () => {
         );
         console.log("supplyAfter", supplyAfter);
       });
+
+      it("should approve and add for farming for position1", async () => {
+
+        const tokenId = await positionWrapper.tokenId();
+        const token0 = await positionWrapper.token0();
+        const token1 = await positionWrapper.token1();
+
+        const factoryContract = await ethers.getContractAt(
+          "contracts/wrappers/algebra/IFactory.sol:IFactory", 
+          addresses.thena_factory
+        );
+
+        const poolAddress = await factoryContract.poolByPair(token0, token1);
+        console.log("poolAddress", poolAddress);
+
+        const poolToKeyContract = new ethers.Contract(
+          "0x80ad2f2Ed4F00b152D7cA5E74920c944BFEF0701",
+          POOL_TO_KEY_ABI,
+          ethers.provider
+        );
+
+        const incentiveKey = await poolToKeyContract.poolToKey(poolAddress);
+
+        await positionManager.approveAndAddForFarming(
+          tokenId,
+          poolAddress,
+          incentiveKey.rewardToken,
+          incentiveKey.bonusRewardToken,
+          incentiveKey.nonce
+        );
+      })
 
       it("should deposit multi-token into fund (Second Deposit)", async () => {
         let amounts = [];
@@ -1400,7 +1447,7 @@ describe.only("Tests for Deposit", () => {
             _tickUpper: newTickUpper,
             _fee: 100,
           })
-        ).to.be.revertedWithCustomError(swapVerificationLibrary, "InvalidSwap");
+        ).to.be.revertedWithCustomError(swapVerificationLibrary, "InvalidSwapToken");
 
         let totalSupplyAfter = await positionWrapper.totalSupply();
         expect(totalSupplyAfter).to.be.equals(totalSupplyBefore);
@@ -1588,6 +1635,7 @@ describe.only("Tests for Deposit", () => {
           {
             libraries: {
               ThenaPositionLibrary: thenaPositionLibrary.address,
+              SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
             },
           }
         );
@@ -1612,6 +1660,7 @@ describe.only("Tests for Deposit", () => {
           {
             libraries: {
               ThenaPositionLibrary: thenaPositionLibrary.address,
+              SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
             },
           }
         );
@@ -1630,6 +1679,7 @@ describe.only("Tests for Deposit", () => {
           {
             libraries: {
               ThenaPositionLibrary: thenaPositionLibrary.address,
+              SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
             },
           }
         );

@@ -16,7 +16,7 @@ import { IPositionWrapper } from "../../wrappers/abstract/IPositionWrapper.sol";
 import { FullMath } from "@cryptoalgebra/integral-core/contracts/libraries/FullMath.sol";
 contract AmountCalculationsAlgebraV2 {
   INonfungiblePositionManager internal uniswapV3PositionManager =
-    INonfungiblePositionManager(0xbf77b742eE1c0a6883c009Ce590A832DeBe74064);
+    INonfungiblePositionManager(0x643B68Bf3f855B8475C0A700b6D1020bfc21d02e);
 
   uint256 constant TOTAL_WEIGHT = 10_000;
 

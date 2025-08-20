@@ -253,12 +253,7 @@ export async function increaseLiquidity(
   await swapVerificationLibrary.deployed();
 
   const ThenaPositionLibrary = await ethers.getContractFactory(
-    "ThenaPositionLibrary",
-    {
-      libraries: {
-        SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
-      },
-    }
+    "ThenaPositionLibrary"
   );
   const thenaPositionLibrary = await ThenaPositionLibrary.deploy();
   await thenaPositionLibrary.deployed();
@@ -268,6 +263,7 @@ export async function increaseLiquidity(
     {
       libraries: {
         ThenaPositionLibrary: thenaPositionLibrary.address,
+        SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
       },
     }
   );
@@ -310,12 +306,7 @@ export async function decreaseLiquidity(
   await swapVerificationLibrary.deployed();
 
   const ThenaPositionLibrary = await ethers.getContractFactory(
-    "ThenaPositionLibrary",
-    {
-      libraries: {
-        SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
-      },
-    }
+    "ThenaPositionLibrary"
   );
   const thenaPositionLibrary = await ThenaPositionLibrary.deploy();
   await thenaPositionLibrary.deployed();
@@ -325,6 +316,7 @@ export async function decreaseLiquidity(
     {
       libraries: {
         ThenaPositionLibrary: thenaPositionLibrary.address,
+        SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
       },
     }
   );
@@ -416,12 +408,7 @@ export async function calculateSwapAmountUpdateRange(
   await swapVerificationLibrary.deployed();
 
   const ThenaPositionLibrary = await ethers.getContractFactory(
-    "ThenaPositionLibrary",
-    {
-      libraries: {
-        SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
-      },
-    }
+    "ThenaPositionLibrary"
   );
   const thenaPositionLibrary = await ThenaPositionLibrary.deploy();
   await thenaPositionLibrary.deployed();
@@ -431,6 +418,7 @@ export async function calculateSwapAmountUpdateRange(
     {
       libraries: {
         ThenaPositionLibrary: thenaPositionLibrary.address,
+        SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
       },
     }
   );

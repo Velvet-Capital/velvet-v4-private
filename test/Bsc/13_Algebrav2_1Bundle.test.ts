@@ -465,8 +465,8 @@ describe.only("Tests for Deposit", () => {
 
       await protocolConfig.enableProtocol(
         thenaProtocolHash,
-        "0xbf77b742eE1c0a6883c009Ce590A832DeBe74064",
-        "0x76689a9Be4759F9cEcb5a1d86d4f371b6DB4C7a6",
+        "0x643B68Bf3f855B8475C0A700b6D1020bfc21d02e",
+        "0xb85Fdbb78a735584592Df49ED7cD061b01A2e6B7",
         positionManagerBaseAddress.address
       );
 
