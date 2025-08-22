@@ -121,6 +121,13 @@ abstract contract AbstractBorrowManager is
       // Check if the delegatecall was successful
       // If not, revert the transaction with a custom error
       if (!success) revert ErrorLibrary.RepayBorrowCallFailed();
+
+      // Transfer any remaining dust balance back to the vault
+      TransferHelper.safeTransfer(
+        repayData._flashLoanToken,
+        _vault,
+        IERC20Upgradeable(repayData._flashLoanToken).balanceOf(address(this))
+      );
     }
   }
 
