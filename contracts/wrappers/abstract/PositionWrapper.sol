@@ -149,8 +149,8 @@ contract PositionWrapper is
    * @param newImplementation Address of the new implementation
    */
   function _authorizeUpgrade(address newImplementation) internal override {
-    address protocolConfig = IPositionManager(positionManager).protocolConfig();
-    if (!(msg.sender == protocolConfig)) revert ErrorLibrary.CallerNotAdmin();
+    address assetManagementConfig = IPositionManager(positionManager).assetManagementConfig();
+    if (!(msg.sender == assetManagementConfig)) revert ErrorLibrary.CallerNotAdmin();
 
     // Intentionally left empty as required by an abstract contract
   }

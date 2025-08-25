@@ -1170,9 +1170,10 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         await positionWrapperBase.deployed();
 
         await expect(
-          protocolConfig.upgradePositionWrapper(
+          portfolioFactory.upgradePositionWrapper(
             [position1],
-            positionWrapperBase.address
+            positionWrapperBase.address,
+            assetManagementConfig.address
           )
         ).to.be.revertedWithCustomError(protocolConfig, "ProtocolNotPaused");
       });
@@ -1190,9 +1191,10 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         await positionManagerBase.deployed();
 
         await expect(
-          portfolioFactory.upgradePositionManager(
+          protocolConfig.upgradePositionManager(
             [positionManager.address],
-            positionManagerBase.address
+            positionManagerBase.address,
+            uniswapV3ProtocolHash
           )
         ).to.be.revertedWithCustomError(portfolioFactory, "ProtocolNotPaused");
       });
@@ -1213,9 +1215,10 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         const positionManagerBase = await PositionManager.deploy();
         await positionManagerBase.deployed();
 
-        await portfolioFactory.upgradePositionManager(
+        await protocolConfig.upgradePositionManager(
           [positionManager.address],
-          positionManagerBase.address
+          positionManagerBase.address,
+          uniswapV3ProtocolHash
         );
       });
 
@@ -1232,11 +1235,12 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         await positionManagerBase.deployed();
 
         await expect(
-          portfolioFactory
+          protocolConfig
             .connect(nonOwner)
             .upgradePositionManager(
               [positionManager.address],
-              positionManagerBase.address
+              positionManagerBase.address,
+              uniswapV3ProtocolHash
             )
         ).to.be.revertedWith("Ownable: caller is not the owner");
       });
@@ -1248,9 +1252,10 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         const positionWrapperBase = await PositionWrapper.deploy();
         await positionWrapperBase.deployed();
 
-        await protocolConfig.upgradePositionWrapper(
+        await portfolioFactory.upgradePositionWrapper(
           [position1],
-          positionWrapperBase.address
+          positionWrapperBase.address,
+          assetManagementConfig.address
         );
       });
 
@@ -1262,9 +1267,13 @@ describe.only("Tests for Deposit + Withdrawal", () => {
         await positionWrapperBase.deployed();
 
         await expect(
-          protocolConfig
+          portfolioFactory
             .connect(nonOwner)
-            .upgradePositionWrapper([position1], positionWrapperBase.address)
+            .upgradePositionWrapper(
+              [position1],
+              positionWrapperBase.address,
+              assetManagementConfig.address
+            )
         ).to.be.revertedWith("Ownable: caller is not the owner");
       });
     });

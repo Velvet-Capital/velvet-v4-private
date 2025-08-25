@@ -1565,14 +1565,15 @@ describe.only("Tests for Deposit", () => {
         await positionWrapperBase.deployed();
 
         await expect(
-          protocolConfig.upgradePositionWrapper(
+          portfolioFactory.upgradePositionWrapper(
             [position1],
-            positionWrapperBase.address
+            positionWrapperBase.address,
+            assetManagementConfig.address
           )
         ).to.be.revertedWithCustomError(protocolConfig, "ProtocolNotPaused");
       });
 
-      it("owner should not be able to  upgrade the position manager if protocol is not paused", async () => {
+      it("owner should not be able to upgrade the position manager if protocol is not paused", async () => {
         const PositionManager = await ethers.getContractFactory(
           "PositionManagerAlgebra",
           {
@@ -1585,9 +1586,10 @@ describe.only("Tests for Deposit", () => {
         await positionManagerBase.deployed();
 
         await expect(
-          portfolioFactory.upgradePositionManager(
+          protocolConfig.upgradePositionManager(
             [positionManager.address],
-            positionManagerBase.address
+            positionManagerBase.address,
+            thenaProtocolHash
           )
         ).to.be.revertedWithCustomError(portfolioFactory, "ProtocolNotPaused");
       });
@@ -1608,9 +1610,10 @@ describe.only("Tests for Deposit", () => {
         const positionManagerBase = await PositionManager.deploy();
         await positionManagerBase.deployed();
 
-        await portfolioFactory.upgradePositionManager(
+        await protocolConfig.upgradePositionManager(
           [positionManager.address],
-          positionManagerBase.address
+          positionManagerBase.address,
+          thenaProtocolHash
         );
       });
 
@@ -1627,11 +1630,12 @@ describe.only("Tests for Deposit", () => {
         await positionManagerBase.deployed();
 
         await expect(
-          portfolioFactory
+          protocolConfig
             .connect(nonOwner)
             .upgradePositionManager(
               [positionManager.address],
-              positionManagerBase.address
+              positionManagerBase.address,
+              thenaProtocolHash
             )
         ).to.be.revertedWith("Ownable: caller is not the owner");
       });
@@ -1643,9 +1647,10 @@ describe.only("Tests for Deposit", () => {
         const positionWrapperBase = await PositionWrapper.deploy();
         await positionWrapperBase.deployed();
 
-        await protocolConfig.upgradePositionWrapper(
+        await portfolioFactory.upgradePositionWrapper(
           [position1],
-          positionWrapperBase.address
+          positionWrapperBase.address,
+          assetManagementConfig.address
         );
       });
 
@@ -1657,9 +1662,35 @@ describe.only("Tests for Deposit", () => {
         await positionWrapperBase.deployed();
 
         await expect(
-          protocolConfig
+          portfolioFactory
             .connect(nonOwner)
-            .upgradePositionWrapper([position1], positionWrapperBase.address)
+            .upgradePositionWrapper(
+              [position1],
+              positionWrapperBase.address,
+              assetManagementConfig.address
+            )
+        ).to.be.revertedWith("Ownable: caller is not the owner");
+      });
+
+      it("no one should not be able to call upgrade directly to assetManagementConfig", async () => {
+        const PositionWrapper = await ethers.getContractFactory(
+          "PositionWrapper"
+        );
+        const positionWrapperBase = await PositionWrapper.deploy();
+        await positionWrapperBase.deployed();
+
+        await expect(
+          assetManagementConfig.connect(nonOwner).upgradeBasePositionWrapper(
+            [position1],
+            positionWrapperBase.address
+          )
+        ).to.be.revertedWith("Ownable: caller is not the owner");
+
+        await expect(
+          assetManagementConfig.upgradeBasePositionWrapper(
+            [position1],
+            positionWrapperBase.address
+          )
         ).to.be.revertedWith("Ownable: caller is not the owner");
       });
     });

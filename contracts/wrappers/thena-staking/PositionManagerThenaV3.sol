@@ -895,7 +895,7 @@ contract PositionManagerThenaV3 is
     address /* newImplementation */
   ) internal view override {
     // Only the owner (PortfolioFactory contract) can authorize an upgrade
-    if (!(msg.sender == assetManagementConfig.owner()))
+    if (!(msg.sender == address(protocolConfig)))
       revert ErrorLibrary.CallerNotAdmin();
     // Intentionally left empty as required by an abstract contract
   }

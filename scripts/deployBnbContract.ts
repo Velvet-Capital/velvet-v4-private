@@ -230,7 +230,17 @@ async function main(): Promise<void> {
     ethers.utils.toUtf8Bytes("THENA-CONCENTRATED-STAKING-V3")
   );
 
+  const uniswapV3ProtocolHash = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes("UNISWAP-V3")
+  ); 
+
+  const uniswapV3StakingHash = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes("UNISWAP-V3-STAKING")
+  );
+
   console.log("THENA-CONCENTRATED-STAKING-V3", thenaProtocolHash);
+  console.log("UNISWAP-V3", uniswapV3ProtocolHash);
+  console.log("UNISWAP-V3-STAKING", uniswapV3StakingHash);
   // await sleep(2000); // 2 seconds
 
   // await protocolConfig.enableTokens([

@@ -14,6 +14,8 @@ import { IPriceOracle } from "../../oracle/IPriceOracle.sol";
  */
 abstract contract PositionManagerAlgebraBase is PositionManagerAbstract {
   address router;
+  address vault;
+  
   /**
    * @dev Initializes the contract with additional protocol configuration and swap router addresses.
    * @param _nonFungiblePositionManagerAddress Address of the Algebra V3 Non-Fungible Position Manager.
@@ -43,6 +45,7 @@ abstract contract PositionManagerAlgebraBase is PositionManagerAbstract {
     );
 
     router = _swapRouter;
+    vault = _vault;
   }
 
   /**
