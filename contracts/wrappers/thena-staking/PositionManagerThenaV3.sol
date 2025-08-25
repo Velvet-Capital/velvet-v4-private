@@ -248,6 +248,9 @@ contract PositionManagerThenaV3 is
       tokenId
     );
 
+    uint256 balanceBeforeToken0 = _getTokenBalance(token0, address(this));
+    uint256 balanceBeforeToken1 = _getTokenBalance(token1, address(this));
+
     // Remove all liquidity
     _decreaseLiquidityAndCollect(
       existingLiquidity,
@@ -311,6 +314,17 @@ contract PositionManagerThenaV3 is
       0,
       params._tickLower,
       params._tickUpper
+    );
+
+    uint256 balanceAfterToken0 = _getTokenBalance(token0, address(this));
+    uint256 balanceAfterToken1 = _getTokenBalance(token1, address(this));
+
+    _returnDust(
+      vault,
+      token0,
+      token1,
+      balanceAfterToken0 - balanceBeforeToken0,
+      balanceAfterToken1 - balanceBeforeToken1
     );
 
     emit PriceRangeUpdated(

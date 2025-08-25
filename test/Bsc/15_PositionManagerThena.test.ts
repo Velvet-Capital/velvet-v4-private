@@ -1480,6 +1480,14 @@ describe.only("Tests for Deposit", () => {
           _fee: 100,
         });
 
+        const ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
+
+        const token0 = await positionWrapper.token0();
+        const token1 = await positionWrapper.token1();
+
+        expect(await ERC20.attach(token0).balanceOf(positionManager.address)).to.be.equals(0)
+        expect(await ERC20.attach(token1).balanceOf(positionManager.address)).to.be.equals(0)
+
         let totalSupplyAfter = await positionWrapper.totalSupply();
         expect(totalSupplyAfter).to.be.equals(totalSupplyBefore);
       });
