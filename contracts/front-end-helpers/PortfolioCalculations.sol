@@ -48,7 +48,6 @@ contract PortfolioCalculations is ExponentialNoError {
     uint256 afterFeeAmount;
     uint256 totalSupplyPortfolio;
     uint256 flashLoanTokenPrice;
-    uint256 flashLoanBufferUnit;
   }
 
   function getTokenBalancesAndDecimals(
@@ -813,7 +812,7 @@ contract PortfolioCalculations is ExponentialNoError {
     address _comptroller,
     address _aaveAssetHandler,
     uint256 _portfolioTokenAmount,
-    uint256 _flashLoanBufferUnit
+    uint256[] memory _flashLoanBufferUnit
   )
     external
     view
@@ -843,7 +842,7 @@ contract PortfolioCalculations is ExponentialNoError {
     address _comptroller,
     address _aaveAssetHandler,
     uint256 _portfolioTokenAmount,
-    uint256 _flashLoanBufferUnit
+    uint256[] memory _flashLoanBufferUnit
   )
     internal
     view
@@ -882,8 +881,7 @@ contract PortfolioCalculations is ExponentialNoError {
       totalSupplyPortfolio: totalSupplyPortfolio,
       flashLoanTokenPrice: IAavePriceOracle(
         0xb56c2F0B653B2e0b10C9b928C8580Ac5Df02C7C7
-      ).getAssetPrice(_underlyingToken),
-      flashLoanBufferUnit: _flashLoanBufferUnit
+      ).getAssetPrice(_underlyingToken)
     });
 
     for (uint i = 0; i < tokenCount; i++) {
@@ -891,12 +889,13 @@ contract PortfolioCalculations is ExponentialNoError {
         borrowedPortion[i],
         flashLoanAmount[i],
         underlyingTokens[i]
-      ) = calculateAaveTokenDetails(borrowedTokens[i], params);
+      ) = calculateAaveTokenDetails(borrowedTokens[i], _flashLoanBufferUnit[i], params);
     }
   }
 
   function calculateAaveTokenDetails(
     address borrowedToken,
+    uint256 _flashLoanBufferUnit,
     CalculationParams memory params
   )
     internal
@@ -927,7 +926,7 @@ contract PortfolioCalculations is ExponentialNoError {
     if (borrowedToken != params.protocolToken) {
       flashLoanAmount =
         _amount +
-        ((_amount * params.flashLoanBufferUnit) / 10_000); //Building a buffer of 0.01%
+        ((_amount * _flashLoanBufferUnit) / 10_000); //Building a buffer of 0.01%
     } else {
       flashLoanAmount = _amount;
     }
@@ -940,7 +939,7 @@ contract PortfolioCalculations is ExponentialNoError {
     address _comptroller,
     address _venusAssetHandler,
     uint256 _portfolioTokenAmount,
-    uint256 _flashLoanBufferUnit
+    uint256[] memory _flashLoanBufferUnit
   )
     external
     view
@@ -970,7 +969,7 @@ contract PortfolioCalculations is ExponentialNoError {
     address _comptroller,
     address _venusAssetHandler,
     uint256 _portfolioTokenAmount,
-    uint256 _flashLoanBufferUnit
+    uint256[] memory _flashLoanBufferUnit
   )
     internal
     view
@@ -1003,8 +1002,7 @@ contract PortfolioCalculations is ExponentialNoError {
       totalSupplyPortfolio: totalSupplyPortfolio,
       flashLoanTokenPrice: IVenusComptroller(_comptroller)
         .oracle()
-        .getUnderlyingPrice(protocolToken),
-      flashLoanBufferUnit: _flashLoanBufferUnit
+        .getUnderlyingPrice(protocolToken)
     });
 
     for (uint i = 0; i < tokenCount; i++) {
@@ -1012,12 +1010,13 @@ contract PortfolioCalculations is ExponentialNoError {
         borrowedPortion[i],
         flashLoanAmount[i],
         underlyingTokens[i]
-      ) = calculateTokenDetails(borrowedTokens[i], params);
+      ) = calculateTokenDetails(borrowedTokens[i], _flashLoanBufferUnit[i], params);
     }
   }
 
   function calculateTokenDetails(
     address borrowedToken,
+    uint256 _flashLoanBufferUnit,
     CalculationParams memory params
   )
     internal
@@ -1049,7 +1048,7 @@ contract PortfolioCalculations is ExponentialNoError {
     if (borrowedToken != params.protocolToken) {
       flashLoanAmount =
         _amount +
-        ((_amount * params.flashLoanBufferUnit) / 10_000); //Building a buffer of 0.01%
+        ((_amount * _flashLoanBufferUnit) / 10_000); //Building a buffer of 0.01%
     } else {
       flashLoanAmount = _amount;
     }
