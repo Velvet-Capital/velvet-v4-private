@@ -4,6 +4,8 @@ pragma solidity 0.8.17;
 import { INonfungiblePositionManager } from "../../algebra-v1.2/INonfungiblePositionManager.sol";
 import { IFactory } from "../../algebra/IFactory.sol";
 import { IPool } from "../../interfaces/IPool.sol";
+import { ErrorLibrary } from "../../../library/ErrorLibrary.sol";
+
 /**
  * @title ThenaPositionLibrary
  * @notice Library for managing Thena V3 positions
@@ -54,6 +56,8 @@ library ThenaPositionLibrary {
     uint256 _userShare,
     uint256 _totalSupply
   ) public pure returns (uint256) {
-    return (_userShare * _totalSupply) / ONE_ETH_IN_WEI;
+    uint256 remainingShare = ONE_ETH_IN_WEI - _userShare;
+    if (remainingShare == 0) revert ErrorLibrary.DivisionByZero();
+    return (_userShare * _totalSupply) / remainingShare;
   }
 }
