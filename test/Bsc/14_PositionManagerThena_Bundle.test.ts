@@ -21,7 +21,7 @@ import {
   createEnsoCallDataRoute,
   calculateOutputAmounts,
   calculateDepositAmounts,
-} from "./IntentCalculationsAlgebraV2";
+} from "./IntentCalculationsThena";
 
 import { tokenAddresses, IAddresses, priceOracle } from "./Deployments.test";
 
@@ -47,13 +47,57 @@ import {
   WithdrawManagerExternalPositions,
   DepositBatchExternalPositions,
   DepositManagerExternalPositions,
-  PositionManagerAlgebraV1_2,
+  PositionManagerThenaV3,
   AssetManagementConfig,
   AmountCalculationsAlgebraV2,
   IFactory__factory,
   INonfungiblePositionManager__factory,
   IPool__factory,
 } from "../../typechain";
+
+const POOL_TO_KEY_ABI = [
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      }
+    ],
+    "name": "poolToKey",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "rewardToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "bonusRewardToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "pool",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IFarmingCenter.IncentiveKey",
+        "name": "key",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+];
 
 import { chainIdToAddresses } from "../../scripts/networkVariables";
 
@@ -95,7 +139,7 @@ describe.only("Tests for Deposit", () => {
   let owner: SignerWithAddress;
   let treasury: SignerWithAddress;
   let _assetManagerTreasury: SignerWithAddress;
-  let positionManager: PositionManagerAlgebraV1_2;
+  let positionManager: PositionManagerThenaV3;
   let assetManagementConfig: AssetManagementConfig;
   let positionWrapper: any;
   let positionWrapper2: any;
@@ -292,11 +336,18 @@ describe.only("Tests for Deposit", () => {
 
       let whitelist = [owner.address];
 
+      const ThenaPositionLibrary = await ethers.getContractFactory(
+        "ThenaPositionLibrary",
+      );
+      const thenaPositionLibrary = await ThenaPositionLibrary.deploy();
+      await thenaPositionLibrary.deployed();
+
       const PositionManager = await ethers.getContractFactory(
-        "PositionManagerAlgebraV1_2",
+        "PositionManagerThenaV3",
         {
           libraries: {
             SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
+            ThenaPositionLibrary: thenaPositionLibrary.address,
           },
         }
       );
@@ -480,6 +531,7 @@ describe.only("Tests for Deposit", () => {
       console.log("portfolio deployed to:", portfolio.address);
 
       console.log("rebalancing:", rebalancing1.address);
+
     });
 
     describe("Deposit Tests", function () {
@@ -614,6 +666,68 @@ describe.only("Tests for Deposit", () => {
 
         console.log("SupplyAfter", await portfolio.totalSupply());
       });
+
+      it("should approve and add for farming for position1", async () => {
+
+        const tokenId = await positionWrapper.tokenId();
+        const token0 = await positionWrapper.token0();
+        const token1 = await positionWrapper.token1();
+
+        const factoryContract = await ethers.getContractAt(
+          "contracts/wrappers/algebra/IFactory.sol:IFactory", 
+          addresses.thena_factory
+        );
+
+        const poolAddress = await factoryContract.poolByPair(token0, token1);
+        console.log("poolAddress", poolAddress);
+
+        const poolToKeyContract = new ethers.Contract(
+          "0x80ad2f2Ed4F00b152D7cA5E74920c944BFEF0701",
+          POOL_TO_KEY_ABI,
+          ethers.provider
+        );
+
+        const incentiveKey = await poolToKeyContract.poolToKey(poolAddress);
+
+        await positionManager.approveAndAddForFarming(
+          tokenId,
+          poolAddress,
+          incentiveKey.rewardToken,
+          incentiveKey.bonusRewardToken,
+          incentiveKey.nonce
+        );
+      })
+
+      it("should approve and add for farming for position2", async () => {
+
+        const tokenId = await positionWrapper2.tokenId();
+        const token0 = await positionWrapper2.token0();
+        const token1 = await positionWrapper2.token1();
+
+        const factoryContract = await ethers.getContractAt(
+          "contracts/wrappers/algebra/IFactory.sol:IFactory", 
+          addresses.thena_factory
+        );
+
+        const poolAddress = await factoryContract.poolByPair(token0, token1);
+        console.log("poolAddress", poolAddress);
+
+        const poolToKeyContract = new ethers.Contract(
+          "0x80ad2f2Ed4F00b152D7cA5E74920c944BFEF0701",
+          POOL_TO_KEY_ABI,
+          ethers.provider
+        );
+
+        const incentiveKey = await poolToKeyContract.poolToKey(poolAddress);
+
+        await positionManager.approveAndAddForFarming(
+          tokenId,
+          poolAddress,
+          incentiveKey.rewardToken,
+          incentiveKey.bonusRewardToken,
+          incentiveKey.nonce
+        );
+      })
 
       it("user should invest (investment token equals one portfolio token)", async () => {
         let tokens = await portfolio.getTokens();
@@ -879,7 +993,7 @@ describe.only("Tests for Deposit", () => {
             token0,
             token1,
             0,
-            100,
+            0,
           ]
         );
 
@@ -1017,10 +1131,6 @@ describe.only("Tests for Deposit", () => {
         }
 
         let balanceBeforeETH = await owner.getBalance();
-
-        /*
-    FunctionParameters.withdrawRepayParams calldata repayData,
-    FunctionParameters.ExternalPositionWithdrawParams memory _params*/
 
         await withdrawManager.withdraw(
           swapTokens,
@@ -1508,6 +1618,128 @@ describe.only("Tests for Deposit", () => {
 
         expect(Number(supplyBefore)).to.be.greaterThan(Number(supplyAfter));
       });
+
+      it("should fail to claim rewards when called by non-asset manager", async () => {
+        const incentiveKey = {
+          rewardToken: iaddress.usdcAddress,
+          bonusRewardToken: ZERO_ADDRESS,
+          pool: addresses.thena_factory,
+          nonce: 0,
+        };
+
+        const tokenId = await positionWrapper.tokenId();
+
+        // Try to call claimRewards with non-asset manager account
+        await expect(
+          positionManager.connect(nonOwner).claimRewards(incentiveKey, tokenId)
+        ).to.be.revertedWithCustomError(
+          positionManager,
+          "CallerNotAssetManager"
+        );
+      });
+
+      it("should transfer tokens to vault when called by asset manager", async () => {
+        // Send some tokens to the position manager for testing
+        const testToken = iaddress.usdcAddress;
+        const ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
+        const tokenContract = ERC20.attach(testToken);
+
+        // Get vault address
+        const vaultAddress = await portfolio.vault();
+
+        // Get initial balances
+        const positionManagerBalanceBefore = await tokenContract.balanceOf(
+          positionManager.address
+        );
+        const vaultBalanceBefore = await tokenContract.balanceOf(vaultAddress);
+
+        // Transfer tokens to vault
+        await positionManager.transferTokenToVault(testToken);
+
+        // Check that tokens were transferred
+        const positionManagerBalanceAfter = await tokenContract.balanceOf(
+          positionManager.address
+        );
+        const vaultBalanceAfter = await tokenContract.balanceOf(vaultAddress);
+
+        expect(positionManagerBalanceAfter).to.equal(0);
+        expect(vaultBalanceAfter).to.be.gte(vaultBalanceBefore);
+      });
+
+      it("should fail to transfer tokens to vault when called by non-asset manager", async () => {
+        const testToken = iaddress.usdcAddress;
+
+        await expect(
+          positionManager.connect(nonOwner).transferTokenToVault(testToken)
+        ).to.be.revertedWithCustomError(
+          positionManager,
+          "CallerNotAssetManager"
+        );
+      });
+
+      it("should collect rewards from farming center for position1", async () => {
+        await ethers.provider.send("evm_increaseTime", [9999]);
+        
+        const tokenId = await positionWrapper.tokenId();
+        const token0 = await positionWrapper.token0();
+        const token1 = await positionWrapper.token1();
+
+        const factoryContract = await ethers.getContractAt(
+          "contracts/wrappers/algebra/IFactory.sol:IFactory", 
+          addresses.thena_factory
+        );
+
+        const poolAddress = await factoryContract.poolByPair(token0, token1);
+        console.log("poolAddress", poolAddress);
+
+        const poolToKeyContract = new ethers.Contract(
+          "0x80ad2f2Ed4F00b152D7cA5E74920c944BFEF0701",
+          POOL_TO_KEY_ABI,
+          ethers.provider
+        );
+
+        const incentiveKey = await poolToKeyContract.poolToKey(poolAddress);
+
+        const ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
+
+        await positionManager.claimRewards(
+          incentiveKey,
+          tokenId
+        );
+
+        console.log("balance of reward token in vault", await ERC20.attach(incentiveKey.rewardToken).balanceOf(await portfolio.vault()));      
+      })
+
+      it("should exit from farming for position1", async () => {
+
+        const tokenId = await positionWrapper.tokenId();
+        const token0 = await positionWrapper.token0();
+        const token1 = await positionWrapper.token1();
+
+        const factoryContract = await ethers.getContractAt(
+          "contracts/wrappers/algebra/IFactory.sol:IFactory", 
+          addresses.thena_factory
+        );
+
+        const poolAddress = await factoryContract.poolByPair(token0, token1);
+        console.log("poolAddress", poolAddress);
+
+        const poolToKeyContract = new ethers.Contract(
+          "0x80ad2f2Ed4F00b152D7cA5E74920c944BFEF0701",
+          POOL_TO_KEY_ABI,
+          ethers.provider
+        );
+
+        const incentiveKey = await poolToKeyContract.poolToKey(poolAddress);
+
+        await positionManager.exitFarming(
+          tokenId,
+          poolAddress,
+          incentiveKey.rewardToken,
+          incentiveKey.bonusRewardToken,
+          incentiveKey.nonce
+        );
+      })
     });
   });
 });

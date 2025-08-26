@@ -465,8 +465,8 @@ describe.only("Tests for Deposit", () => {
 
       await protocolConfig.enableProtocol(
         thenaProtocolHash,
-        "0xbf77b742eE1c0a6883c009Ce590A832DeBe74064",
-        "0x76689a9Be4759F9cEcb5a1d86d4f371b6DB4C7a6",
+        "0x643B68Bf3f855B8475C0A700b6D1020bfc21d02e",
+        "0xb85Fdbb78a735584592Df49ED7cD061b01A2e6B7",
         positionManagerBaseAddress.address
       );
 
@@ -1563,9 +1563,10 @@ describe.only("Tests for Deposit", () => {
         await positionWrapperBase.deployed();
 
         await expect(
-          protocolConfig.upgradePositionWrapper(
+          portfolioFactory.upgradePositionWrapper(
             [position1],
-            positionWrapperBase.address
+            positionWrapperBase.address,
+            assetManagementConfig.address
           )
         ).to.be.revertedWithCustomError(protocolConfig, "ProtocolNotPaused");
       });
@@ -1583,9 +1584,10 @@ describe.only("Tests for Deposit", () => {
         await positionManagerBase.deployed();
 
         await expect(
-          portfolioFactory.upgradePositionManager(
+          protocolConfig.upgradePositionManager(
             [positionManager.address],
-            positionManagerBase.address
+            positionManagerBase.address,
+            thenaProtocolHash
           )
         ).to.be.revertedWithCustomError(portfolioFactory, "ProtocolNotPaused");
       });
@@ -1606,9 +1608,10 @@ describe.only("Tests for Deposit", () => {
         const positionManagerBase = await PositionManager.deploy();
         await positionManagerBase.deployed();
 
-        await portfolioFactory.upgradePositionManager(
+        await protocolConfig.upgradePositionManager(
           [positionManager.address],
-          positionManagerBase.address
+          positionManagerBase.address,
+          thenaProtocolHash
         );
       });
 
@@ -1625,11 +1628,12 @@ describe.only("Tests for Deposit", () => {
         await positionManagerBase.deployed();
 
         await expect(
-          portfolioFactory
+          protocolConfig
             .connect(nonOwner)
             .upgradePositionManager(
               [positionManager.address],
-              positionManagerBase.address
+              positionManagerBase.address,
+              thenaProtocolHash
             )
         ).to.be.revertedWith("Ownable: caller is not the owner");
       });
@@ -1641,9 +1645,10 @@ describe.only("Tests for Deposit", () => {
         const positionWrapperBase = await PositionWrapper.deploy();
         await positionWrapperBase.deployed();
 
-        await protocolConfig.upgradePositionWrapper(
+        await portfolioFactory.upgradePositionWrapper(
           [position1],
-          positionWrapperBase.address
+          positionWrapperBase.address,
+          assetManagementConfig.address
         );
       });
 
@@ -1655,9 +1660,13 @@ describe.only("Tests for Deposit", () => {
         await positionWrapperBase.deployed();
 
         await expect(
-          protocolConfig
+          portfolioFactory
             .connect(nonOwner)
-            .upgradePositionWrapper([position1], positionWrapperBase.address)
+            .upgradePositionWrapper(
+              [position1],
+              positionWrapperBase.address,
+              assetManagementConfig.address
+            )
         ).to.be.revertedWith("Ownable: caller is not the owner");
       });
 

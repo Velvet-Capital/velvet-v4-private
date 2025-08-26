@@ -26,6 +26,7 @@ interface IPositionManager {
     address _accessController,
     address _nftManager,
     address _swapRouter,
+    address _vault,
     bytes32 _protocolId
   ) external;
 

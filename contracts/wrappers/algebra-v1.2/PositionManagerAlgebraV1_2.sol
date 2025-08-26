@@ -16,6 +16,7 @@ contract PositionManagerAlgebraV1_2 is PositionManagerAbstractAlgebraV1_2 {
     address _accessController,
     address _nftManager,
     address _swapRouter,
+    address _vault,
     bytes32 _protocolId
   ) external initializer {
     // Add input validation
@@ -32,6 +33,7 @@ contract PositionManagerAlgebraV1_2 is PositionManagerAbstractAlgebraV1_2 {
       _protocolConfig,
       _assetManagerConfig,
       _accessController,
+      _vault,
       _protocolId
     );
   }

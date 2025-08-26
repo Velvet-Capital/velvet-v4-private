@@ -75,13 +75,15 @@ contract ProtocolConfig is
   }
 
   /**
-   * @notice This function is used to upgrade the Token Exclusion Manager contract
+   * @notice This function is used to upgrade the Position Manager contract
    * @param _proxy Proxy address
    * @param _newImpl New implementation address
+   * @param protocolId Protocol ID
    */
-  function upgradePositionWrapper(
+  function upgradePositionManager(
     address[] calldata _proxy,
-    address _newImpl
+    address _newImpl,
+    bytes32 protocolId
   ) external virtual onlyProtocolOwner {
     if (!isProtocolPaused) {
       revert ErrorLibrary.ProtocolNotPaused();
@@ -90,14 +92,20 @@ contract ProtocolConfig is
       revert ErrorLibrary.InvalidAddress();
     }
 
-    // @todo set new implementation as base implemenation
+    if (!protocols[protocolId].enabled) {
+      revert ErrorLibrary.ProtocolNotEnabled(protocolId);
+    }
+
     uint256 proxyLength = _proxy.length;
     for (uint256 i; i < proxyLength; i++) {
       address proxyAddress = _proxy[i];
       if (proxyAddress == address(0)) revert ErrorLibrary.InvalidAddress();
-      UUPSUpgradeable(_proxy[i]).upgradeTo(_newImpl);
+      UUPSUpgradeable(proxyAddress).upgradeTo(_newImpl);
     }
-    emit UpgradePositionWrapper(_newImpl);
+
+    protocols[protocolId].positionManagerBase = _newImpl;
+    
+    emit UpgradePositionManager(protocolId, _newImpl);
   }
 
   /**

@@ -9,8 +9,7 @@ import {
   increaseLiquidity,
   decreaseLiquidity,
   calculateSwapAmountUpdateRange,
-  calculateWithdrawSwapAmounts,
-} from "./IntentCalculations";
+} from "./IntentCalculationsThena";
 
 import {
   PERMIT2_ADDRESS,
@@ -23,11 +22,6 @@ import {
   calcuateExpectedMintAmount,
   createEnsoDataElement,
 } from "../calculations/DepositCalculations.test";
-
-import {
-  createEnsoCallData,
-  createEnsoCallDataRoute,
-} from "./IntentCalculations";
 
 import { tokenAddresses, IAddresses, priceOracle } from "./Deployments.test";
 
@@ -53,10 +47,55 @@ import {
   BorrowManagerVenus,
   DepositBatchExternalPositions,
   DepositManagerExternalPositions,
-  PositionManagerAlgebra,
+  PositionManagerThenaV3,
   AssetManagementConfig,
-  AmountCalculationsAlgebra,
+  AmountCalculationsAlgebraV2,
+  SwapHandlerAlgebraV2,
 } from "../../typechain";
+
+const POOL_TO_KEY_ABI = [
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      }
+    ],
+    "name": "poolToKey",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "rewardToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "bonusRewardToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "pool",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IFarmingCenter.IncentiveKey",
+        "name": "key",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+];
 
 import { chainIdToAddresses } from "../../scripts/networkVariables";
 import { max } from "bn.js";
@@ -67,6 +106,14 @@ const axios = require("axios");
 const qs = require("qs");
 //use default BigNumber
 chai.use(require("chai-bignumber")());
+
+const thenaProtocolHash = ethers.utils.keccak256(
+  ethers.utils.toUtf8Bytes("THENA-CONCENTRATED-LIQUIDITY-V2")
+);
+
+const thenaProtocolHash2 = ethers.utils.keccak256(
+  ethers.utils.toUtf8Bytes("THENA-CONCENTRATED-LIQUIDITY-MANIPULATED")
+);
 
 describe.only("Tests for Deposit", () => {
   let accounts;
@@ -96,7 +143,7 @@ describe.only("Tests for Deposit", () => {
   let owner: SignerWithAddress;
   let treasury: SignerWithAddress;
   let _assetManagerTreasury: SignerWithAddress;
-  let positionManager: PositionManagerAlgebra;
+  let positionManager: PositionManagerThenaV3;
   let assetManagementConfig: AssetManagementConfig;
   let positionWrapper: any;
   let positionWrapper2: any;
@@ -106,14 +153,15 @@ describe.only("Tests for Deposit", () => {
   let addr1: SignerWithAddress;
   let addrs: SignerWithAddress[];
   let feeModule0: FeeModule;
+  let swapHandlerV2Algebra: SwapHandlerAlgebraV2;
+
   let zeroAddress: any;
   let assetManagementConfig1: AssetManagementConfig;
-  let positionManagerBaseAddress: any;
-
   const assetManagerHash = ethers.utils.keccak256(
     ethers.utils.toUtf8Bytes("ASSET_MANAGER")
   );
   let swapVerificationLibrary: any;
+  let thenaPositionLibrary: any;
 
   let positionWrappers: any = [];
   let swapTokens: any = [];
@@ -123,9 +171,7 @@ describe.only("Tests for Deposit", () => {
   let index0: any = [];
   let index1: any = [];
 
-  let positionWrapperBaseAddress: any;
-
-  let amountCalculationsAlgebra: AmountCalculationsAlgebra;
+  let amountCalculationsAlgebra: AmountCalculationsAlgebraV2;
 
   let position1: any;
   let position2: any;
@@ -138,10 +184,6 @@ describe.only("Tests for Deposit", () => {
   const provider = ethers.provider;
   const chainId: any = process.env.CHAIN_ID;
   const addresses = chainIdToAddresses[chainId];
-
-  const thenaProtocolHash = ethers.utils.keccak256(
-    ethers.utils.toUtf8Bytes("THENA-CONCENTRATED-LIQUIDITY")
-  );
 
   function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -163,10 +205,14 @@ describe.only("Tests for Deposit", () => {
       const provider = ethers.getDefaultProvider();
 
       const SwapVerificationLibrary = await ethers.getContractFactory(
-        "SwapVerificationLibraryAlgebra"
+        "SwapVerificationLibraryAlgebraV2"
       );
       swapVerificationLibrary = await SwapVerificationLibrary.deploy();
       await swapVerificationLibrary.deployed();
+
+      const ThenaPositionLibrary = await ethers.getContractFactory("ThenaPositionLibrary");
+      thenaPositionLibrary = await ThenaPositionLibrary.deploy();
+      await thenaPositionLibrary.deployed();
 
       const TokenBalanceLibrary = await ethers.getContractFactory(
         "TokenBalanceLibrary"
@@ -212,7 +258,7 @@ describe.only("Tests for Deposit", () => {
       const PositionWrapper = await ethers.getContractFactory(
         "PositionWrapper"
       );
-      positionWrapperBaseAddress = await PositionWrapper.deploy();
+      const positionWrapperBaseAddress = await PositionWrapper.deploy();
       await positionWrapperBaseAddress.deployed();
 
       const BorrowManager = await ethers.getContractFactory(
@@ -227,6 +273,15 @@ describe.only("Tests for Deposit", () => {
         [treasury.address, priceOracle.address],
         { kind: "uups" }
       );
+
+      const SwapHandlerAlgebraV2 = await ethers.getContractFactory(
+        "SwapHandlerAlgebraV2"
+      );
+      swapHandlerV2Algebra = await SwapHandlerAlgebraV2.deploy(
+        "0x76689a9Be4759F9cEcb5a1d86d4f371b6DB4C7a6",
+        addresses.WETH_Address
+      );
+      await swapHandlerV2Algebra.deployed();
 
       protocolConfig = ProtocolConfig.attach(_protocolConfig.address);
       await protocolConfig.setCoolDownPeriod("70");
@@ -285,25 +340,19 @@ describe.only("Tests for Deposit", () => {
       zeroAddress = "0x0000000000000000000000000000000000000000";
 
       const PositionManager = await ethers.getContractFactory(
-        "PositionManagerAlgebra",
+        "PositionManagerThenaV3",
         {
           libraries: {
-            SwapVerificationLibraryAlgebra: swapVerificationLibrary.address,
+            SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
+            ThenaPositionLibrary: thenaPositionLibrary.address,
           },
         }
       );
-      positionManagerBaseAddress = await PositionManager.deploy();
+      const positionManagerBaseAddress = await PositionManager.deploy();
       await positionManagerBaseAddress.deployed();
 
-      await protocolConfig.enableProtocol(
-        thenaProtocolHash,
-        "0xa51adb08cbe6ae398046a23bec013979816b77ab",
-        "0x327dd3208f0bcf590a66110acb6e5e6941a4efa0",
-        positionManagerBaseAddress.address
-      );
-
       const AmountCalculationsAlgebra = await ethers.getContractFactory(
-        "AmountCalculationsAlgebra"
+        "AmountCalculationsAlgebraV2"
       );
       amountCalculationsAlgebra = await AmountCalculationsAlgebra.deploy();
       await amountCalculationsAlgebra.deployed();
@@ -464,6 +513,13 @@ describe.only("Tests for Deposit", () => {
       assetManagementConfig = AssetManagementConfig.attach(config);
       assetManagementConfig1 = AssetManagementConfig.attach(config1);
 
+      await protocolConfig.enableProtocol(
+        thenaProtocolHash,
+        "0x643B68Bf3f855B8475C0A700b6D1020bfc21d02e",
+        "0xb85Fdbb78a735584592Df49ED7cD061b01A2e6B7",
+        positionManagerBaseAddress.address
+      );
+
       await assetManagementConfig.enableUniSwapV3Manager(thenaProtocolHash);
 
       let positionManagerAddress =
@@ -498,22 +554,13 @@ describe.only("Tests for Deposit", () => {
       });
 
       it("owner should not be able to enable the uniswapV3 position manager if not enabled during portfolio creation", async () => {
-        const thenaProtocolHash2 = ethers.utils.keccak256(
-          ethers.utils.toUtf8Bytes("THENA-CONCENTRATED-LIQUIDITY-COPY")
-        );
-        await protocolConfig.enableProtocol(
-          thenaProtocolHash2,
-          "0xa51adb08cbe6ae398046a23bec013979816b77ab",
-          "0x327dd3208f0bcf590a66110acb6e5e6941a4efa0",
-          positionManagerBaseAddress.address
-        );
         await expect(
           assetManagementConfig1
             .connect(nonOwner)
             .enableUniSwapV3Manager(thenaProtocolHash2)
         ).to.be.revertedWithCustomError(
           assetManagementConfig,
-          "ProtocolNotWhitelisted"
+          "ProtocolNotEnabled"
         );
       });
 
@@ -579,7 +626,7 @@ describe.only("Tests for Deposit", () => {
         ).to.be.revertedWithCustomError(positionManager, "TokenNotWhitelisted");
       });
 
-      it("owner should create new position", async () => {
+      it("owner should not be able to create a new position if tokens are not enabled", async () => {
         // UniswapV3 position
         const token0 = iaddress.usdtAddress;
         const token1 = iaddress.usdcAddress;
@@ -602,35 +649,14 @@ describe.only("Tests for Deposit", () => {
           iaddress.btcAddress,
           iaddress.usdcAddress,
           iaddress.usdtAddress,
+          addresses.WETH_Address,
         ]);
       });
 
       it("owner should create new position", async () => {
         // UniswapV3 position
         const token0 = iaddress.usdtAddress;
-        const token1 = iaddress.usdcAddress;
-
-        await positionManager.createNewWrapperPosition(
-          token0,
-          token1,
-          "Test",
-          "t",
-          MIN_TICK,
-          MAX_TICK
-        );
-
-        position1 = await positionManager.deployedPositionWrappers(0);
-
-        const PositionWrapper = await ethers.getContractFactory(
-          "PositionWrapper"
-        );
-        positionWrapper = PositionWrapper.attach(position1);
-      });
-
-      it("owner should create new position", async () => {
-        // UniswapV3 position
-        const token0 = iaddress.usdtAddress;
-        const token1 = iaddress.usdcAddress;
+        const token1 = addresses.WETH_Address;
 
         await positionManager.createNewWrapperPosition(
           token0,
@@ -786,25 +812,6 @@ describe.only("Tests for Deposit", () => {
         await protocolConfig.setEmergencyPause(false, true);
       });
 
-      it("should not be able to decrease liquidity when fake position wrapper is passed", async () => {
-        await expect(
-          positionManager.decreaseLiquidity(
-            nonOwner.address,
-            10000,
-            0,
-            0,
-            zeroAddress,
-            await positionWrapper.token0(),
-            await positionWrapper.token1(),
-            0,
-            100
-          )
-        ).to.be.revertedWithCustomError(
-          positionManager,
-          "InvalidPositionWrapper"
-        );
-      });
-
       it("should not be able to update range when protocol is paused", async () => {
         await protocolConfig.setProtocolPause(true);
 
@@ -847,6 +854,7 @@ describe.only("Tests for Deposit", () => {
         const supplyBefore = await portfolio.totalSupply();
 
         const tokens = await portfolio.getTokens();
+
         const ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
         for (let i = 0; i < tokens.length; i++) {
           let { nonce } = await permit2.allowance(
@@ -854,10 +862,19 @@ describe.only("Tests for Deposit", () => {
             tokens[i],
             portfolio.address
           );
+
           if (i < tokens.length - 1) {
-            await swapHandler.swapETHToTokens("500", tokens[i], owner.address, {
-              value: "100000000000000000",
-            });
+            if (tokens[i] != addresses.WETH_Address) {
+              await swapHandler.swapETHToTokens(
+                "500",
+                tokens[i],
+                owner.address,
+                {
+                  value: "100000000000000000",
+                }
+              );
+            } else {
+            }
           } else {
             // UniswapV3 position
             const token0 = await positionWrapper.token0();
@@ -954,6 +971,37 @@ describe.only("Tests for Deposit", () => {
         console.log("supplyAfter", supplyAfter);
       });
 
+      it("should approve and add for farming for position1", async () => {
+
+        const tokenId = await positionWrapper.tokenId();
+        const token0 = await positionWrapper.token0();
+        const token1 = await positionWrapper.token1();
+
+        const factoryContract = await ethers.getContractAt(
+          "contracts/wrappers/algebra/IFactory.sol:IFactory", 
+          addresses.thena_factory
+        );
+
+        const poolAddress = await factoryContract.poolByPair(token0, token1);
+        console.log("poolAddress", poolAddress);
+
+        const poolToKeyContract = new ethers.Contract(
+          "0x80ad2f2Ed4F00b152D7cA5E74920c944BFEF0701",
+          POOL_TO_KEY_ABI,
+          ethers.provider
+        );
+
+        const incentiveKey = await poolToKeyContract.poolToKey(poolAddress);
+
+        await positionManager.approveAndAddForFarming(
+          tokenId,
+          poolAddress,
+          incentiveKey.rewardToken,
+          incentiveKey.bonusRewardToken,
+          incentiveKey.nonce
+        );
+      })
+
       it("should deposit multi-token into fund (Second Deposit)", async () => {
         let amounts = [];
         let newAmounts: any = [];
@@ -981,9 +1029,15 @@ describe.only("Tests for Deposit", () => {
             portfolio.address
           );
           if (i < tokens.length - 1) {
-            await swapHandler.swapETHToTokens("500", tokens[i], owner.address, {
-              value: "150000000000000000",
-            });
+            if (tokens[i] != addresses.WETH_Address)
+              await swapHandler.swapETHToTokens(
+                "500",
+                tokens[i],
+                owner.address,
+                {
+                  value: "150000000000000000",
+                }
+              );
           } else {
             // UniswapV3 position
             const token0 = await positionWrapper.token0();
@@ -1097,9 +1151,15 @@ describe.only("Tests for Deposit", () => {
             portfolio.address
           );
           if (i < tokens.length - 1) {
-            await swapHandler.swapETHToTokens("500", tokens[i], owner.address, {
-              value: "150000000000000000",
-            });
+            if (tokens[i] != addresses.WETH_Address)
+              await swapHandler.swapETHToTokens(
+                "500",
+                tokens[i],
+                owner.address,
+                {
+                  value: "150000000000000000",
+                }
+              );
           } else {
             // UniswapV3 position
             const token0 = await positionWrapper.token0();
@@ -1232,8 +1292,8 @@ describe.only("Tests for Deposit", () => {
               token0,
               token1,
               position1,
-              "100000000000000000",
-              "100000000000000000"
+              "10000000000000000000",
+              "10000000000000000000"
             );
           }
 
@@ -1319,7 +1379,7 @@ describe.only("Tests for Deposit", () => {
             _tokenIn: token0,
             _tokenOut: token1,
             _deployer: zeroAddress,
-            _amountIn: 0,
+            _amountIn: 1000,
             _underlyingAmountOut0: 0,
             _underlyingAmountOut1: 0,
             _tickLower: MIN_TICK,
@@ -1387,10 +1447,7 @@ describe.only("Tests for Deposit", () => {
             _tickUpper: newTickUpper,
             _fee: 100,
           })
-        ).to.be.revertedWithCustomError(
-          swapVerificationLibrary,
-          "InvalidSwapAmount"
-        );
+        ).to.be.revertedWithCustomError(swapVerificationLibrary, "InvalidSwapToken");
 
         let totalSupplyAfter = await positionWrapper.totalSupply();
         expect(totalSupplyAfter).to.be.equals(totalSupplyBefore);
@@ -1399,7 +1456,7 @@ describe.only("Tests for Deposit", () => {
       it("owner should update the price range", async () => {
         let totalSupplyBefore = await positionWrapper.totalSupply();
 
-        const newTickLower = -180;
+        const newTickLower = -120;
         const newTickUpper = 240;
 
         let updateRangeData = await calculateSwapAmountUpdateRange(
@@ -1422,6 +1479,14 @@ describe.only("Tests for Deposit", () => {
           _tickUpper: newTickUpper,
           _fee: 100,
         });
+
+        const ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
+
+        const token0 = await positionWrapper.token0();
+        const token1 = await positionWrapper.token1();
+
+        expect(await ERC20.attach(token0).balanceOf(positionManager.address)).to.be.equals(0)
+        expect(await ERC20.attach(token1).balanceOf(positionManager.address)).to.be.equals(0)
 
         let totalSupplyAfter = await positionWrapper.totalSupply();
         expect(totalSupplyAfter).to.be.equals(totalSupplyBefore);
@@ -1452,14 +1517,14 @@ describe.only("Tests for Deposit", () => {
             _token0: zeroAddress, //USDT - Pool token
             _token1: zeroAddress, //USDC - Pool token
             _flashLoanToken: zeroAddress, //Token to take flashlaon
-            _bufferUnit: "0",
             _solverHandler: ensoHandler.address, //Handler to swap
+            _swapHandler: swapHandler.address,
+            _bufferUnit: "0",
             _flashLoanAmount: [[0]],
+            _poolFees: [[0, 0, 0]],
             firstSwapData: [["0x"]],
             secondSwapData: [["0x"]],
             isDexRepayment: false,
-            _poolFees: [[0, 0, 0]],
-            _swapHandler: swapHandler.address,
           });
 
         const supplyAfter = await portfolio.totalSupply();
@@ -1500,14 +1565,14 @@ describe.only("Tests for Deposit", () => {
             _token0: zeroAddress, //USDT - Pool token
             _token1: zeroAddress, //USDC - Pool token
             _flashLoanToken: zeroAddress, //Token to take flashlaon
-            _bufferUnit: "0",
             _solverHandler: ensoHandler.address, //Handler to swap
+            _swapHandler: swapHandler.address,
+            _bufferUnit: "0",
             _flashLoanAmount: [[0]],
+            _poolFees: [[0, 0, 0]],
             firstSwapData: [["0x"]],
             secondSwapData: [["0x"]],
             isDexRepayment: false,
-            _poolFees: [[0, 0, 0]],
-            _swapHandler: swapHandler.address,
           });
 
         const supplyAfter = await portfolio.totalSupply();
@@ -1573,12 +1638,13 @@ describe.only("Tests for Deposit", () => {
         ).to.be.revertedWithCustomError(protocolConfig, "ProtocolNotPaused");
       });
 
-      it("owner should not be able to upgrade the position manager if protocol is not paused", async () => {
+      it("owner should not be able to  upgrade the position manager if protocol is not paused", async () => {
         const PositionManager = await ethers.getContractFactory(
-          "PositionManagerAlgebra",
+          "PositionManagerThenaV3",
           {
             libraries: {
-              SwapVerificationLibraryAlgebra: swapVerificationLibrary.address,
+              ThenaPositionLibrary: thenaPositionLibrary.address,
+              SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
             },
           }
         );
@@ -1600,10 +1666,11 @@ describe.only("Tests for Deposit", () => {
 
       it("should upgrade the position manager", async () => {
         const PositionManager = await ethers.getContractFactory(
-          "PositionManagerAlgebra",
+          "PositionManagerThenaV3",
           {
             libraries: {
-              SwapVerificationLibraryAlgebra: swapVerificationLibrary.address,
+              ThenaPositionLibrary: thenaPositionLibrary.address,
+              SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
             },
           }
         );
@@ -1619,10 +1686,11 @@ describe.only("Tests for Deposit", () => {
 
       it("nonOwner should not be able to upgrade the position manager", async () => {
         const PositionManager = await ethers.getContractFactory(
-          "PositionManagerAlgebra",
+          "PositionManagerThenaV3",
           {
             libraries: {
-              SwapVerificationLibraryAlgebra: swapVerificationLibrary.address,
+              ThenaPositionLibrary: thenaPositionLibrary.address,
+              SwapVerificationLibraryAlgebraV2: swapVerificationLibrary.address,
             },
           }
         );
@@ -1692,6 +1760,32 @@ describe.only("Tests for Deposit", () => {
             positionWrapperBase.address
           )
         ).to.be.revertedWith("Ownable: caller is not the owner");
+      });
+
+      it("should swap tokens using algebra v2", async () => {
+        const token0 = await positionWrapper.token0();
+        const token1 = await positionWrapper.token1();
+
+        await swapHandler.swapETHToTokens("500", token0, owner.address, {
+          value: "100000000000000000",
+        });
+
+        const ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
+        const token0Balance = await ERC20.attach(token0).balanceOf(
+          owner.address
+        );
+
+        // Approve the swap handler to spend tokens
+        await ERC20.attach(token0).approve(
+          swapHandlerV2Algebra.address,
+          token0Balance
+        );
+
+        await swapHandlerV2Algebra.swapTokenToToken(
+          token0,
+          token1,
+          BigNumber.from(token0Balance)
+        );
       });
     });
   });

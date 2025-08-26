@@ -89,7 +89,7 @@ contract PortfolioFactory is
 
   event TransferSuperAdminOwnership(address indexed newOwner);
 
-  event UpgradePositionManager(address indexed newImplementation);
+  event UpgradePositionWrapper(address indexed newImplementation);
 
   /// @custom:oz-upgrades-unsafe-allow constructor
   constructor() {
@@ -134,11 +134,11 @@ contract PortfolioFactory is
       initData._feeModuleImplementationAddress
     );
 
-    setTokenRemovalVaultImplementationAddress(
+    _setTokenRemovalVaultImplementationAddress(
       initData._baseTokenRemovalVaultImplementation
     );
     _setBaseBorrowManager(initData._baseBorrowManager);
-    setPositionManagerImplementationAddress(initData._basePositionWrapper);
+    _setPositionWrapperImplementationAddress(initData._basePositionWrapper);
     baseExternalPositionStorage = initData._baseExternalPositionStorage;
 
     baseVelvetGnosisSafeModuleAddress = initData
@@ -211,6 +211,8 @@ contract PortfolioFactory is
       bytes("")
     );
 
+    ERC1967Proxy portfolio = new ERC1967Proxy(basePortfolioAddress, bytes(""));
+
     // Access Controller
     AccessController accessController = new AccessController();
     ERC1967Proxy _assetManagementConfig = new ERC1967Proxy(
@@ -226,6 +228,7 @@ contract PortfolioFactory is
           _minPortfolioTokenHoldingAmount: initData
             ._minPortfolioTokenHoldingAmount,
           _protocolConfig: protocolConfig,
+          _portfolio: address(portfolio),
           _accessController: address(accessController),
           _feeModule: address(_feeModule),
           _assetManagerTreasury: initData._assetManagerTreasury,
@@ -240,8 +243,6 @@ contract PortfolioFactory is
         })
       )
     );
-
-    ERC1967Proxy portfolio = new ERC1967Proxy(basePortfolioAddress, bytes(""));
 
     whitelistedPortfolioAddress[address(portfolio)] = true;
 
@@ -468,17 +469,21 @@ contract PortfolioFactory is
   }
 
   /**
-   * @notice This function is used to upgrade the Token Exclusion Manager contract
+   * @notice This function is used to upgrade the Position Wrapper contract
    * @param _proxy Proxy address
    * @param _newImpl New implementation address
    */
-  function upgradePositionManager(
+  function upgradePositionWrapper(
     address[] calldata _proxy,
-    address _newImpl
+    address _newImpl,
+    address _assetManagementConfig
   ) external virtual onlyOwner {
-    setPositionManagerImplementationAddress(_newImpl);
-    _upgrade(_proxy, _newImpl);
-    emit UpgradePositionManager(_newImpl);
+    _setPositionWrapperImplementationAddress(_newImpl);
+    IAssetManagementConfig(_assetManagementConfig).upgradeBasePositionWrapper(
+      _proxy,
+      _newImpl
+    );
+    emit UpgradePositionWrapper(_newImpl);
   }
 
   /**
@@ -559,17 +564,17 @@ contract PortfolioFactory is
    * @notice This function is used to set the token removal vault implementation address
    * @param _baseTokenRemovalVault Address of the token removal vault to set as base
    */
-  function setTokenRemovalVaultImplementationAddress(
+  function _setTokenRemovalVaultImplementationAddress(
     address _baseTokenRemovalVault
   ) internal {
     baseTokenRemovalVaultAddress = _baseTokenRemovalVault;
   }
 
   /**
-   * @notice This function is used to set the position manager implementation address
-   * @param _basePositionWrapper Address of the position manager to set as base
+   * @notice This function is used to set the position wrapper implementation address
+   * @param _basePositionWrapper Address of the position wrapper to set as base
    */
-  function setPositionManagerImplementationAddress(
+  function _setPositionWrapperImplementationAddress(
     address _basePositionWrapper
   ) internal {
     basePositionWrapper = _basePositionWrapper;
@@ -579,10 +584,10 @@ contract PortfolioFactory is
    * @notice This function is used to set the Token Removal Vault implementation address
    * @param _newImpl New implementation address
    */
-  function setTokenRemovalVaultModule(
+  function _setTokenRemovalVaultModule(
     address _newImpl
   ) external virtual onlyOwner {
-    setTokenRemovalVaultImplementationAddress(_newImpl);
+    _setTokenRemovalVaultImplementationAddress(_newImpl);
     emit UpgradeTokenRemovalVaultBaseAddress(_newImpl);
   }
 

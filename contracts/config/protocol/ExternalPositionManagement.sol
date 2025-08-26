@@ -10,7 +10,7 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable-4.9.6/proxy/u
 abstract contract ExternalPositionManagement is OwnableCheck, Initializable {
   event PositionWrapperBaseAddressUpdated(address indexed _newAddress);
   event AllowedRatioDeviationBpsUpdated(uint256 indexed _newDeviationBps);
-  event UpgradePositionWrapper(address indexed newImplementation);
+  event UpgradePositionManager(bytes32 protocolId, address indexed newImplementation);
   event UpdatedSlippageFeeReinvestment(uint256 indexed _newSlippage);
   event ProtocolDisabled(bytes32 indexed protocolId);
   /// @notice The maximum allowed deviation from the target ratio for external positions, measured in basis points.
@@ -31,10 +31,10 @@ abstract contract ExternalPositionManagement is OwnableCheck, Initializable {
   }
 
   event ProtocolEnabled(
-    bytes32 indexed protocolId,
-    address nftManager,
-    address swapRouter,
-    address positionManagerBase
+    bytes32 protocolId,
+    address indexed nftManager,
+    address indexed swapRouter,
+    address indexed positionManagerBase
   );
 
   function __ExternalPositionManagement_init() internal onlyInitializing {

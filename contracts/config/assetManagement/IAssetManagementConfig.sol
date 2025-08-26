@@ -133,5 +133,19 @@ interface IAssetManagementConfig {
    */
   function whitelistedProtocols(bytes32 protocolId) external returns (bool);
 
+  /**
+   * @notice Returns the address of the base position wrapper.
+   * @return The address of the base position wrapper.
+   */
   function basePositionWrapper() external returns (address);
+
+  /**
+   * @notice Upgrades the base position wrapper.
+   * @param _proxy The proxy address of the position wrapper.
+   * @param _newBasePositionWrapper The new base position wrapper address.
+   */
+  function upgradeBasePositionWrapper(
+    address[] calldata _proxy,
+    address _newBasePositionWrapper
+  ) external;
 }
