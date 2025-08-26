@@ -948,7 +948,7 @@ describe.only("Tests for Deposit + Withdrawal", () => {
 
         let vault = await portfolio.vault();
 
-        let flashloanBufferUnit = [11, 11, 11]; //Flashloan buffer unit in 1/10000
+        let flashloanBufferUnit = 11; //Flashloan buffer unit in 1/10000
         let bufferUnit = 300; //Buffer unit for collateral amount in 1/100000
 
         let flashLoanToken = addresses.USDT;
