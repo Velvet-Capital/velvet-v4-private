@@ -1553,7 +1553,7 @@ describe.only("Tests for Deposit", () => {
 
         let vault = await portfolio.vault();
 
-        let flashloanBufferUnit = [11, 11, 11]; //Flashloan buffer unit in 1/10000
+        let flashloanBufferUnit = 11; //Flashloan buffer unit in 1/10000
         let bufferUnit = 300; //Buffer unit for collateral amount in 1/100000
 
         let flashLoanToken = addresses.USDT;
@@ -1655,7 +1655,7 @@ describe.only("Tests for Deposit", () => {
 
         const user = nonOwner;
 
-        let flashloanBufferUnit = [11, 11, 11]; //Flashloan buffer unit in 1/10000.This value is used slightly increase the amount of flashLoanAmount, for any priceImpact (10000 = 100%)
+        let flashloanBufferUnit = 11; //Flashloan buffer unit in 1/10000.This value is used slightly increase the amount of flashLoanAmount, for any priceImpact (10000 = 100%)
         let bufferUnit = 300; //The buffer unit used to slightly increase the amount of collateral to sell, expressed in 0.001% (100000 = 100%)
 
         const ERC20 = await ethers.getContractFactory("ERC20Upgradeable");
