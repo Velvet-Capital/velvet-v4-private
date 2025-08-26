@@ -36,7 +36,7 @@ abstract contract PositionManagerAbstract is
   IProtocolConfig public protocolConfig;
 
   /// @dev Contract for managing asset configurations, used to enforce rules and parameters for asset operations.
-  IAssetManagementConfig assetManagementConfig;
+  IAssetManagementConfig public assetManagementConfig;
 
   /// @dev Access control contract for managing permissions and roles within the ecosystem.
   IAccessController accessController;
@@ -597,7 +597,7 @@ abstract contract PositionManagerAbstract is
    */
   function _authorizeUpgrade(address newImplementation) internal override {
     // Only the owner (PortfolioFactory contract) can authorize an upgrade
-    if (!(msg.sender == assetManagementConfig.owner()))
+    if (!(msg.sender == address(protocolConfig)))
       revert ErrorLibrary.CallerNotAdmin();
     // Intentionally left empty as required by an abstract contract
   }

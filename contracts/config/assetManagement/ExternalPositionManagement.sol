@@ -12,6 +12,7 @@ import { AccessRoles } from "../../access/AccessRoles.sol";
 import { IProtocolConfig } from "../../config/protocol/IProtocolConfig.sol";
 import { IAssetManagementConfig } from "../../config/assetManagement/IAssetManagementConfig.sol";
 import { IExternalPositionStorage } from "../../wrappers/abstract/IExternalPositionStorage.sol";
+import { IPortfolio } from "../../core/interfaces/IPortfolio.sol";
 
 /**
  * @title External Position Management
@@ -26,6 +27,7 @@ abstract contract ExternalPositionManagement is AccessRoles {
   address accessControllerAddress; // Address of the access controller for role management.
 
   address public protocolConfig; // Address of the protocol config.
+  address public portfolio; // Address of the portfolio.
 
   mapping(bytes32 => IPositionManager) public positionManagers;
 
@@ -48,6 +50,7 @@ abstract contract ExternalPositionManagement is AccessRoles {
    */
   function ExternalPositionManagement__init(
     address _protocolConfig,
+    address _portfolio,
     address _accessControllerAddress,
     address _basePositionWrapper,
     address _baseExternalPositionStorage,
@@ -70,6 +73,7 @@ abstract contract ExternalPositionManagement is AccessRoles {
     whitelistProtocols(_witelistedProtocolIds);
 
     protocolConfig = _protocolConfig;
+    portfolio = _portfolio;
   }
 
   function whitelistProtocols(bytes32[] calldata protocolIds) internal {
@@ -81,9 +85,10 @@ abstract contract ExternalPositionManagement is AccessRoles {
 
   /**
    * @notice Enables the Uniswap V3 wrapper if it is not already enabled and the caller has the asset manager role.
-     * @param protocolId The identifier for the protocol (e.g., keccak256("UNISWAP_V3"))
-
+   * @param protocolId The identifier for the protocol (e.g., keccak256("UNISWAP_V3"))
    */
+
+  // @todo add vault from the portfolio to avoid user error
   function enableUniSwapV3Manager(bytes32 protocolId) external {
     // Ensure the caller has the asset manager role.
     if (
@@ -123,6 +128,7 @@ abstract contract ExternalPositionManagement is AccessRoles {
         accessControllerAddress,
         nftManagerAddress,
         swapRouterAddress,
+        IPortfolio(portfolio).vault(),
         protocolId
       )
     );

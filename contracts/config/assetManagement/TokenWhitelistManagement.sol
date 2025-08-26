@@ -34,6 +34,7 @@ abstract contract TokenWhitelistManagement is
    */
   function __TokenWhitelistManagement_init(
     address[] calldata _whitelistTokens,
+    address _portfolio,
     address _accessControllerAddress,
     address _basePositionWrapper,
     address _baseExternalPositionStorage,
@@ -46,6 +47,7 @@ abstract contract TokenWhitelistManagement is
 
     ExternalPositionManagement__init(
       _protocolConfig,
+      _portfolio,
       _accessControllerAddress,
       _basePositionWrapper,
       _baseExternalPositionStorage,

@@ -36,6 +36,7 @@ import {
   VenusAssetHandler,
   IAssetHandler,
   IVenusComptroller,
+  BorrowManagerVenus__factory,
 } from "../../typechain";
 
 import { chainIdToAddresses } from "../../scripts/networkVariables";
@@ -57,6 +58,7 @@ describe.only("Tests for Deposit", () => {
   let tokenExclusionManager: any;
   let tokenExclusionManager1: any;
   let borrowManager: BorrowManagerVenus;
+  let borrowManagerVenus: any;
   let ensoHandler: EnsoHandler;
   let depositBatch: DepositBatch;
   let depositManager: DepositManager;
@@ -456,6 +458,13 @@ describe.only("Tests for Deposit", () => {
         });
       const portfolioAddress = await portfolioFactory.getPortfolioList(0);
       const portfolioInfo = await portfolioFactory.PortfolioInfolList(0);
+
+      const borrowManagerVenusAddress = await portfolioInfo.borrowManager;
+      borrowManagerVenus = await ethers.getContractAt(
+        BorrowManagerVenus__factory.abi,
+        borrowManagerVenusAddress
+      );
+
 
       const portfolioAddress1 = await portfolioFactory.getPortfolioList(1);
       const portfolioInfo1 = await portfolioFactory.PortfolioInfolList(1);
@@ -1618,9 +1627,10 @@ describe.only("Tests for Deposit", () => {
           },
           responses
         );
-
         const supplyAfter = await portfolio.totalSupply();
         console.log("SupplyAfter", supplyAfter);
+
+        expect(await ERC20.attach(flashLoanToken).balanceOf(borrowManagerVenus.address)).to.be.equal(0);
 
         for (let i = 0; i < tokens.length; i++) {
           let balanceAfter = await ERC20.attach(tokens[i]).balanceOf(
@@ -1712,6 +1722,8 @@ describe.only("Tests for Deposit", () => {
         const supplyAfter = await portfolio.totalSupply();
         console.log("SupplyAfter", supplyAfter);
 
+        expect(await ERC20.attach(flashLoanToken).balanceOf(borrowManagerVenus.address)).to.be.equal(0);
+        
         for (let i = 0; i < tokens.length; i++) {
           let balanceAfter = await ERC20.attach(tokens[i]).balanceOf(
             user.address

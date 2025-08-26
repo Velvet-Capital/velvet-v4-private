@@ -1185,10 +1185,17 @@
   dependencies:
     ethereumjs-util "^7.1.4"
 
+<<<<<<< HEAD
 "@nomicfoundation/hardhat-verify@^2.1.0":
   version "2.1.0"
   resolved "https://registry.npmjs.org/@nomicfoundation/hardhat-verify/-/hardhat-verify-2.1.0.tgz"
   integrity sha512-ogRbwlzphOR2MK/TxDG/uOftEhVJtD81eBU32YZ/maqQOHYOPKymu7BvF9syp7b2fxID5/loEIvxizjW1yBvvQ==
+=======
+"@nomicfoundation/hardhat-verify@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.npmjs.org/@nomicfoundation/hardhat-verify/-/hardhat-verify-2.1.1.tgz"
+  integrity sha512-K1plXIS42xSHDJZRkrE2TZikqxp9T4y6jUMUNI/imLgN5uCcEQokmfU0DlyP9zzHncYK92HlT5IWP35UVCLrPw==
+>>>>>>> 9844cbb96aee1e20409bdfce773587c7a7448963
   dependencies:
     "@ethersproject/abi" "^5.1.2"
     "@ethersproject/address" "^5.0.2"
@@ -1200,6 +1207,7 @@
     table "^6.8.0"
     undici "^5.14.0"
 
+<<<<<<< HEAD
 "@nomicfoundation/slang@^0.18.3":
   version "0.18.3"
   resolved "https://registry.npmjs.org/@nomicfoundation/slang/-/slang-0.18.3.tgz"
@@ -1207,6 +1215,8 @@
   dependencies:
     "@bytecodealliance/preview2-shim" "0.17.0"
 
+=======
+>>>>>>> 9844cbb96aee1e20409bdfce773587c7a7448963
 "@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.1":
   version "0.1.1"
   resolved "https://registry.npmjs.org/@nomicfoundation/solidity-analyzer-darwin-arm64/-/solidity-analyzer-darwin-arm64-0.1.1.tgz"
@@ -6773,9 +6783,15 @@ hardhat-tracer@3.1.0:
     semver "^7.6.2"
 
 hardhat@^2.0.0, hardhat@^2.0.10, hardhat@^2.0.2, hardhat@^2.0.4, hardhat@^2.10.2, hardhat@^2.11.0, hardhat@^2.17.2, hardhat@^2.2.1, hardhat@^2.22.17, hardhat@^2.26.0, hardhat@^2.9.4, hardhat@^2.9.5, "hardhat@>=2.22.5 <3.x":
+<<<<<<< HEAD
   version "2.26.1"
   resolved "https://registry.npmjs.org/hardhat/-/hardhat-2.26.1.tgz"
   integrity sha512-CXWuUaTtehxiHPCdlitntctfeYRgujmXkNX5gnrD5jdA6HhRQt+WWBZE/gHXbE29y/wDmmUL2d652rI0ctjqjw==
+=======
+  version "2.26.3"
+  resolved "https://registry.npmjs.org/hardhat/-/hardhat-2.26.3.tgz"
+  integrity sha512-gBfjbxCCEaRgMCRgTpjo1CEoJwqNPhyGMMVHYZJxoQ3LLftp2erSVf8ZF6hTQC0r2wst4NcqNmLWqMnHg1quTw==
+>>>>>>> 9844cbb96aee1e20409bdfce773587c7a7448963
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.1.2"
@@ -8464,6 +8480,7 @@ minimatch@^5.0.1, minimatch@^5.1.6:
   dependencies:
     brace-expansion "^2.0.1"
 
+<<<<<<< HEAD
 minimatch@^9.0.5:
   version "9.0.5"
   resolved "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz"
@@ -8471,6 +8488,8 @@ minimatch@^9.0.5:
   dependencies:
     brace-expansion "^2.0.1"
 
+=======
+>>>>>>> 9844cbb96aee1e20409bdfce773587c7a7448963
 minimist@^1.2.0, minimist@^1.2.5, minimist@^1.2.6, minimist@^1.2.7:
   version "1.2.8"
   resolved "https://registry.npmjs.org/minimist/-/minimist-1.2.8.tgz"
@@ -12322,7 +12341,11 @@ which-module@^1.0.0:
   resolved "https://registry.npmjs.org/which-module/-/which-module-1.0.0.tgz"
   integrity sha512-F6+WgncZi/mJDrammbTuHe1q0R5hOXv/mBaiNA2TCNT/LTHusX0V+CJnj9XT8ki5ln2UZyyddDgHfCzyrOH7MQ==
 
+<<<<<<< HEAD
 which-typed-array@^1.1.14, which-typed-array@^1.1.2:
+=======
+which-typed-array@^1.1.14, which-typed-array@^1.1.15, which-typed-array@^1.1.2:
+>>>>>>> 9844cbb96aee1e20409bdfce773587c7a7448963
   version "1.1.15"
   resolved "https://registry.npmjs.org/which-typed-array/-/which-typed-array-1.1.15.tgz"
   integrity sha512-oV0jmFtUky6CXfkqehVvBP/LSWJ2sy4vWMioiENyJLePrBO/yKyV9OyJySfAKosh+RYkIl5zJCNZ8/4JncrpdA==
