@@ -216,7 +216,7 @@ async function main(): Promise<void> {
   console.log("------------- Creating Enso Call Data Route -------------");
 
   const totalSupply = await portfolio.totalSupply();
-  let amount = ethers.utils.parseUnits("0.0070", "ether");
+  let amount = ethers.utils.parseUnits("0.0080", "ether");
   let depositAmounts = [];
   let postResponse = [];
 
@@ -331,9 +331,7 @@ async function calculateWeightedDepositAmounts(
       56,
       venusAssetHandler
     );
-
-
-
+    
     if (vTokenSet.has(token)) {
       // It's a vToken
       const underlyingTokens = await poolFeeCalculator.getUnderlyingTokens([token]);

@@ -38,25 +38,31 @@ export class PoolFeeCalculator {
   private chainId: number;
   private venusAssetHandler: any;
 
-  // Dynamic token list for pairing - easy to maintain
+  // Dynamic token list for pairing – easy to maintain
   private static PAIRING_TOKENS = [
     // Major Stablecoins (highest priority)
     "0x55d398326f99059ff775485246999027b3197955", // USDT
     "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // USDC
     "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3", // DAI
-    
+
     // Major Cryptocurrencies
     "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c", // WBNB
     "0x2170ed0880ac9a755fd29b2688956bd959f933f8", // ETH
     "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c", // BTC
-    
+
     // Popular DeFi Tokens
     "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82", // CAKE
     "0x603c7f932ed1fc6575303d8fb018fdcbb0f39a95", // APE
     "0x965f527d9159dce6288a2219db51fc6eef120dd1", // BSW
-    
-    // Add more tokens here as needed...
-    // "0x...", // TOKEN_NAME
+  ];
+
+  // Tokens that almost always have deep liquidity on BOTH Thena (flash-loan
+  // venue) and PancakeSwap (swap venue).  Re-use this everywhere.
+  private static readonly HIGH_LIQUIDITY_TOKENS = [
+    "0x55d398326f99059ff775485246999027b3197955", // USDT
+    "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // USDC
+    "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3", // DAI
+    "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c", // WBNB
   ];
 
   constructor(factoryAddress: string, chainId: number, venusAssetHandler: any) {
@@ -64,6 +70,7 @@ export class PoolFeeCalculator {
     this.chainId = chainId;
     this.venusAssetHandler = venusAssetHandler;
   }
+
   /**
    * Get underlying tokens from vTokens
    */
@@ -250,75 +257,135 @@ export class PoolFeeCalculator {
   }
 
   /**
-   * Analyze tokens for flash loan selection
+   * Quick check: does *any* PancakeSwap-V3 pool exist between two tokens?
+   * Returns true at the first fee tier that yields a non-zero pool address.
+   */
+  private async checkPancakePoolExists(
+    tokenA: string,
+    tokenB: string,
+    minLiquidityEth = 1       // tweak threshold if you want
+  ): Promise<boolean> {
+    const [t0, t1] = this.sortTokens(tokenA, tokenB);
+    const fees = [100, 500, 2500, 10000];
+  
+    for (const fee of fees) {
+      const poolAddr = await this.computePoolAddress(t0, t1, fee);
+      if (poolAddr === ethers.constants.AddressZero) continue;
+  
+      try {
+        const liq = await this.getPoolLiquidity(poolAddr);
+        if (liq >= minLiquidityEth) return true;   // ✅ viable pool
+      } catch {
+        // ignore bad reads and continue searching other fee tiers
+      }
+    }
+    return false;                                    // ❌ no liquid pool
+  }
+
+  /**
+   * Verifies that `flashToken` can swap directly to *every* debt token on
+   * PancakeSwap V3.  Used to filter out invalid flash-loan candidates.
+   */
+  private async hasPoolsWithAllDebts(
+    flashToken: string,
+    debtTokens: string[]
+  ): Promise<boolean> {
+    const checks = debtTokens
+      .filter((d) => d.toLowerCase() !== flashToken.toLowerCase())
+      .map((d) => this.checkPancakePoolExists(flashToken, d));
+    const results = await Promise.all(checks);
+    return results.every(Boolean);
+  }
+
+  /**
+   * Analyse and score every viable flash-loan candidate.
    */
   private async analyzeTokensForFlashLoan(
-    borrowTokens: string[],
-    lendTokens: string[],
+    vDebtTokens: string[],
+    vLendTokens: string[],
     addresses: any
   ): Promise<TokenAnalysis[]> {
-    const debtTokens = await this.getUnderlyingTokens(borrowTokens);
-    const lendUnderlyingTokens = await this.getUnderlyingTokens(lendTokens);
-    
+    // Convert vTokens → underlying once
+    const debtTokens = await this.getUnderlyingTokens(vDebtTokens);
+    const lendTokens = await this.getUnderlyingTokens(vLendTokens);
+
+    //Build candidate list = every debt token + strategic stablecoins
+    const candidateFlashTokens = Array.from(
+      new Set([...debtTokens, ...PoolFeeCalculator.HIGH_LIQUIDITY_TOKENS])
+    );
+
     const analyses: TokenAnalysis[] = [];
-    
-    for (let i = 0; i < debtTokens.length; i++) {
-      const token = debtTokens[i];
-      const vToken = borrowTokens[i];
-      
-      console.log(` Analyzing ${token} for flash loan...`);
-      
-      const bestPool = await this.findBestThenaPool(token, addresses);
-      
+
+    for (const candidate of candidateFlashTokens) {
+      //Filter: must have a Pancake pool to *all* debts
+      const poolsOk = await this.hasPoolsWithAllDebts(candidate, debtTokens);
+      if (!poolsOk) {
+        console.log(`⚠️  Skipping ${candidate} – missing v3 pool to at least one debt token`);
+        continue;
+      }
+
+      //Scoring
+      const bestPool = await this.findBestThenaPool(candidate, addresses);
+
       let score = 0;
       const reasons: string[] = [];
-      
-      // Score based on high liquidity tokens
-      const highLiquidityTokens = [
-        addresses.USDT.toLowerCase(),
-        addresses.USDC_Address.toLowerCase(),
-        addresses.DAI_Address.toLowerCase(),
-        "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c".toLowerCase(), // WBNB
-      ];
-      
-      if (highLiquidityTokens.includes(token.toLowerCase())) {
+
+      if (
+        PoolFeeCalculator.HIGH_LIQUIDITY_TOKENS.map((t) => t.toLowerCase()).includes(
+          candidate.toLowerCase()
+        )
+      ) {
         score += 100;
-        reasons.push("High liquidity token");
+        reasons.push("High-liquidity staple");
       }
-      
-      // Score based on pool quality
-      if (bestPool.token0 === addresses.USDT || bestPool.token1 === addresses.USDT) {
+
+      if ([bestPool.token0, bestPool.token1].includes(addresses.USDT)) {
         score += 50;
-        reasons.push("USDT pair (high liquidity)");
+        reasons.push("Pairs with USDT on Thena");
       }
-      
-      if (bestPool.token0 === addresses.USDC_Address || bestPool.token1 === addresses.USDC_Address) {
+      if ([bestPool.token0, bestPool.token1].includes(addresses.USDC_Address)) {
         score += 40;
-        reasons.push("USDC pair (good liquidity)");
+        reasons.push("Pairs with USDC on Thena");
       }
-      
-      // Score based on trading pairs with lend tokens
-      for (const lendToken of lendUnderlyingTokens) {
-        if (lendToken !== token) {
+
+      for (const lend of lendTokens) {
+        if (lend.toLowerCase() !== candidate.toLowerCase()) {
           score += 10;
-          reasons.push(`Trades with ${lendToken}`);
+          reasons.push(`Tradable with ${lend}`);
         }
       }
-      
-      console.log(`✅ ${token}: Score ${score.toFixed(2)}, ${reasons.join(', ')}`);
-      
+
+      console.log(`✅ Candidate ${candidate} → score ${score} (${reasons.join(", ")})`);
+
       analyses.push({
-        token: token,
-        vToken: vToken,
-        score: score,
-        reasons: reasons,
+        token: candidate,
+        // If candidate isn’t itself a vToken, vToken field is left zero
+        vToken:
+          vDebtTokens[debtTokens.findIndex((d) => d.toLowerCase() === candidate.toLowerCase())] ??
+          ethers.constants.AddressZero,
+        score,
+        reasons,
         poolFees: [],
         thenaFactory: bestPool.factory,
         thenaToken0: bestPool.token0,
-        thenaToken1: bestPool.token1
+        thenaToken1: bestPool.token1,
       });
     }
-    
+
+    //Fallback — always keep USDT as last-resort option
+    if (analyses.length === 0) {
+      const fallbackPool = await this.findBestThenaPool(addresses.USDT, addresses);
+      analyses.push({
+        token: addresses.USDT,
+        vToken: addresses.vUSDT_Address,
+        score: 1,
+        reasons: ["Fallback"],
+        poolFees: [],
+        thenaFactory: fallbackPool.factory,
+        thenaToken0: fallbackPool.token0,
+        thenaToken1: fallbackPool.token1,
+      });
+    }
     return analyses;
   }
 

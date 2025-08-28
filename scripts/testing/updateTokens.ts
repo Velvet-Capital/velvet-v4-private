@@ -87,7 +87,7 @@ async function main(): Promise<void> {
     deployedAddresses.portfolioFactory
   );
 
-  const portfolioInfo = await portfolioFactory.PortfolioInfolList(9);
+  const portfolioInfo = await portfolioFactory.PortfolioInfolList(deployedAddresses.id);
   const rebalancingAddress = await portfolioInfo.rebalancing;
 
   console.log("Rebalancing Address:", rebalancingAddress);
@@ -110,8 +110,8 @@ async function main(): Promise<void> {
 
   console.log("Vault:", vault);
 
-  let sellToken = addresses.BTC_Address;
-  let buyToken = addresses.vBNB_Address;
+  let sellToken = deployedAddresses.ethAddress;
+  let buyToken = addresses.vBTC_Address;
 
   let balance = await ERC20.attach(sellToken).balanceOf(vault);
   let balanceToSwap = BigNumber.from(balance);
@@ -153,7 +153,7 @@ async function main(): Promise<void> {
 
   console.log("------------- Updating Tokens -------------");
 
-  const newTokens = [tokens[0], tokens[1], tokens[2], tokens[3]]; // End state of vault
+  const newTokens = [tokens[1], buyToken]; // End state of vault
 
   const tx = await rebalancing.connect(owner2).populateTransaction.updateTokens({
     _newTokens: newTokens,

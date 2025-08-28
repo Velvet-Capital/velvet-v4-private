@@ -85,7 +85,7 @@ async function main(): Promise<void> {
     deployedAddresses.portfolioFactory
   );
 
-  const portfolioInfo = await portfolioFactory.PortfolioInfolList(9);
+  const portfolioInfo = await portfolioFactory.PortfolioInfolList(deployedAddresses.id);
   const rebalancingAddress = await portfolioInfo.rebalancing;
 
   console.log("Rebalancing Address:", rebalancingAddress);
@@ -116,11 +116,11 @@ async function main(): Promise<void> {
   const tokenToLend = addresses.vBTC_Address //AssetManagers Input
 
   await rebalancing.connect(owner2).borrow(
-    addresses.vBTC_Address, //vToken format of the token to borrow
+    addresses.vETH_Address, //vToken format of the token to borrow
     [tokenToLend], //vToken format of the tokens to lend
-    addresses.BTC_Address, //Underlying token of the token to borrow
+    deployedAddresses.ethAddress, //Underlying token of the token to borrow
     addresses.corePool_controller,
-    "10600000000000" // amount to borrow
+    "400000000000000" // amount to borrow
   );
 
   console.log(

@@ -1,262 +1,221 @@
-// SPDX-License-Identifier: MIT
-// bufferOptimizer.ts – v8  (2025-08-08)
-// --------------------------------------------------------------------------
-//  • v7 accidentally hid the helper methods behind “omitted for brevity”
-//    which made the file uncompilable for you.  v8 puts *everything*
-//    back in one place and compiles cleanly with tsc -p tsconfig.json.
-//  • Switched every .staticCall ⇒ .callStatic (ethers best-practice).
-//  • Adaptive probe now = max(amountOut / 10 000, 1e14) wei.
-// --------------------------------------------------------------------------
-
+// utils/bufferOptimizer.ts
 import { BigNumber, Contract } from "ethers";
 import { ethers } from "hardhat";
-import { PoolFeeCalculator } from "./poolFeeCalculator";
 
-const FLASH_BP_DENOM  = 10_000;     // basis-points
-const COLLAT_BP_DENOM = 100_000;    // 0.001 % units
+const FLASH_BP_DENOM  = 10_000;   // flashloanBufferUnit scale
+const COLLAT_BP_DENOM = 100_000;  // bufferUnit scale (0.001%)
 
-const MIN_PROBE       = BigNumber.from("100000000000000"); // 1 e14 wei
-const CANDIDATE_TIERS = [100, 500, 2_500, 10_000];
+const IQuoterV2 = [
+  // Uni/Pancake V3-style QuoterV2
+  "function quoteExactOutput(bytes path, uint256 amountOut) external returns (uint256 amountIn, uint160[] sqrtPriceX96AfterList, uint32[] initializedTicksCrossedList, uint256 gasEstimate)"
+];
 
-export interface BufferCalculation {
-  flashLoanBufferUnit: number;
-  bufferUnit: number;
-  totalFlashLoanAmount: BigNumber;
-  totalCollateralAmount: BigNumber;
+type Address = string;
+
+export type BufferInputs = {
+  quoter: Address;                        // V3/Thena-compatible Quoter
+  flashToken: Address;                    // token you borrow
+  debtTokens: Address[];                  // tokens you must repay
+  debtAmounts: BigNumber[];               // exact repay amounts per debt token
+  // For each debt i: tokens path [flash, mid..., debt], aligned with debtTokens.
+  flashToDebtPaths: Address[][];
+  // One path for collateral->flash (sell leg)
+  collatToFlashPath: Address[][];
+  // Pool fees per hop, aligned with paths. First N rows for flash->debt[i], last row for collat->flash.
+  // Example: [[500, 100, 500], ..., [2500]] etc.
+  poolFees: number[][];
+  // Flash-loan fee (bps). Example: 8 -> 0.08%
+  flashLoanFeeBps: number;
+
+  // Optional tuning
+  probeBp?: number;          // default 50 (0.5%) stress step
+  baseBpPerRoute?: number;   // default 8 bps floor
+  baseBpCollat?: number;     // default 10 bps floor
+  extraBp?: number;          // default 5 bps
+  maxRouteBp?: number;       // default 300 bps
+  maxCollatBp?: number;      // default 400 bps
+  shockPctRoute?: number;    // default 0.8 (%)
+  shockPctCollat?: number;   // default 1.0 (%)
+};
+
+function bpsUp(delta: BigNumber, base: BigNumber): number {
+  if (base.isZero()) return 0;
+  // ceil( delta / base * 10000 )
+  return Math.ceil(Number(delta.mul(FLASH_BP_DENOM).add(base.sub(1)).div(base)));
 }
 
-export interface WithdrawalParams {
-  flashLoanToken: string;
-  flashLoanProtocolToken: string;
-  borrowTokens: string[];
-  lendTokens: string[];
-  baseFlashLoanAmounts: (BigNumber | string)[];
-  totalCollateral: BigNumber;
-  chainId: number;
-  venusAssetHandler: Contract;
-  poolFees?: { poolFees: number[][] | number[] };
-  pancakeSwapFactory: string;
-  pancakeSwapQuoter: string;
-  wbnb?: string;
-  maxFlashLoanBufferUnit?: number;
-  maxCollateralBufferUnit?: number;
-  debug?: boolean;
+function clamp(x: number, lo: number, hi: number) {
+  return Math.max(lo, Math.min(hi, x));
 }
 
-export class BufferOptimizer {
-  private calc: PoolFeeCalculator;
-  private quoter: Contract;
-  private factory: Contract;
-  private dbg = false;
+function encodePathExactOutput(tokens: Address[], fees: number[]): string {
+  // V3 exactOutput uses the path in reverse: [dst, fee, mid..., fee, src]
+  if (tokens.length < 2) throw new Error("path needs >=2 tokens");
+  if (fees.length !== tokens.length - 1) throw new Error("fees length mismatch");
+  const rTok = tokens.slice().reverse();
+  const rFee = fees.slice().reverse();
+  let path = "0x";
+  for (let i = 0; i < rTok.length - 1; i++) {
+    path += rTok[i].slice(2);                              // token
+    path += rFee[i].toString(16).padStart(6, "0");         // fee uint24
+  }
+  path += rTok[rTok.length - 1].slice(2);
+  return path.toLowerCase();
+}
 
-  constructor (
-    factoryAddr: string,
-    quoterAddr: string,
-    chainId: number,
-    handler: Contract,
-    private readonly wbnb: string = "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
-  ) {
-    this.calc = new PoolFeeCalculator(factoryAddr, chainId, handler);
+export async function computeBuffers(p: BufferInputs) {
+  const quoter = new Contract(p.quoter, IQuoterV2, ethers.provider);
 
-    this.factory = new ethers.Contract(
-      factoryAddr,
-      ["function getPool(address,address,uint24) view returns (address)"],
-      ethers.provider
+  const probeBp        = p.probeBp        ?? 10;   // 0.1%
+  const baseBpRoute    = p.baseBpPerRoute ?? 8;    // 0.08%
+  const baseBpCollat   = p.baseBpCollat   ?? 10;   // 0.10%
+  const extraBp        = p.extraBp        ?? 5;    // 0.05%
+  const maxRouteBp     = p.maxRouteBp     ?? 100;  // 1.00%
+  const maxCollatBp    = p.maxCollatBp    ?? 200;  // 2.00%
+  const shockPctRoute  = p.shockPctRoute  ?? 0.1;  // %
+  const shockPctCollat = p.shockPctCollat ?? 0.5;  // %
+
+  const flashloanBufferUnits: number[] = [];
+  const routeInputsAmax: BigNumber[] = [];
+
+  let feeCount = 0;
+
+  // -------- per-route flash -> debt buffers --------
+  for (let i = 0; i < p.debtTokens.length; i++) {
+    const debt = p.debtTokens[i];
+    const outAmt = p.debtAmounts[i];
+    console.log("outAmt", outAmt);
+
+    const pathTokens = p.flashToDebtPaths[i];
+    if (pathTokens[0] === pathTokens[1]) {
+      // flashloanBufferUnits.push(0);
+      routeInputsAmax.push(outAmt); // 1:1 consumption of flash to repay debt
+      continue;
+    }
+
+    const feesRow    = p.poolFees[0][feeCount] ?? 500; // Considering only the first row of pool fees
+    const singleFeesRow = [feesRow];
+    feeCount++;
+
+    // console.log("In flashloan to debt")
+    // console.log("pathTokens", pathTokens);
+    // console.log("feesRow", feesRow);
+    const path       = encodePathExactOutput(pathTokens, singleFeesRow);
+
+    // A0: input flash needed for exact out = debt amount
+    const [A0] = await quoter.callStatic.quoteExactOutput(path, outAmt);
+
+    console.log("A0", A0);
+
+    // Aδ: stress the output by +probeBp
+    const stressOut = outAmt.mul(FLASH_BP_DENOM + probeBp).div(FLASH_BP_DENOM);
+    const [Ad] = await quoter.callStatic.quoteExactOutput(path, stressOut);
+
+    // local slope (bp) for +probeBp output bump
+    const slopeBp = bpsUp(Ad.sub(A0).abs(), A0);
+    const slopePerPct = slopeBp / (probeBp / 100); // bp per 1%
+
+    const bufBp = clamp(
+      baseBpRoute + Math.ceil(slopePerPct * shockPctRoute) + extraBp,
+      5,
+      maxRouteBp
     );
 
-    this.quoter = new ethers.Contract(
-      quoterAddr,
-      [
-        "function quoteExactOutputSingle(address,address,uint24,uint256,uint160) view returns (uint256)",
-        "function quoteExactInputSingle(address,address,uint24,uint256,uint160) view returns (uint256)",
-      ],
-      ethers.provider
-    );
+    const Amax = A0.mul(FLASH_BP_DENOM + bufBp).div(FLASH_BP_DENOM);
+
+    flashloanBufferUnits.push(bufBp);  // 1/10,000 scale
+    routeInputsAmax.push(Amax);
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  //  Public entry
-  // ──────────────────────────────────────────────────────────────────────────
-  async calculateOptimalBuffers (p: WithdrawalParams): Promise<BufferCalculation> {
-    this.dbg = Boolean(p.debug);
+  // total flash principal we expect to consume on routes
+  const totalFlashForRoutes = routeInputsAmax.reduce(
+    (a, b) => a.add(b),
+    BigNumber.from(0)
+  );
 
-    const debtTokens       = await this.calc.getUnderlyingTokens(p.borrowTokens);
-    const collateralTokens = await this.calc.getUnderlyingTokens(p.lendTokens);
+  // add flash-loan fee to size required repayment in flash token
+  const repayFlash = totalFlashForRoutes
+    .mul(FLASH_BP_DENOM + p.flashLoanFeeBps)
+    .div(FLASH_BP_DENOM);
 
-    // Flatten fee matrix that comes from PoolFeeCalculator
-    const flat = p.poolFees?.poolFees ?? [];
-    const fees: number[] = Array.isArray(flat[0]) ? (flat as number[][]).flat()
-                                                  : (flat as number[]);
+    const maybeMulti: any = p as any;
 
-    const debtSwaps   = debtTokens.filter(t => t.toLowerCase() !== p.flashLoanToken.toLowerCase()).length;
-    const debtFees    = fees.slice(0, debtSwaps);
-    const collatFees  = fees.slice(debtSwaps);
-
-    // Seed flash-loan buffer with a simple fee-tier heuristic
-    let flashBuf = this.avgFlashLoanBufferFromFees(debtFees.length ? debtFees : [500]);
-
-    for (let i = 0; i < 4; i++) {
-      const totalFL = this.totalWithBuf(p.baseFlashLoanAmounts, flashBuf);
-
-      const collBuf = await this.deriveCollateralBuffer(
-        p.flashLoanToken, collateralTokens, collatFees, totalFL
+    const collatPaths: string[][] =
+      Array.isArray(maybeMulti.collatToFlashPaths)
+        ? maybeMulti.collatToFlashPaths
+        : [p.collatToFlashPath];
+    
+    if (!collatPaths || collatPaths.length === 0 || collatPaths.some(toks => !toks || toks.length < 2)) {
+      throw new Error("collateral->flash path(s) missing");
+    }
+    
+    // Fees rows for collateral legs are appended after flash->debt rows
+    // const firstCollatFeeRow = p.debtTokens.length;
+    // const collatFeesRows: number[][] = [];
+    // for (let j = 0; j < collatPaths.length; j++) {
+    //   collatFeesRows.push(p.poolFees[firstCollatFeeRow + j] ?? []);
+    // }
+    
+    // Same-token guard: if *every* collateral leg is same-token, bufferUnit = 0
+    // const allSameAsFlash = collatPaths.every(toks =>
+    //   toks[0].toLowerCase() === p.flashToken.toLowerCase()
+    // );
+    // if (allSameAsFlash) {
+    //   const bufferUnit = 0; // 1/100,000 units
+    //   return {
+    //     flashloanBufferUnits,
+    //     bufferUnit,
+    //     routeInputsAmax,
+    //     totalFlashForRoutes,
+    //     repayFlash
+    //   };
+    // }
+    
+    // Strategy A (simple & safe): one buffer = max of per-leg buffers.
+    // We quote each leg for an equal share of the repayFlash to estimate local slope.
+    // (You can refine to weighted shares if you have a planned split.)
+    let worstBufBp = 0;
+    
+    for (let j = 0; j < collatPaths.length; j++) {
+      // const toks = collatPaths[j];
+      const pathTokens = p.collatToFlashPath[j];
+    
+      // same-token leg contributes 0 buffer
+      if (pathTokens[0] === pathTokens[1]) continue;
+    
+      const fees = p.poolFees[0][feeCount] ?? 500;
+      const singleFeesRow = [fees];
+      // console.log("In debt to flashloan")
+      // console.log("pathTokens", pathTokens);
+      // console.log("fees", fees);
+      const path = encodePathExactOutput(pathTokens, singleFeesRow);
+      feeCount++;
+    
+      // equal-share target to probe local curvature
+      const targetOut = repayFlash.div(collatPaths.length);
+      const [in0] = await quoter.callStatic.quoteExactOutput(path, targetOut);
+    
+      const stressOut = targetOut.mul(FLASH_BP_DENOM + probeBp).div(FLASH_BP_DENOM);
+      const [ind]     = await quoter.callStatic.quoteExactOutput(path, stressOut);
+    
+      const slopeBp      = bpsUp(ind.sub(in0).abs(), in0);
+      const slopePerPct  = slopeBp / (probeBp / 100);
+      const bufBpForLeg  = clamp(
+        baseBpCollat + Math.ceil(slopePerPct * shockPctCollat) + extraBp,
+        10,
+        maxCollatBp
       );
-
-      const newFlash = await this.deriveFlashLoanBuffer(
-        p.flashLoanToken, debtTokens, debtFees, p.baseFlashLoanAmounts
-      );
-
-      if (Math.abs(newFlash - flashBuf) < 1)            // converged
-        return this.finalise(p, newFlash, collBuf, totalFL);
-
-      flashBuf = newFlash;
+      if (bufBpForLeg > worstBufBp) worstBufBp = bufBpForLeg;
     }
-
-    // Non-converging edge-case → just package the last iteration
-    const totalFL = this.totalWithBuf(p.baseFlashLoanAmounts, flashBuf);
-    const collBuf = await this.deriveCollateralBuffer(
-      p.flashLoanToken, collateralTokens, collatFees, totalFL
-    );
-    return this.finalise(p, flashBuf, collBuf, totalFL);
-  }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  //  Flash-loan buffer (bp over exact debt)                              (1)
-  // ──────────────────────────────────────────────────────────────────────────
-  private async deriveFlashLoanBuffer (
-    flToken: string,
-    debts: string[],
-    feeTiers: number[],
-    rawDebts: (BigNumber | string)[]
-  ): Promise<number> {
-    let worst = 0;
-
-    for (let i = 0, swapIdx = 0; i < debts.length; i++) {
-      if (debts[i].toLowerCase() === flToken.toLowerCase()) continue;
-
-      const tier = feeTiers[swapIdx++] ?? 500;
-      const bp   = await this.quoteImpactBp(flToken, debts[i], tier, BigNumber.from(rawDebts[i]), false);
-      worst = Math.max(worst, bp);
-    }
-    // +5 bp cushion, cap at 1 000 bp
-    return Math.min(worst + 5, 1_000);
-  }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  //  Collateral buffer (0.001 % units over exact collateral)             (2)
-  // ──────────────────────────────────────────────────────────────────────────
-  private async deriveCollateralBuffer (
-    flToken: string,
-    collats: string[],
-    feeTiers: number[],
-    totalFL: BigNumber,
-  ): Promise<number> {
-    if (collats.length === 0) return 0;
-
-    // naive equal share
-    const perShare = totalFL.div(collats.length);
-    let acc = 0;
-
-    for (let i = 0; i < collats.length; i++) {
-      if (collats[i].toLowerCase() === flToken.toLowerCase()) continue;
-
-      const tier = feeTiers[i] ?? 500;
-      const bp   = await this.quoteImpactBp(collats[i], flToken, tier, perShare, true);
-      acc += bp;
-    }
-
-    // average + 25 bp cushion, cap at 10 000 bp (100 %)
-    const avg = Math.round(acc / collats.length) + 25;
-    return Math.min(avg, 10_000);
-  }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  //  Helpers
-  // ──────────────────────────────────────────────────────────────────────────
-  private async quoteImpactBp (
-    tokenIn: string,
-    tokenOut: string,
-    tier: number,
-    probeOut: BigNumber,
-    inverse: boolean
-  ): Promise<number> {
-    const pool = await this.factory.getPool(tokenIn, tokenOut, tier);
-    if (pool === ethers.constants.AddressZero) return this.bufferFromTier(tier); // no pool
-
-    const probe = probeOut.gt(MIN_PROBE) ? probeOut.div(10_000) : MIN_PROBE;
-
-    try {
-      if (inverse) {
-        // we know the *output*, want to know the *input*
-        const out  = await this.quoter.callStatic.quoteExactOutputSingle(
-                      tokenIn, tokenOut, tier, probe, 0);
-        const spot = await this.linearScale(tokenIn, tokenOut, tier, probe, true);
-        return spot.sub(out).mul(FLASH_BP_DENOM).div(spot).toNumber();
-      }
-
-      // we know the *input* (probe), want the *output*
-      const inp  = await this.quoter.callStatic.quoteExactInputSingle(
-                    tokenIn, tokenOut, tier, probe, 0);
-      const spot = await this.linearScale(tokenIn, tokenOut, tier, probe, false);
-      return inp.sub(spot).mul(FLASH_BP_DENOM).div(inp).toNumber();
-    } catch {
-      return this.bufferFromTier(tier);          // Fallback if quoter reverts
-    }
-  }
-
-  private async linearScale (
-    tokenIn: string,
-    tokenOut: string,
-    tier: number,
-    amount: BigNumber,
-    inverse: boolean
-  ): Promise<BigNumber> {
-    // Cheapest price proxy: x*y=k so price = reserveOut / reserveIn
-    // We avoid reserve calls here and approximate via TickMath for simplicity.
-    // In prod you’d read sqrtPriceX96 from the pool.
-    return inverse ? amount.mul(99).div(100) : amount.mul(101).div(100); // ±1 %
-  }
-
-  private totalWithBuf (raw: (BigNumber | string)[], bp: number): BigNumber {
-    const base = raw.map(this.toBN).reduce((a, b) => a.add(b), BigNumber.from(0));
-    return base.add(base.mul(bp).div(FLASH_BP_DENOM));
-  }
-
-  private avgFlashLoanBufferFromFees (fees: number[]): number {
-    const sum = fees.reduce((a, b) => a + Math.round(b / 100), 0); // 500 → 5 bp
-    return Math.max(5, Math.round(sum / fees.length));             // at least 5 bp
-  }
-
-  private bufferFromTier (tier: number): number {
-    // 100 → 2 bp, 500 → 5 bp, 2500 → 25 bp, 10 000 → 100 bp
-    return Math.min(1000, Math.round(tier / 10));
-  }
-
-  private toBN (v: BigNumber | string): BigNumber {
-    return BigNumber.isBigNumber(v) ? (v as BigNumber) : BigNumber.from(v);
-  }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  //  Final packaging
-  // ──────────────────────────────────────────────────────────────────────────
-  private finalise (
-    p: WithdrawalParams,
-    rawFlash: number,
-    rawColl: number,
-    totalFL: BigNumber
-  ): BufferCalculation {
-    const flBuf = p.maxFlashLoanBufferUnit ? Math.min(rawFlash, p.maxFlashLoanBufferUnit) : rawFlash;
-    const coBuf = p.maxCollateralBufferUnit ? Math.min(rawColl,  p.maxCollateralBufferUnit) : rawColl;
-
-    const collExtra = p.totalCollateral.mul(coBuf).div(COLLAT_BP_DENOM);
-
+    
+    // Convert bp → 0.001% unit (×10)
+    const bufferUnit = Math.ceil(worstBufBp * (COLLAT_BP_DENOM / FLASH_BP_DENOM));
+    
     return {
-      flashLoanBufferUnit: flBuf,
-      bufferUnit:          coBuf,
-      totalFlashLoanAmount: totalFL,
-      totalCollateralAmount: collExtra,
+      flashloanBufferUnits,
+      bufferUnit,
+      routeInputsAmax,
+      totalFlashForRoutes,
+      repayFlash
     };
-  }
 }
-
-export default BufferOptimizer;

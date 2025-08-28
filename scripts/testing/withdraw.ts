@@ -45,7 +45,8 @@ const { ethers, upgrades, tenderly } = require("hardhat");
 import { chainIdToAddresses } from "../networkVariables";
 import { deployedAddresses } from "./deployAddresses";
 import { PoolFeeCalculator } from "../utils/poolFeeCalculator";
-import { BufferOptimizer, WithdrawalParams } from "../utils/bufferOptimizer";
+import { computeBuffers } from "../utils/bufferOptimizer";
+import { computeBuffer } from "../utils/buffer";
 
 import {
   Portfolio,
@@ -174,7 +175,7 @@ async function main(): Promise<void> {
   );
 
   const portfolioCalculations = await PortfolioCalculations.attach(
-    deployedAddresses.portfolioCalculations
+    deployedAddresses.portfolioCalculationsOld
   );
 
   const AmountCalculationsAlgebra = await ethers.getContractFactory(
@@ -259,10 +260,10 @@ async function main(): Promise<void> {
     await portfolio.balanceOf(owner4.address)
   );
 
-  await portfolio.connect(owner4).approve(
-    withdrawManager.address,
-    BigNumber.from(amountPortfolioToken)
-  );
+  // await portfolio.connect(owner4).approve(
+  //   withdrawManager.address,
+  //   BigNumber.from(amountPortfolioToken)
+  // );
 
   let withdrawalAmounts =
     await portfolioCalculations.callStatic.getWithdrawalAmounts(
@@ -384,8 +385,25 @@ async function main(): Promise<void> {
   console.log("Selected flash loan protocol token:", flashLoanProtocolToken);
   console.log("Selected flash loan token:", flashLoanToken);
   console.log("controller", addresses.corePool_controller);
+  console.log("poolFees", poolFees.poolFees);
 
   const [accountData, tokenAddresses] = await venusAssetHandler.callStatic.getUserAccountData(vault, addresses.corePool_controller, []);
+
+  const debtUnderlyings: string[] =
+  await getUnderlyingTokensFromVTokens(borrowTokens, venusAssetHandler);
+
+  const collatUnderlyings: string[] =
+  await getUnderlyingTokensFromVTokens(lendTokens, venusAssetHandler);
+
+  const flashToDebtPaths: string[][] = debtUnderlyings.map(
+    (ud) => [flashLoanToken, ud]
+  );
+
+  const collatToFlashPaths: string[][] = collatUnderlyings.map(
+    (u) => [u, flashLoanToken]
+  );
+
+  // console.log("tokenAddresses",tokenAddresses);
 
   // const bufferOptimizer = new BufferOptimizer(
   //   addresses.PancakeSwapV3FactoryAddress,
@@ -393,12 +411,14 @@ async function main(): Promise<void> {
   //   venusAssetHandler
   // );
 
-  const optimalBuffers = new BufferOptimizer(
-    addresses.PancakeSwapV3FactoryAddress,
-    addresses.PancakeSwapV3RouterAddress,
-    chainId,
-    venusAssetHandler
-  );
+  // const optimalBuffers = new BufferOptimizer(
+  //   addresses.PancakeSwapV3FactoryAddress,
+  //   addresses.PancakeSwapV3RouterAddress,
+  //   chainId,
+  //   venusAssetHandler
+  // );
+
+  console.log("before baseValues");
 
   const baseValues =
     await portfolioCalculations.calculateBorrowedPortionAndFlashLoanDetails(
@@ -408,8 +428,10 @@ async function main(): Promise<void> {
       addresses.corePool_controller,
       venusAssetHandler.address,
       amountPortfolioToken,
-      0,
+      [0,0,0,0,0],
     );
+
+   console.log("baseValues", baseValues);
 
   //   const optimalBuffers = await bufferOptimizer.calculateOptimalBuffers({
   //     flashLoanToken,
@@ -428,41 +450,103 @@ async function main(): Promise<void> {
 
   // console.log("Optimal Buffers:", optimalBuffers);
 
-  const params: WithdrawalParams = {
-    flashLoanToken,
-    flashLoanProtocolToken,
-    borrowTokens,
-    lendTokens,
-    baseFlashLoanAmounts: baseValues[1],
-    totalCollateral: accountData.totalCollateral,
-    chainId,
-    venusAssetHandler,
-    poolFees: { poolFees: poolFees.poolFees },         // structure expected by optimiser
-    pancakeSwapFactory: addresses.PancakeSwapV3FactoryAddress,
-    pancakeSwapQuoter: "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
-    wbnb: addresses.WETH_Address,
-    // optional guardrails if you expose them in ProtocolConfig
-    maxFlashLoanBufferUnit: 40,    // 0.4 %
-    maxCollateralBufferUnit: 800   // 0.8 %
-  };
+  // const params: WithdrawalParams = {
+  //   flashLoanToken,
+  //   flashLoanProtocolToken,
+  //   borrowTokens,
+  //   lendTokens,
+  //   baseFlashLoanAmounts: baseValues[1],
+  //   totalCollateral: accountData.totalCollateral,
+  //   chainId,
+  //   venusAssetHandler,
+  //   poolFees: { poolFees: poolFees.poolFees },         // structure expected by optimiser
+  //   pancakeSwapFactory: addresses.PancakeSwapV3FactoryAddress,
+  //   pancakeSwapQuoter: "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
+  //   wbnb: addresses.WETH_Address,
+  //   // optional guardrails if you expose them in ProtocolConfig
+  //   maxFlashLoanBufferUnit: 40,    // 0.4 %
+  //   maxCollateralBufferUnit: 800   // 0.8 %
+  // };
 
+  console.log("before compute");
 
   const {
-    flashLoanBufferUnit,
-    bufferUnit,
-    totalFlashLoanAmount,
-    totalCollateralAmount
-  } = await optimalBuffers.calculateOptimalBuffers(params);
+    flashloanBufferUnits,   // number[] (1/10,000 per flash->debt route; 0 where tokens equal)
+    bufferUnit,             // number   (1/100,000 for the single collateral->flash leg)
+    routeInputsAmax,        // BigNumber[] per route: flash in incl. its buffer
+    totalFlashForRoutes,    // BigNumber: sum of routeInputsAmax (excl. flash-loan fee)
+    repayFlash              // BigNumber: total flash to buy back on sell leg (incl. flash-loan fee)
+  } = await computeBuffers({
+    quoter: "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
+    flashToken: flashLoanToken,
+    debtTokens: borrowTokens,
+    debtAmounts: baseValues[0],
+    flashToDebtPaths: flashToDebtPaths,
+    collatToFlashPath: collatToFlashPaths,
+    poolFees: poolFees.poolFees,
+    flashLoanFeeBps: 1,
+    // Optional tuning knobs (keep defaults unless you need to tighten/loosen):
+    // probeBp: 50, baseBpPerRoute: 8, baseBpCollat: 10, extraBp: 5,
+    // maxRouteBp: 300, maxCollatBp: 400, shockPctRoute: 0.8, shockPctCollat: 1.0,
+  });
+
+  console.log("flashloanBufferUnits", flashloanBufferUnits);
+  console.log("bufferUnit", bufferUnit);
+  console.log("routeInputsAmax", routeInputsAmax);
+  console.log("totalFlashForRoutes", totalFlashForRoutes);
+  console.log("repayFlash", repayFlash);
+
+  await computeBuffer({
+    quoter: "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
+    flashToken: flashLoanToken,
+    debtTokens: borrowTokens,
+    debtAmounts: baseValues[0],
+    flashToDebtPaths: flashToDebtPaths,
+    collatToFlashPath: collatToFlashPaths,
+    poolFees: poolFees.poolFees,
+    flashLoanFeeBps: 1,
+  });
+
+
+
+  // const {
+  //   flashLoanBufferUnit,
+  //   bufferUnit,
+  //   totalFlashLoanAmount,
+  //   totalCollateralAmount
+  // } = await optimalBuffers.calculateOptimalBuffers(params);
   
-  console.log(
-    `flash-loan buffer = ${flashLoanBufferUnit} bp,` +
-    ` collateral buffer = ${bufferUnit} bp`
-  );
+  // console.log(
+  //   `flash-loan buffer = ${flashLoanBufferUnit} bp,` +
+  //   ` collateral buffer = ${bufferUnit} bp`
+  // );
+
+  // const plan = await computeFlashAndCollateralBuffers({
+  //   quoter: "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
+  //   flashToken: flashLoanToken,                      // address
+  //   flashPremiumBps: 0,                 // from Aave config/env
+  //   isAlgebra: true,                 // THENA/Pancake v3 on Algebra
+  //   poolFeesFlashToDebt: debtPoolFees,      // number[] length == debtAmounts.length
+  //   poolFeesCollatToFlash: collatPoolFee,   // single fee tier (or split if needed)
+  //   debtLegs: debtTokens.map((debtToken, i) => ({
+  //     debtToken,
+  //     debtAmount: debtAmounts[i],
+  //     fee: debtPoolFees[i],
+  //   })),
+  //   collateralLegs: [{ token: primaryCollateral, fee: collatPoolFee }],
+  //   totalCollateralValue,            // portfolio calc base (e.g., in 1e18 USD units)
+  // });
+  
+  // plan.flashLoanAmountByDebt[]  → array of flash token in for each debt leg
+  // plan.flashLoanBufferUnitByDebt[] → per-leg (1/10,000) cushions
+  // plan.totalFlashLoanAmount     → sum; borrow this
+  // plan.bufferUnit               → collateral buffer (1/100,000)
+  
 
 
   let flashLoanAmounts: string[][] = [];
 
-  let flashloanBufferUnit = flashLoanBufferUnit; //Flashloan buffer unit in 1/10000, extra flashlaon to take, to fulfil the swap(from flashlaon to debt token)
+  let flashloanBufferUnit = flashloanBufferUnits; //Flashloan buffer unit in 1/10000, extra flashlaon to take, to fulfil the swap(from flashlaon to debt token)
   let bufferUnitValue = bufferUnit; //Buffer unit for collateral amount in 1/100000, extra collateral to take, to fulfil the swap(from collateral underlying to flashlaon token)
 
   const values =

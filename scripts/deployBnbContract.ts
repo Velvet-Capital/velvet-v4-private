@@ -167,16 +167,16 @@ async function main(): Promise<void> {
 
   // await sleep(2000); // 2 seconds
 
-  const PositionWrapper = await ethers.getContractFactory("PositionWrapper");
-  const positionWrapperBaseAddress = await PositionWrapper.deploy(overrides);
-  await positionWrapperBaseAddress.deployed();
+  // const PositionWrapper = await ethers.getContractFactory("PositionWrapper");
+  // const positionWrapperBaseAddress = await PositionWrapper.deploy(overrides);
+  // await positionWrapperBaseAddress.deployed();
 
-  console.log("PositionWrapper address:", positionWrapperBaseAddress.address);
+  // console.log("PositionWrapper address:", positionWrapperBaseAddress.address);
 
-  await tenderly.verify({
-    name: "PositionWrapper",
-    address: positionWrapperBaseAddress.address,
-  });
+  // await tenderly.verify({
+  //   name: "PositionWrapper",
+  //   address: positionWrapperBaseAddress.address,
+  // });
 
   // const PancakeSwapHandler = await ethers.getContractFactory(
   //   "UniswapV2Handler"
@@ -222,105 +222,105 @@ async function main(): Promise<void> {
     { kind: "uups" }
   );
 
-  console.log("protocolConfig address:", protocolConfig.address);
+  // console.log("protocolConfig address:", protocolConfig.address);
 
-  safeVerify("ProtocolConfig", protocolConfig.address);
+  // safeVerify("ProtocolConfig", protocolConfig.address);
 
-  const thenaProtocolHash = ethers.utils.keccak256(
-    ethers.utils.toUtf8Bytes("THENA-CONCENTRATED-STAKING-V3")
-  );
+  // const thenaProtocolHash = ethers.utils.keccak256(
+  //   ethers.utils.toUtf8Bytes("THENA-CONCENTRATED-STAKING-V3")
+  // );
 
-  const uniswapV3ProtocolHash = ethers.utils.keccak256(
-    ethers.utils.toUtf8Bytes("UNISWAP-V3")
-  ); 
+  // const uniswapV3ProtocolHash = ethers.utils.keccak256(
+  //   ethers.utils.toUtf8Bytes("UNISWAP-V3")
+  // ); 
 
-  const uniswapV3StakingHash = ethers.utils.keccak256(
-    ethers.utils.toUtf8Bytes("UNISWAP-V3-STAKING")
-  );
+  // const uniswapV3StakingHash = ethers.utils.keccak256(
+  //   ethers.utils.toUtf8Bytes("UNISWAP-V3-STAKING")
+  // );
 
-  console.log("THENA-CONCENTRATED-STAKING-V3", thenaProtocolHash);
-  console.log("UNISWAP-V3", uniswapV3ProtocolHash);
-  console.log("UNISWAP-V3-STAKING", uniswapV3StakingHash);
-  await sleep(2000); // 2 seconds
+  // console.log("THENA-CONCENTRATED-STAKING-V3", thenaProtocolHash);
+  // console.log("UNISWAP-V3", uniswapV3ProtocolHash);
+  // console.log("UNISWAP-V3-STAKING", uniswapV3StakingHash);
+  // await sleep(2000); // 2 seconds
 
-  await protocolConfig.enableTokens([
-    addresses.WETH_Address,
-    addresses.USDC_Address,
-    addresses.DAI_Address,
-    addresses.BTC_Address,
-    addresses.ETH_Address,
-    addresses.USDT
-  ]);
+  // await protocolConfig.enableTokens([
+  //   addresses.WETH_Address,
+  //   addresses.USDC_Address,
+  //   addresses.DAI_Address,
+  //   addresses.BTC_Address,
+  //   addresses.ETH_Address,
+  //   addresses.USDT
+  // ]);
 
-  await protocolConfig.updateProtocolFee(0);
-  await protocolConfig.updateProtocolStreamingFee(0);
-  await protocolConfig.updateAllowedRatioDeviationBps(1000);
+  // await protocolConfig.updateProtocolFee(0);
+  // await protocolConfig.updateProtocolStreamingFee(0);
+  // await protocolConfig.updateAllowedRatioDeviationBps(1000);
 
-  await protocolConfig.setCoolDownPeriod("60");
+  // await protocolConfig.setCoolDownPeriod("60");
 
-  await protocolConfig.updateMaxCollateralBufferUnit(1000);
+  // await protocolConfig.updateMaxCollateralBufferUnit(1000);
 
-  await protocolConfig.enableSolverHandler("0x7133A7f3bBea06584fB439c1F9E9cc80FEf59c2e");
+  // await protocolConfig.enableSolverHandler("0x7133A7f3bBea06584fB439c1F9E9cc80FEf59c2e");
 
-  await protocolConfig.enableSwapHandler("0xC74d1065b0F6747B1C57f3B190793d27bD5FB739");
-  await protocolConfig.enableSwapHandler("0x3C2b5e79495BB4358d8B16d9B1F552423808013b");
+  // await protocolConfig.enableSwapHandler("0xC74d1065b0F6747B1C57f3B190793d27bD5FB739");
+  // await protocolConfig.enableSwapHandler("0x3C2b5e79495BB4358d8B16d9B1F552423808013b");
 
-  await protocolConfig.setAssetHandlers(
-    [
-      addresses.vBNB_Address,
-      addresses.vBTC_Address,
-      addresses.vDAI_Address,
-      addresses.vUSDT_Address,
-      addresses.vETH_Address,
-      addresses.vLINK_Address,
-      addresses.corePool_controller,
-    ],
-    [
-      "0x996704fdb3341EbcAb3D8AD60610d18C1cF735CC",
-      "0x996704fdb3341EbcAb3D8AD60610d18C1cF735CC",
-      "0x996704fdb3341EbcAb3D8AD60610d18C1cF735CC",
-      "0x996704fdb3341EbcAb3D8AD60610d18C1cF735CC",
-      "0x996704fdb3341EbcAb3D8AD60610d18C1cF735CC",
-      "0x996704fdb3341EbcAb3D8AD60610d18C1cF735CC",
-      "0x996704fdb3341EbcAb3D8AD60610d18C1cF735CC",
-    ]
-  );
+  // await protocolConfig.setAssetHandlers(
+  //   [
+  //     addresses.vBNB_Address,
+  //     addresses.vBTC_Address,
+  //     addresses.vDAI_Address,
+  //     addresses.vUSDT_Address,
+  //     addresses.vETH_Address,
+  //     addresses.vLINK_Address,
+  //     addresses.corePool_controller,
+  //   ],
+  //   [
+  //     "0x996704fdb3341EbcAb3D8AD60610d18C1cF735CC",
+  //     "0x996704fdb3341EbcAb3D8AD60610d18C1cF735CC",
+  //     "0x996704fdb3341EbcAb3D8AD60610d18C1cF735CC",
+  //     "0x996704fdb3341EbcAb3D8AD60610d18C1cF735CC",
+  //     "0x996704fdb3341EbcAb3D8AD60610d18C1cF735CC",
+  //     "0x996704fdb3341EbcAb3D8AD60610d18C1cF735CC",
+  //     "0x996704fdb3341EbcAb3D8AD60610d18C1cF735CC",
+  //   ]
+  // );
 
-  await protocolConfig.setSupportedFactory(addresses.thena_factory);
+  // await protocolConfig.setSupportedFactory(addresses.thena_factory);
 
-  await protocolConfig.setSupportedControllers([addresses.corePool_controller]);
+  // await protocolConfig.setSupportedControllers([addresses.corePool_controller]);
   
-  await protocolConfig.setAssetAndMarketControllers(
-    [
-      addresses.vBNB_Address,
-      addresses.vBTC_Address,
-      addresses.vDAI_Address,
-      addresses.vUSDT_Address,
-      addresses.vETH_Address,
-      addresses.vLINK_Address,
-    ],
-    [
-      addresses.corePool_controller,
-      addresses.corePool_controller,
-      addresses.corePool_controller,
-      addresses.corePool_controller,
-      addresses.corePool_controller,
-      addresses.corePool_controller,
-    ]
-  );
+  // await protocolConfig.setAssetAndMarketControllers(
+  //   [
+  //     addresses.vBNB_Address,
+  //     addresses.vBTC_Address,
+  //     addresses.vDAI_Address,
+  //     addresses.vUSDT_Address,
+  //     addresses.vETH_Address,
+  //     addresses.vLINK_Address,
+  //   ],
+  //   [
+  //     addresses.corePool_controller,
+  //     addresses.corePool_controller,
+  //     addresses.corePool_controller,
+  //     addresses.corePool_controller,
+  //     addresses.corePool_controller,
+  //     addresses.corePool_controller,
+  //   ]
+  // );
 
-  await sleep(2000); // 2 seconds
+  // await sleep(2000); // 2 seconds
 
-  const Rebalancing = await ethers.getContractFactory("Rebalancing");
-  const rebalancingDefault = await Rebalancing.deploy(overrides);
-  await rebalancingDefault.deployed();
+  // const Rebalancing = await ethers.getContractFactory("Rebalancing");
+  // const rebalancingDefault = await Rebalancing.deploy(overrides);
+  // await rebalancingDefault.deployed();
 
-  console.log("rebalancingDefult address:", rebalancingDefault.address);
+  // console.log("rebalancingDefult address:", rebalancingDefault.address);
 
-  await tenderly.verify({
-    name: "Rebalancing",
-    address: rebalancingDefault.address,
-  });
+  // await tenderly.verify({
+  //   name: "Rebalancing",
+  //   address: rebalancingDefault.address,
+  // });
 
   // const ThenaPositionLibrary = await ethers.getContractFactory(
   //   "ThenaPositionLibrary",
@@ -332,41 +332,41 @@ async function main(): Promise<void> {
 
   // await safeVerify("ThenaPositionLibrary", thenaPositionLibrary.address);
 
-  const PositionManager = await ethers.getContractFactory(
-    "PositionManagerThenaV3",
-    {
-      libraries: {
-        SwapVerificationLibraryAlgebraV2: "0x60c29EF13b2629fD0B5aB36410401D81D47BD349",
-        ThenaPositionLibrary: "0xf0E75934BE7522D328479fC758259AC92EF7c180",
-      },
-    }
-  );
-  const positionManagerBaseAddress = await PositionManager.deploy(overrides);
-  await positionManagerBaseAddress.deployed(overrides);
+  // const PositionManager = await ethers.getContractFactory(
+  //   "PositionManagerThenaV3",
+  //   {
+  //     libraries: {
+  //       SwapVerificationLibraryAlgebraV2: "0x60c29EF13b2629fD0B5aB36410401D81D47BD349",
+  //       ThenaPositionLibrary: "0xf0E75934BE7522D328479fC758259AC92EF7c180",
+  //     },
+  //   }
+  // );
+  // const positionManagerBaseAddress = await PositionManager.deploy(overrides);
+  // await positionManagerBaseAddress.deployed(overrides);
 
-  console.log("PositionManagerThenaV3 address:", positionManagerBaseAddress.address);
+  // console.log("PositionManagerThenaV3 address:", positionManagerBaseAddress.address);
 
-  await safeVerify("PositionManagerThenaV3", positionManagerBaseAddress.address);
+  // await safeVerify("PositionManagerThenaV3", positionManagerBaseAddress.address);
 
-  await protocolConfig.enableProtocol(
-    thenaProtocolHash,
-    "0x643B68Bf3f855B8475C0A700b6D1020bfc21d02e",
-    "0xb85Fdbb78a735584592Df49ED7cD061b01A2e6B7",
-    positionManagerBaseAddress.address
-  );
+  // await protocolConfig.enableProtocol(
+  //   thenaProtocolHash,
+  //   "0x643B68Bf3f855B8475C0A700b6D1020bfc21d02e",
+  //   "0xb85Fdbb78a735584592Df49ED7cD061b01A2e6B7",
+  //   positionManagerBaseAddress.address
+  // );
 
-  const ExternalPositionStorage = await ethers.getContractFactory(
-    "ExternalPositionStorage"
-  );
-  const externalPositionStorage = await ExternalPositionStorage.deploy();
-  await externalPositionStorage.deployed();
+  // const ExternalPositionStorage = await ethers.getContractFactory(
+  //   "ExternalPositionStorage"
+  // );
+  // const externalPositionStorage = await ExternalPositionStorage.deploy();
+  // await externalPositionStorage.deployed();
 
-  console.log(
-    "externalPositionStorage address:",
-    externalPositionStorage.address
-  );
+  // console.log(
+  //   "externalPositionStorage address:",
+  //   externalPositionStorage.address
+  // );
 
-  await sleep(2000); // 2 seconds
+  // await sleep(2000); // 2 seconds
 
   // const AmountCalculationsAlgebra = await ethers.getContractFactory(
   //   "AmountCalculationsAlgebraV2"
@@ -382,97 +382,97 @@ async function main(): Promise<void> {
   // safeVerify("AmountCalculationsAlgebraV2", amountCalculationsAlgebra.address);
 
 
-  const AssetManagementConfig = await ethers.getContractFactory(
-    "AssetManagementConfig"
-  );
-  const assetManagementConfig = await AssetManagementConfig.deploy();
-  await assetManagementConfig.deployed();
+  // const AssetManagementConfig = await ethers.getContractFactory(
+  //   "AssetManagementConfig"
+  // );
+  // const assetManagementConfig = await AssetManagementConfig.deploy();
+  // await assetManagementConfig.deployed();
 
-  console.log("assetManagerConfig address:", assetManagementConfig.address);
+  // console.log("assetManagerConfig address:", assetManagementConfig.address);
 
-  await tenderly.verify({
-    name: "AssetManagementConfig",
-    address: assetManagementConfig.address,
-  });
+  // await tenderly.verify({
+  //   name: "AssetManagementConfig",
+  //   address: assetManagementConfig.address,
+  // });
 
-  await sleep(2000); // 2 seconds
+  // await sleep(2000); // 2 seconds
 
-  const Portfolio = await ethers.getContractFactory("Portfolio", {
-    libraries: {
-      TokenBalanceLibrary: "0xb95dc48774d9B9EF7b8CCe19068b41B9e10463df",
-    },
-  });
-  const portfolioContract = await Portfolio.deploy(overrides);
-  await portfolioContract.deployed();
+  // const Portfolio = await ethers.getContractFactory("Portfolio", {
+  //   libraries: {
+  //     TokenBalanceLibrary: "0xb95dc48774d9B9EF7b8CCe19068b41B9e10463df",
+  //   },
+  // });
+  // const portfolioContract = await Portfolio.deploy(overrides);
+  // await portfolioContract.deployed();
 
-  console.log("portfolioContract address:", portfolioContract.address);
+  // console.log("portfolioContract address:", portfolioContract.address);
 
-  await tenderly.verify({
-    name: "Portfolio",
-    address: portfolioContract.address,
-  });
+  // await tenderly.verify({
+  //   name: "Portfolio",
+  //   address: portfolioContract.address,
+  // });
 
-  const FeeModule = await ethers.getContractFactory("FeeModule");
-  const feeModule = await FeeModule.deploy();
+  // const FeeModule = await ethers.getContractFactory("FeeModule");
+  // const feeModule = await FeeModule.deploy();
 
-  await feeModule.deployed();
+  // await feeModule.deployed();
 
-  console.log("feeModule address:", feeModule.address);
+  // console.log("feeModule address:", feeModule.address);
 
-  await tenderly.verify({
-    name: "FeeModule",
-    address: feeModule.address,
-  });
+  // await tenderly.verify({
+  //   name: "FeeModule",
+  //   address: feeModule.address,
+  // });
 
-  const VelvetSafeModule = await ethers.getContractFactory("VelvetSafeModule");
-  const velvetSafeModule = await VelvetSafeModule.deploy();
-  await velvetSafeModule.deployed();
+  // const VelvetSafeModule = await ethers.getContractFactory("VelvetSafeModule");
+  // const velvetSafeModule = await VelvetSafeModule.deploy();
+  // await velvetSafeModule.deployed();
 
-  console.log("velvetSafeModule address:", velvetSafeModule.address);
+  // console.log("velvetSafeModule address:", velvetSafeModule.address);
 
-  await tenderly.verify({
-    name: "VelvetSafeModule",
-    address: velvetSafeModule.address,
-  });
+  // await tenderly.verify({
+  //   name: "VelvetSafeModule",
+  //   address: velvetSafeModule.address,
+  // });
 
-  await sleep(2000); // 2 seconds
+  // await sleep(2000); // 2 seconds
 
-  const TokenExclusionManager = await ethers.getContractFactory(
-    "TokenExclusionManager"
-  );
-  const tokenExclusionManager = await TokenExclusionManager.deploy(overrides);
-  await tokenExclusionManager.deployed();
+  // const TokenExclusionManager = await ethers.getContractFactory(
+  //   "TokenExclusionManager"
+  // );
+  // const tokenExclusionManager = await TokenExclusionManager.deploy(overrides);
+  // await tokenExclusionManager.deployed();
 
-  console.log("tokenExclusionManager address:", tokenExclusionManager.address);
+  // console.log("tokenExclusionManager address:", tokenExclusionManager.address);
 
-  await tenderly.verify({
-    name: "TokenExclusionManager",
-    address: tokenExclusionManager.address,
-  });
+  // await tenderly.verify({
+  //   name: "TokenExclusionManager",
+  //   address: tokenExclusionManager.address,
+  // });
 
-  const TokenRemovalVault = await ethers.getContractFactory(
-    "TokenRemovalVault"
-  );
-  const tokenRemovalVault = await TokenRemovalVault.deploy();
-  await tokenRemovalVault.deployed();
+  // const TokenRemovalVault = await ethers.getContractFactory(
+  //   "TokenRemovalVault"
+  // );
+  // const tokenRemovalVault = await TokenRemovalVault.deploy();
+  // await tokenRemovalVault.deployed();
 
-  console.log("tokenRemovalVault address:", tokenRemovalVault.address);
+  // console.log("tokenRemovalVault address:", tokenRemovalVault.address);
 
-  await tenderly.verify({
-    name: "TokenRemovalVault",
-    address: tokenRemovalVault.address,
-  });
+  // await tenderly.verify({
+  //   name: "TokenRemovalVault",
+  //   address: tokenRemovalVault.address,
+  // });
 
-  const BorrowManager = await ethers.getContractFactory("BorrowManagerVenus");
-  const borrowManager = await BorrowManager.deploy();
-  await borrowManager.deployed();
+  // const BorrowManager = await ethers.getContractFactory("BorrowManagerVenus");
+  // const borrowManager = await BorrowManager.deploy();
+  // await borrowManager.deployed();
 
-  console.log("borrowManagerVenus address:", borrowManager.address);
+  // console.log("borrowManagerVenus address:", borrowManager.address);
 
-  await tenderly.verify({
-    name: "BorrowManagerVenus",
-    address: borrowManager.address,
-  });
+  // await tenderly.verify({
+  //   name: "BorrowManagerVenus",
+  //   address: borrowManager.address,
+  // });
 
   // await sleep(2000); // 2 seconds
 
@@ -506,38 +506,38 @@ async function main(): Promise<void> {
 
   // await sleep(2000); // 2 seconds
 
-  const WithdrawBatch = await ethers.getContractFactory(
-    "WithdrawBatchExternalPositions"
-  );
-  const withdrawBatch = await WithdrawBatch.deploy(
-    "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
-  );
-  await withdrawBatch.deployed();
-
-  console.log("withdrawBatch address:", withdrawBatch.address);
-
-  await tenderly.verify({
-    name: "WithdrawBatchExternalPositions",
-    address: withdrawBatch.address,
-  });
-
-  // const PortfolioCalculations = await ethers.getContractFactory(
-  //   "PortfolioCalculations",
-  //   {
-  //     libraries: {
-  //       TokenBalanceLibrary: tokenBalanceLibrary.address,
-  //     },
-  //   }
+  // const WithdrawBatch = await ethers.getContractFactory(
+  //   "WithdrawBatchExternalPositions"
   // );
-  // const portfolioCalculations = await PortfolioCalculations.deploy(overrides);
-  // await portfolioCalculations.deployed();
+  // const withdrawBatch = await WithdrawBatch.deploy(
+  //   "0x7663fd40081dcCd47805c00e613B6beAc3B87F08"
+  // );
+  // await withdrawBatch.deployed();
 
-  // console.log("portfolioCalculations address:", portfolioCalculations.address);
+  // console.log("withdrawBatch address:", withdrawBatch.address);
 
   // await tenderly.verify({
-  //   name: "PortfolioCalculations",
-  //   address: portfolioCalculations.address,
+  //   name: "WithdrawBatchExternalPositions",
+  //   address: withdrawBatch.address,
   // });
+
+  const PortfolioCalculations = await ethers.getContractFactory(
+    "PortfolioCalculations",
+    {
+      libraries: {
+        TokenBalanceLibrary: "0xA769Fc0Eb074af2a7cd126555D8c87802739E9b2",
+      },
+    }
+  );
+  const portfolioCalculations = await PortfolioCalculations.deploy(overrides);
+  await portfolioCalculations.deployed();
+
+  console.log("portfolioCalculations address:", portfolioCalculations.address);
+
+  await tenderly.verify({
+    name: "PortfolioCalculations",
+    address: portfolioCalculations.address,
+  });
 
   // await sleep(2000); // 2 seconds
 
@@ -547,56 +547,56 @@ async function main(): Promise<void> {
 
   const PortfolioFactory = await ethers.getContractFactory("PortfolioFactory");
 
-  const portfolioFactoryInstance = await upgrades.deployProxy(
-    PortfolioFactory,
-    [
-      {
-        _basePortfolioAddress: portfolioContract.address,
-        _baseTokenExclusionManagerAddress: tokenExclusionManager.address,
-        _baseRebalancingAddres: rebalancingDefault.address,
-        _baseAssetManagementConfigAddress: assetManagementConfig.address,
-        _feeModuleImplementationAddress: feeModule.address,
-        _baseTokenRemovalVaultImplementation: tokenRemovalVault.address,
-        _baseVelvetGnosisSafeModuleAddress: velvetSafeModule.address,
-        _baseBorrowManager: borrowManager.address,
-        _basePositionWrapper: positionWrapperBaseAddress.address,
-        _baseExternalPositionStorage: externalPositionStorage.address,
-        _gnosisSingleton: addresses.gnosisSingleton,
-        _gnosisFallbackLibrary: addresses.gnosisFallbackLibrary,
-        _gnosisMultisendLibrary: addresses.gnosisMultisendLibrary,
-        _gnosisSafeProxyFactory: addresses.gnosisSafeProxyFactory,
-        _protocolConfig: protocolConfig.address,
-      },
-    ],
-    { kind: "uups" },
-    overrides
-  );
+  // const portfolioFactoryInstance = await upgrades.deployProxy(
+  //   PortfolioFactory,
+  //   [
+  //     {
+  //       _basePortfolioAddress: portfolioContract.address,
+  //       _baseTokenExclusionManagerAddress: tokenExclusionManager.address,
+  //       _baseRebalancingAddres: rebalancingDefault.address,
+  //       _baseAssetManagementConfigAddress: assetManagementConfig.address,
+  //       _feeModuleImplementationAddress: feeModule.address,
+  //       _baseTokenRemovalVaultImplementation: tokenRemovalVault.address,
+  //       _baseVelvetGnosisSafeModuleAddress: velvetSafeModule.address,
+  //       _baseBorrowManager: borrowManager.address,
+  //       _basePositionWrapper: positionWrapperBaseAddress.address,
+  //       _baseExternalPositionStorage: externalPositionStorage.address,
+  //       _gnosisSingleton: addresses.gnosisSingleton,
+  //       _gnosisFallbackLibrary: addresses.gnosisFallbackLibrary,
+  //       _gnosisMultisendLibrary: addresses.gnosisMultisendLibrary,
+  //       _gnosisSafeProxyFactory: addresses.gnosisSafeProxyFactory,
+  //       _protocolConfig: protocolConfig.address,
+  //     },
+  //   ],
+  //   { kind: "uups" },
+  //   overrides
+  // );
 
-  const portfolioFactory = PortfolioFactory.attach(
-    portfolioFactoryInstance.address
-  );
+  // const portfolioFactory = PortfolioFactory.attach(
+  //   portfolioFactoryInstance.address
+  // );
 
-  console.log("portfolioFactory address:", portfolioFactory.address);
+  // console.log("portfolioFactory address:", portfolioFactory.address);
 
-  await sleep(2000); // 2 seconds
+  // await sleep(2000); // 2 seconds
 
-  const WithdrawManager = await ethers.getContractFactory(
-    "WithdrawManagerExternalPositions"
-  );
-  const withdrawManager = await WithdrawManager.deploy();
-  await withdrawManager.deployed();
+  // const WithdrawManager = await ethers.getContractFactory(
+  //   "WithdrawManagerExternalPositions"
+  // );
+  // const withdrawManager = await WithdrawManager.deploy();
+  // await withdrawManager.deployed();
 
-  console.log("withdrawManager address:", withdrawManager.address);
+  // console.log("withdrawManager address:", withdrawManager.address);
 
-  await tenderly.verify({
-    name: "WithdrawManagerExternalPositions",
-    address: withdrawManager.address,
-  });
+  // await tenderly.verify({
+  //   name: "WithdrawManagerExternalPositions",
+  //   address: withdrawManager.address,
+  // });
 
-  await withdrawManager.initialize(
-    withdrawBatch.address,
-    portfolioFactory.address
-  );
+  // await withdrawManager.initialize(
+  //   withdrawBatch.address,
+  //   portfolioFactory.address
+  // );
 }
 
 

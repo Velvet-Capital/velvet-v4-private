@@ -207,7 +207,7 @@ abstract contract VaultManager is
     uint256 _amount,
     uint256 _value,
     address _to
-  ) external onlyRebalancerContract {
+  ) external {
     _pullFromVault(_token, _amount, _value, _to);
   }
 

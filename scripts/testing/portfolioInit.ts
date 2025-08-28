@@ -107,8 +107,8 @@ async function main(): Promise<void> {
 
   await sleep(30000);
 
-  const portfolioAddress = await portfolioFactory.getPortfolioList(9);
-  const portfolioInfo = await portfolioFactory.PortfolioInfolList(9);
+  const portfolioAddress = await portfolioFactory.getPortfolioList(5);
+  const portfolioInfo = await portfolioFactory.PortfolioInfolList(5);
 
   const portfolio = await ethers.getContractAt(
     Portfolio__factory.abi,
