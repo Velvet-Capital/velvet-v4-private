@@ -46,7 +46,7 @@ import { chainIdToAddresses } from "../networkVariables";
 import { deployedAddresses } from "./deployAddresses";
 import { PoolFeeCalculator } from "../utils/poolFeeCalculator";
 import { computeBuffers } from "../utils/bufferOptimizer";
-import { computeBuffer } from "../utils/buffer";
+import { computeOptimizedBuffers } from "../utils/buffer";
 
 import {
   Portfolio,
@@ -468,44 +468,88 @@ async function main(): Promise<void> {
   //   maxCollateralBufferUnit: 800   // 0.8 %
   // };
 
-  console.log("before compute");
+  console.log("🔧 Testing buffer optimizations...");
+  console.log("=".repeat(60));
 
+  // Test legacy buffer calculation first for comparison
+  console.log("📊 LEGACY BUFFER CALCULATION:");
+  const legacyResults = await computeBuffers({
+    quoter: "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
+    flashToken: flashLoanToken,
+    debtTokens: borrowTokens,
+    debtAmounts: baseValues[0],
+    flashToDebtPaths: flashToDebtPaths,
+    collatToFlashPath: collatToFlashPaths,
+    poolFees: poolFees.poolFees,
+    flashLoanFeeBps: 1,
+  });
+
+  console.log("Legacy flash loan buffers:", legacyResults.flashloanBufferUnits);
+  console.log("Legacy collateral buffer:", legacyResults.bufferUnit);
+  console.log("Legacy total flash needed:", ethers.utils.formatEther(legacyResults.totalFlashForRoutes));
+  
+  console.log("\n" + "=".repeat(60));
+  console.log("🚀 OPTIMIZED BUFFER CALCULATION:");
+
+  // Test optimized buffer calculation with different confidence levels
+  const optimizedResults = await computeOptimizedBuffers({
+    quoter: "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
+    flashToken: flashLoanToken,
+    debtTokens: borrowTokens,
+    debtAmounts: baseValues[0],
+    flashToDebtPaths: flashToDebtPaths,
+    collatToFlashPaths: collatToFlashPaths,
+    poolFees: poolFees.poolFees,
+    flashLoanFeeBps: 1,
+    targetConfidenceLevel: 95,    // 95% confidence
+    maxFlashBufferBps: 50,        // Max 0.5% flash buffer
+    maxCollatBufferUnit: 450      // Max 0.45% collateral buffer
+  });
+
+  console.log("\n" + "=".repeat(60));
+  console.log("📈 COMPARISON RESULTS:");
+  
+  const legacyFlashTotal = legacyResults.flashloanBufferUnits.reduce((a: number, b: number) => a + b, 0);
+  const optimizedFlashTotal = optimizedResults.flashloanBufferUnits.reduce((a: number, b: number) => a + b, 0);
+  
+  const flashImprovement = ((legacyFlashTotal - optimizedFlashTotal) / legacyFlashTotal * 100).toFixed(1);
+  const collatImprovement = ((legacyResults.bufferUnit - optimizedResults.bufferUnit) / legacyResults.bufferUnit * 100).toFixed(1);
+  
+  console.log(`Flash buffer improvement: ${flashImprovement}% reduction (${legacyFlashTotal} → ${optimizedFlashTotal} bps)`);
+  console.log(`Collateral buffer improvement: ${collatImprovement}% reduction (${legacyResults.bufferUnit} → ${optimizedResults.bufferUnit} units)`);
+  
+  // Use optimized results for actual withdrawal
   const {
-    flashloanBufferUnits,   // number[] (1/10,000 per flash->debt route; 0 where tokens equal)
-    bufferUnit,             // number   (1/100,000 for the single collateral->flash leg)
-    routeInputsAmax,        // BigNumber[] per route: flash in incl. its buffer
-    totalFlashForRoutes,    // BigNumber: sum of routeInputsAmax (excl. flash-loan fee)
-    repayFlash              // BigNumber: total flash to buy back on sell leg (incl. flash-loan fee)
-  } = await computeBuffers({
-    quoter: "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
-    flashToken: flashLoanToken,
-    debtTokens: borrowTokens,
-    debtAmounts: baseValues[0],
-    flashToDebtPaths: flashToDebtPaths,
-    collatToFlashPath: collatToFlashPaths,
-    poolFees: poolFees.poolFees,
-    flashLoanFeeBps: 1,
-    // Optional tuning knobs (keep defaults unless you need to tighten/loosen):
-    // probeBp: 50, baseBpPerRoute: 8, baseBpCollat: 10, extraBp: 5,
-    // maxRouteBp: 300, maxCollatBp: 400, shockPctRoute: 0.8, shockPctCollat: 1.0,
-  });
+    flashloanBufferUnits,
+    bufferUnit,
+    routeInputsAmax,
+    totalFlashForRoutes,
+    repayFlash
+  } = optimizedResults;
 
-  console.log("flashloanBufferUnits", flashloanBufferUnits);
-  console.log("bufferUnit", bufferUnit);
-  console.log("routeInputsAmax", routeInputsAmax);
-  console.log("totalFlashForRoutes", totalFlashForRoutes);
-  console.log("repayFlash", repayFlash);
+  // Map optimized buffers back to contract format (all debt tokens need buffer values)
+  const mappedFlashBuffers: number[] = [];
+  let bufferIndex = 0;
 
-  await computeBuffer({
-    quoter: "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
-    flashToken: flashLoanToken,
-    debtTokens: borrowTokens,
-    debtAmounts: baseValues[0],
-    flashToDebtPaths: flashToDebtPaths,
-    collatToFlashPath: collatToFlashPaths,
-    poolFees: poolFees.poolFees,
-    flashLoanFeeBps: 1,
-  });
+  for (let i = 0; i < flashToDebtPaths.length; i++) {
+    const pathTokens = flashToDebtPaths[i];
+    
+    // Same token case - use 0 buffer
+    if (pathTokens.length < 2 || pathTokens[0].toLowerCase() === pathTokens[pathTokens.length - 1].toLowerCase()) {
+      mappedFlashBuffers.push(0);
+    } else {
+      // Different tokens - use optimized buffer
+      mappedFlashBuffers.push(flashloanBufferUnits[bufferIndex]);
+      bufferIndex++;
+    }
+  }
+
+  console.log("\n✅ Using optimized buffers for withdrawal:");
+  console.log("Optimized flash loan buffers (swap routes only):", flashloanBufferUnits);
+  console.log("Mapped flash loan buffers (all routes):", mappedFlashBuffers);
+  console.log("Collateral buffer unit:", bufferUnit);
+  console.log("Total flash needed:", ethers.utils.formatEther(totalFlashForRoutes), "ETH");
+  console.log("Flash repayment:", ethers.utils.formatEther(repayFlash), "ETH");
 
 
 
@@ -546,7 +590,7 @@ async function main(): Promise<void> {
 
   let flashLoanAmounts: string[][] = [];
 
-  let flashloanBufferUnit = flashloanBufferUnits; //Flashloan buffer unit in 1/10000, extra flashlaon to take, to fulfil the swap(from flashlaon to debt token)
+  let flashloanBufferUnit = mappedFlashBuffers; //Flashloan buffer unit in 1/10000, mapped to all debt tokens
   let bufferUnitValue = bufferUnit; //Buffer unit for collateral amount in 1/100000, extra collateral to take, to fulfil the swap(from collateral underlying to flashlaon token)
 
   const values =
@@ -671,58 +715,58 @@ async function main(): Promise<void> {
 
   console.log("------------- Executing Withdraw Batch -------------");
 
-  // const tx = await withdrawManager.connect(owner4).populateTransaction.withdraw(
-  //   swapTokens,
-  //   portfolio.address,
-  //   tokenToSwapInto,
-  //   amountPortfolioToken,
-  //   responses,
-  //   0,
-  //   {
-  //     _factory: "0x30055F87716d3DFD0E5198C27024481099fB4A98",
-  //     _token0: addresses.USDT, // Pool token 0
-  //     _token1: addresses.USDC_Address, // Pool token 1
-  //     _flashLoanToken: addresses.USDT, // FlashLoanToken == token to repay
-  //     _bufferUnit: bufferUnitValue.toString(),
-  //     _solverHandler: ensoHandler.address,
-  //     _flashLoanAmount: flashLoanAmounts,
-  //     firstSwapData: [["0x"]], // will be empty used when repay using enso, swap flashloan token to debt token to repay
-  //     secondSwapData: [["0x"]], // will be empty used when repay using enso, swap collateral token to flashlaon token to pay loan back
-  //     _swapHandler: swapHandler.address,
-  //     _poolFees: poolFees.poolFees, //(used when dexRepayment is true) Pool fee should be v3 pool we want to include for swapping, flashlaon token to  underlying collateral token to flashLoanToken(current scenario swpaping btc to usdt, to repay the laon)
-  //     isDexRepayment: true,
-  //   },
-  //   {
-  //     // If only borrowed tokens, not used of below values
-  //     _positionWrappers: positionWrappers,
-  //     _amountsMin0: amount0Min,
-  //     _amountsMin1: amount1Min,
-  //     _swapDeployer: [],
-  //     _tokenIn: [],
-  //     _tokenOut: [],
-  //     _amountIn: [],
-  //     _fee: [],
-  //   }
-  // );
+  const tx = await withdrawManager.connect(owner4).populateTransaction.withdraw(
+    swapTokens,
+    portfolio.address,
+    tokenToSwapInto,
+    amountPortfolioToken,
+    responses,
+    0,
+    {
+      _factory: "0x30055F87716d3DFD0E5198C27024481099fB4A98",
+      _token0: addresses.USDT, // Pool token 0
+      _token1: addresses.USDC_Address, // Pool token 1
+      _flashLoanToken: addresses.USDT, // FlashLoanToken == token to repay
+      _bufferUnit: bufferUnitValue.toString(),
+      _solverHandler: ensoHandler.address,
+      _flashLoanAmount: flashLoanAmounts,
+      firstSwapData: [["0x"]], // will be empty used when repay using enso, swap flashloan token to debt token to repay
+      secondSwapData: [["0x"]], // will be empty used when repay using enso, swap collateral token to flashlaon token to pay loan back
+      _swapHandler: swapHandler.address,
+      _poolFees: poolFees.poolFees, //(used when dexRepayment is true) Pool fee should be v3 pool we want to include for swapping, flashlaon token to  underlying collateral token to flashLoanToken(current scenario swpaping btc to usdt, to repay the laon)
+      isDexRepayment: true,
+    },
+    {
+      // If only borrowed tokens, not used of below values
+      _positionWrappers: positionWrappers,
+      _amountsMin0: amount0Min,
+      _amountsMin1: amount1Min,
+      _swapDeployer: [],
+      _tokenIn: [],
+      _tokenOut: [],
+      _amountIn: [],
+      _fee: [],
+    }
+  );
 
-  // // Add gas settings
-  // tx.gasLimit = 10000000; // Set a high gas limit for complex withdraw
-  // tx.maxFeePerGas = maxFeePerGas;
-  // tx.maxPriorityFeePerGas = adjustedPriorityFee;
+  // Add gas settings
+  tx.gasLimit = 10000000; // Set a high gas limit for complex withdraw
+  tx.maxFeePerGas = maxFeePerGas;
+  tx.maxPriorityFeePerGas = adjustedPriorityFee;
 
-  // // Send the transaction manually
-  // const sentTx = await owner4.sendTransaction(tx);
-  // console.log("Transaction hash:", sentTx.hash);
-  // console.log("Transaction submitted! Check BSCScan for details.");
+  // Send the transaction manually
+  const sentTx = await owner4.sendTransaction(tx);
+  console.log("Transaction hash:", sentTx.hash);
+  console.log("Transaction submitted! Check BSCScan for details.");
 
-  // // Wait for the transaction to be mined
-  // try {
-  //   const receipt = await sentTx.wait();
-  //   console.log("Transaction succeeded! Block:", receipt.blockNumber);
-  // } catch (error) {
-  //   console.log("Transaction failed as expected:", error.message);
-  //   console.log("Check BSCScan for the failed transaction details.");
-  // }
+  // Wait for the transaction to be mined
+  try {
+    const receipt = await sentTx.wait();
+    console.log("Transaction succeeded! Block:", receipt.blockNumber);
+  } catch (error) {
+    console.log("Transaction failed as expected:", error.message);
+    console.log("Check BSCScan for the failed transaction details.");
+  }
 
   console.log(
     "------------------------------ Withdraw Ended ------------------------------"

@@ -110,7 +110,7 @@ async function main(): Promise<void> {
 
   console.log("Vault:", vault);
 
-  let sellToken = deployedAddresses.ethAddress;
+  let sellToken = addresses.DAI_Address;
   let buyToken = addresses.vBTC_Address;
 
   let balance = await ERC20.attach(sellToken).balanceOf(vault);
@@ -153,7 +153,7 @@ async function main(): Promise<void> {
 
   console.log("------------- Updating Tokens -------------");
 
-  const newTokens = [tokens[1], buyToken]; // End state of vault
+  const newTokens = [tokens[0], tokens[1]]; // End state of vault
 
   const tx = await rebalancing.connect(owner2).populateTransaction.updateTokens({
     _newTokens: newTokens,
