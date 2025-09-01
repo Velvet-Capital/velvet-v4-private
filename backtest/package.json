@@ -1,0 +1,22 @@
+{
+  "name": "thena-strategy-backtest",
+  "version": "1.0.0",
+  "description": "Backtesting framework for Thena concentrated liquidity strategy",
+  "main": "thena-strategy-backtest.js",
+  "scripts": {
+    "backtest": "node thena-strategy-backtest.js",
+    "install-deps": "npm install axios"
+  },
+  "dependencies": {
+    "axios": "^1.11.0"
+  },
+  "keywords": [
+    "thena",
+    "defi",
+    "backtesting",
+    "liquidity",
+    "strategy"
+  ],
+  "author": "Velvet Capital",
+  "license": "MIT"
+}

@@ -1,0 +1,3309 @@
+
+> thena-strategy-backtest@1.0.0 backtest
+> node thena-strategy-backtest.js
+
+🚀 STARTING ADVANCED THENA STRATEGY BACKTESTING
+============================================================
+Strategy Configuration:
+  Initial Investment: 2 BNB per pool
+  
+  📊 NORMAL POOLS:
+    Range: ±5%
+    Rebalancing: ENABLED
+    Trigger: 2 ticks
+  
+  🪙 STABLECOIN POOLS:
+    Range: ±0.05%
+    Rebalancing: DISABLED
+    Trigger: 1 ticks
+  
+  Quality Filters: Volume >10000, Liquidity >100000
+============================================================
+
+🔄 TESTING 180 DAY PERIOD (6.0 months)
+--------------------------------------------------
+
+=== Backtesting ETH/BNB for 180 days ===
+Fetching data for pool 0x58f04aada1051885a3c4e296aab0a454ea1233a3...
+✅ Found pool: ETH/WBNB
+✅ Found 122 historical data points
+Pool: ETH/WBNB
+Data points: 122
+Fee tier: 0.199%
+
+--- Pool Quality Assessment ---
+Quality Score: 100/100 (RECOMMENDED)
+Avg Daily Volume: $2665836
+Pool Volatility: 1.16% daily
+Estimated Liquidity: ~$2224332008818608896
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+
+Initial position: Ticks 12731 to 13893 (Tick 13312)
+Range width: ±5.8% (adjusted for volatility)
+🔄 Rebalance trigger (ETH/WBNB): tick=12477, range=[12731, 13893]
+   Trigger zones: 12733 to 13891
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [12731, 13893] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #1 at tick 12477 -> Range: 11896 to 13058
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=10839, range=[11896, 13058]
+   Trigger zones: 11898 to 13056
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [11896, 13058] ticks
+   Days in range: 8/8 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #2 at tick 10839 -> Range: 10258 to 11420
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=10195, range=[10258, 11420]
+   Trigger zones: 10260 to 11418
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [10258, 11420] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #3 at tick 10195 -> Range: 9614 to 10776
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=10810, range=[9614, 10776]
+   Trigger zones: 9616 to 10774
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [9614, 10776] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #4 at tick 10810 -> Range: 10229 to 11391
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=11578, range=[10229, 11391]
+   Trigger zones: 10231 to 11389
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [10229, 11391] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $1
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #5 at tick 11578 -> Range: 10997 to 12159
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=13547, range=[10997, 12159]
+   Trigger zones: 10999 to 12157
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [10997, 12159] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $1
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #6 at tick 13547 -> Range: 12966 to 14128
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=14286, range=[12966, 14128]
+   Trigger zones: 12968 to 14126
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [12966, 14128] ticks
+   Days in range: 19/19 (100.0%)
+   Total volume: $23601681
+   Total fees earned: $2.8190
+   Avg daily volume: $1242194
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #7 at tick 14286 -> Range: 13705 to 14867
+   Fees earned in previous range: $2.82 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=13699, range=[13705, 14867]
+   Trigger zones: 13707 to 14865
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [13705, 14867] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $7185472
+   Total fees earned: $1.3025
+   Avg daily volume: $2395157
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #8 at tick 13699 -> Range: 13118 to 14280
+   Fees earned in previous range: $1.30 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=12937, range=[13118, 14280]
+   Trigger zones: 13120 to 14278
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [13118, 14280] ticks
+   Days in range: 8/8 (100.0%)
+   Total volume: $19270662
+   Total fees earned: $2.3462
+   Avg daily volume: $2408833
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #9 at tick 12937 -> Range: 12356 to 13518
+   Fees earned in previous range: $2.35 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=13589, range=[12356, 13518]
+   Trigger zones: 12358 to 13516
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [12356, 13518] ticks
+   Days in range: 11/11 (100.0%)
+   Total volume: $21962419
+   Total fees earned: $2.7991
+   Avg daily volume: $1996584
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #10 at tick 13589 -> Range: 13008 to 14170
+   Fees earned in previous range: $2.80 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=14220, range=[13008, 14170]
+   Trigger zones: 13010 to 14168
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [13008, 14170] ticks
+   Days in range: 7/7 (100.0%)
+   Total volume: $12339209
+   Total fees earned: $1.0458
+   Avg daily volume: $1762744
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #11 at tick 14220 -> Range: 13639 to 14801
+   Fees earned in previous range: $1.05 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15144, range=[13639, 14801]
+   Trigger zones: 13641 to 14799
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [13639, 14801] ticks
+   Days in range: 6/6 (100.0%)
+   Total volume: $11263147
+   Total fees earned: $1.6956
+   Avg daily volume: $1877191
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #12 at tick 15144 -> Range: 14563 to 15725
+   Fees earned in previous range: $1.70 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15725, range=[14563, 15725]
+   Trigger zones: 14565 to 15723
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [14563, 15725] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $4316232
+   Total fees earned: $1.2604
+   Avg daily volume: $2158116
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #13 at tick 15725 -> Range: 15144 to 16306
+   Fees earned in previous range: $1.26 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=16747, range=[15144, 16306]
+   Trigger zones: 15146 to 16304
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [15144, 16306] ticks
+   Days in range: 23/23 (100.0%)
+   Total volume: $55586247
+   Total fees earned: $9.9998
+   Avg daily volume: $2416793
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #14 at tick 16747 -> Range: 16166 to 17328
+   Fees earned in previous range: $10.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15998, range=[16166, 17328]
+   Trigger zones: 16168 to 17326
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [16166, 17328] ticks
+   Days in range: 10/10 (100.0%)
+   Total volume: $33231041
+   Total fees earned: $7.4993
+   Avg daily volume: $3323104
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #15 at tick 15998 -> Range: 15417 to 16579
+   Fees earned in previous range: $7.50 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=16815, range=[15417, 16579]
+   Trigger zones: 15419 to 16577
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [15417, 16579] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $9122387
+   Total fees earned: $1.5785
+   Avg daily volume: $3040796
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #16 at tick 16815 -> Range: 16234 to 17396
+   Fees earned in previous range: $1.58 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=16216, range=[16234, 17396]
+   Trigger zones: 16236 to 17394
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [16234, 17396] ticks
+   Days in range: 7/7 (100.0%)
+   Total volume: $20332693
+   Total fees earned: $5.7061
+   Avg daily volume: $2904670
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #17 at tick 16216 -> Range: 15635 to 16797
+   Fees earned in previous range: $5.71 | Gas cost: 0.003 BNB
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [15635, 16797] ticks
+   Days in range: 4/4 (100.0%)
+   Total volume: $5833308
+   Total fees earned: $0.9933
+   Avg daily volume: $1458327
+   Is using mock data: Possibly
+   Time-based BNB price (day 0): $400.00
+   Time-based BNB price (day 60): $486.46
+   Time-based BNB price (day 120): $553.20
+
+💱 DYNAMIC PRICING IMPACT:
+   Fixed BNB Price ($600): 0.0651 BNB
+   Dynamic BNB Pricing: 0.0885 BNB
+   Difference: 36.0% (more profitable)
+
+--- DETAILED PERFORMANCE ANALYSIS ---
+💰 Financial Performance:
+   Net Return: 0.0375 (PROFITABLE)
+   APR: 3.80%
+   Total Fees: $39.05 (0.0885 BNB)
+   Gas Costs: 0.0510 BNB
+
+📊 Strategy Metrics:
+   Pool Quality: 100/100 (RECOMMENDED)
+   Time in Range: 86.8%
+   Rebalance Frequency: 2.8/month
+   Fee Efficiency: 0.0052 BNB/rebalance
+   Pool Volatility: 1.16%
+
+💡 Strategy Insights:
+   Pool Type: Normal Pool
+   Rebalancing: Enabled
+   Quality Score: 100/100
+
+=== Backtesting BTC/BNB for 180 days ===
+Fetching data for pool 0xebe40E120bAc0D8F9793C080B4Ce1653961930C8...
+✅ Found pool: BTCB/WBNB
+✅ Found 107 historical data points
+Pool: BTCB/WBNB
+Data points: 107
+Fee tier: 0.1535%
+
+--- Pool Quality Assessment ---
+Quality Score: 100/100 (RECOMMENDED)
+Avg Daily Volume: $802055
+Pool Volatility: 0.85% daily
+Estimated Liquidity: ~$189488720743570816
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+
+Initial position: Ticks 49146 to 50146 (Tick 49646)
+Range width: ±5.0% (adjusted for volatility)
+🔄 Rebalance trigger (BTCB/WBNB): tick=50910, range=[49146, 50146]
+   Trigger zones: 49148 to 50144
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [49146, 50146] ticks
+   Days in range: 4/4 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #1 at tick 50910 -> Range: 50410 to 51410
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (BTCB/WBNB): tick=51439, range=[50410, 51410]
+   Trigger zones: 50412 to 51408
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [50410, 51410] ticks
+   Days in range: 51/51 (100.0%)
+   Total volume: $12484062
+   Total fees earned: $19.3536
+   Avg daily volume: $244786
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #2 at tick 51439 -> Range: 50939 to 51939
+   Fees earned in previous range: $19.35 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (BTCB/WBNB): tick=50867, range=[50939, 51939]
+   Trigger zones: 50941 to 51937
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [50939, 51939] ticks
+   Days in range: 6/6 (100.0%)
+   Total volume: $2031608
+   Total fees earned: $7.0281
+   Avg daily volume: $338601
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #3 at tick 50867 -> Range: 50367 to 51367
+   Fees earned in previous range: $7.03 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (BTCB/WBNB): tick=50335, range=[50367, 51367]
+   Trigger zones: 50369 to 51365
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [50367, 51367] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $1615798
+   Total fees earned: $7.7208
+   Avg daily volume: $538599
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #4 at tick 50335 -> Range: 49835 to 50835
+   Fees earned in previous range: $7.72 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (BTCB/WBNB): tick=49533, range=[49835, 50835]
+   Trigger zones: 49837 to 50833
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [49835, 50835] ticks
+   Days in range: 6/6 (100.0%)
+   Total volume: $3024264
+   Total fees earned: $13.4838
+   Avg daily volume: $504044
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #5 at tick 49533 -> Range: 49033 to 50033
+   Fees earned in previous range: $13.48 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (BTCB/WBNB): tick=50102, range=[49033, 50033]
+   Trigger zones: 49035 to 50031
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [49033, 50033] ticks
+   Days in range: 5/5 (100.0%)
+   Total volume: $3003237
+   Total fees earned: $12.4427
+   Avg daily volume: $600647
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #6 at tick 50102 -> Range: 49602 to 50602
+   Fees earned in previous range: $12.44 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (BTCB/WBNB): tick=49479, range=[49602, 50602]
+   Trigger zones: 49604 to 50600
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [49602, 50602] ticks
+   Days in range: 13/13 (100.0%)
+   Total volume: $7452069
+   Total fees earned: $19.6112
+   Avg daily volume: $573236
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #7 at tick 49479 -> Range: 48979 to 49979
+   Fees earned in previous range: $19.61 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (BTCB/WBNB): tick=48773, range=[48979, 49979]
+   Trigger zones: 48981 to 49977
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [48979, 49979] ticks
+   Days in range: 6/6 (100.0%)
+   Total volume: $7054230
+   Total fees earned: $9.4531
+   Avg daily volume: $1175705
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #8 at tick 48773 -> Range: 48273 to 49273
+   Fees earned in previous range: $9.45 | Gas cost: 0.003 BNB
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [48273, 49273] ticks
+   Days in range: 13/13 (100.0%)
+   Total volume: $10580857
+   Total fees earned: $15.9321
+   Avg daily volume: $813912
+   Is using mock data: Real data
+   Time-based BNB price (day 0): $400.00
+   Time-based BNB price (day 30): $444.55
+   Time-based BNB price (day 60): $486.46
+   Time-based BNB price (day 90): $523.33
+
+💱 DYNAMIC PRICING IMPACT:
+   Fixed BNB Price ($600): 0.1750 BNB
+   Dynamic BNB Pricing: 0.2314 BNB
+   Difference: 32.2% (more profitable)
+
+--- DETAILED PERFORMANCE ANALYSIS ---
+💰 Financial Performance:
+   Net Return: 0.2074 (PROFITABLE)
+   APR: 21.03%
+   Total Fees: $105.03 (0.2314 BNB)
+   Gas Costs: 0.0240 BNB
+
+📊 Strategy Metrics:
+   Pool Quality: 100/100 (RECOMMENDED)
+   Time in Range: 92.5%
+   Rebalance Frequency: 1.3/month
+   Fee Efficiency: 0.0289 BNB/rebalance
+   Pool Volatility: 0.85%
+
+💡 Strategy Insights:
+   Pool Type: Normal Pool
+   Rebalancing: Enabled
+   Quality Score: 100/100
+
+=== Backtesting ETH/USDT for 180 days ===
+Fetching data for pool 0x8829abfa1a7b017078195c10a966d7411a0c9515...
+✅ Found pool: ETH/USDT
+✅ Found 131 historical data points
+Pool: ETH/USDT
+Data points: 131
+Fee tier: 0.1511%
+
+--- Pool Quality Assessment ---
+Quality Score: 100/100 (RECOMMENDED)
+Avg Daily Volume: $465200
+Pool Volatility: 1.07% daily
+Estimated Liquidity: ~$4647592464832166912
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+
+Initial position: Ticks 73496 to 74562 (Tick 74029)
+Range width: ±5.3% (adjusted for volatility)
+🔄 Rebalance trigger (ETH/USDT): tick=74789, range=[73496, 74562]
+   Trigger zones: 73498 to 74560
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [73496, 74562] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #1 at tick 74789 -> Range: 74256 to 75322
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=76904, range=[74256, 75322]
+   Trigger zones: 74258 to 75320
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [74256, 75322] ticks
+   Days in range: 12/12 (100.0%)
+   Total volume: $1
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #2 at tick 76904 -> Range: 76371 to 77437
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=77458, range=[76371, 77437]
+   Trigger zones: 76373 to 77435
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [76371, 77437] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #3 at tick 77458 -> Range: 76925 to 77991
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=78457, range=[76925, 77991]
+   Trigger zones: 76927 to 77989
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [76925, 77991] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #4 at tick 78457 -> Range: 77924 to 78990
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=77764, range=[77924, 78990]
+   Trigger zones: 77926 to 78988
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77924, 78990] ticks
+   Days in range: 7/7 (100.0%)
+   Total volume: $1
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #5 at tick 77764 -> Range: 77231 to 78297
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=78338, range=[77231, 78297]
+   Trigger zones: 77233 to 78295
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77231, 78297] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #6 at tick 78338 -> Range: 77805 to 78871
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=78935, range=[77805, 78871]
+   Trigger zones: 77807 to 78869
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77805, 78871] ticks
+   Days in range: 9/9 (100.0%)
+   Total volume: $47936
+   Total fees earned: $0.1047
+   Avg daily volume: $5326
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #7 at tick 78935 -> Range: 78402 to 79468
+   Fees earned in previous range: $0.10 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=78347, range=[78402, 79468]
+   Trigger zones: 78404 to 79466
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [78402, 79468] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $166754
+   Total fees earned: $0.0319
+   Avg daily volume: $83377
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #8 at tick 78347 -> Range: 77814 to 78880
+   Fees earned in previous range: $0.03 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=78956, range=[77814, 78880]
+   Trigger zones: 77816 to 78878
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77814, 78880] ticks
+   Days in range: 10/10 (100.0%)
+   Total volume: $3058309
+   Total fees earned: $0.2450
+   Avg daily volume: $305831
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #9 at tick 78956 -> Range: 78423 to 79489
+   Fees earned in previous range: $0.24 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=78382, range=[78423, 79489]
+   Trigger zones: 78425 to 79487
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [78423, 79489] ticks
+   Days in range: 5/5 (100.0%)
+   Total volume: $2496475
+   Total fees earned: $0.1180
+   Avg daily volume: $499295
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #10 at tick 78382 -> Range: 77849 to 78915
+   Fees earned in previous range: $0.12 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=77846, range=[77849, 78915]
+   Trigger zones: 77851 to 78913
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77849, 78915] ticks
+   Days in range: 6/6 (100.0%)
+   Total volume: $2014911
+   Total fees earned: $0.0929
+   Avg daily volume: $335819
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #11 at tick 77846 -> Range: 77313 to 78379
+   Fees earned in previous range: $0.09 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=77076, range=[77313, 78379]
+   Trigger zones: 77315 to 78377
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77313, 78379] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $665190
+   Total fees earned: $0.0370
+   Avg daily volume: $332595
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #12 at tick 77076 -> Range: 76543 to 77609
+   Fees earned in previous range: $0.04 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=77899, range=[76543, 77609]
+   Trigger zones: 76545 to 77607
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [76543, 77609] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $492633
+   Total fees earned: $0.0253
+   Avg daily volume: $492633
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #13 at tick 77899 -> Range: 77366 to 78432
+   Fees earned in previous range: $0.03 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=78503, range=[77366, 78432]
+   Trigger zones: 77368 to 78430
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77366, 78432] ticks
+   Days in range: 9/9 (100.0%)
+   Total volume: $2727520
+   Total fees earned: $0.1659
+   Avg daily volume: $303058
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #14 at tick 78503 -> Range: 77970 to 79036
+   Fees earned in previous range: $0.17 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=79275, range=[77970, 79036]
+   Trigger zones: 77972 to 79034
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77970, 79036] ticks
+   Days in range: 7/7 (100.0%)
+   Total volume: $1478414
+   Total fees earned: $0.0756
+   Avg daily volume: $211202
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #15 at tick 79275 -> Range: 78742 to 79808
+   Fees earned in previous range: $0.08 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=79903, range=[78742, 79808]
+   Trigger zones: 78744 to 79806
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [78742, 79808] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $156251
+   Total fees earned: $0.0208
+   Avg daily volume: $156251
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #16 at tick 79903 -> Range: 79370 to 80436
+   Fees earned in previous range: $0.02 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=80514, range=[79370, 80436]
+   Trigger zones: 79372 to 80434
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [79370, 80436] ticks
+   Days in range: 5/5 (100.0%)
+   Total volume: $910145
+   Total fees earned: $0.1269
+   Avg daily volume: $182029
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #17 at tick 80514 -> Range: 79981 to 81047
+   Fees earned in previous range: $0.13 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=81223, range=[79981, 81047]
+   Trigger zones: 79983 to 81045
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [79981, 81047] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $355592
+   Total fees earned: $0.0269
+   Avg daily volume: $355592
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #18 at tick 81223 -> Range: 80690 to 81756
+   Fees earned in previous range: $0.03 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=81873, range=[80690, 81756]
+   Trigger zones: 80692 to 81754
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [80690, 81756] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $978771
+   Total fees earned: $0.1643
+   Avg daily volume: $326257
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #19 at tick 81873 -> Range: 81340 to 82406
+   Fees earned in previous range: $0.16 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=82611, range=[81340, 82406]
+   Trigger zones: 81342 to 82404
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [81340, 82406] ticks
+   Days in range: 8/8 (100.0%)
+   Total volume: $1893023
+   Total fees earned: $0.2506
+   Avg daily volume: $236628
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #20 at tick 82611 -> Range: 82078 to 83144
+   Fees earned in previous range: $0.25 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=81571, range=[82078, 83144]
+   Trigger zones: 82080 to 83142
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [82078, 83144] ticks
+   Days in range: 5/5 (100.0%)
+   Total volume: $1180598
+   Total fees earned: $0.1065
+   Avg daily volume: $236120
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #21 at tick 81571 -> Range: 81038 to 82104
+   Fees earned in previous range: $0.11 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=82210, range=[81038, 82104]
+   Trigger zones: 81040 to 82102
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [81038, 82104] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $756879
+   Total fees earned: $0.1120
+   Avg daily volume: $252293
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #22 at tick 82210 -> Range: 81677 to 82743
+   Fees earned in previous range: $0.11 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=82978, range=[81677, 82743]
+   Trigger zones: 81679 to 82741
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [81677, 82743] ticks
+   Days in range: 4/4 (100.0%)
+   Total volume: $945052
+   Total fees earned: $0.0868
+   Avg daily volume: $236263
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #23 at tick 82978 -> Range: 82445 to 83511
+   Fees earned in previous range: $0.09 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=83587, range=[82445, 83511]
+   Trigger zones: 82447 to 83509
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [82445, 83511] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $272346
+   Total fees earned: $0.0214
+   Avg daily volume: $272346
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #24 at tick 83587 -> Range: 83054 to 84120
+   Fees earned in previous range: $0.02 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=84328, range=[83054, 84120]
+   Trigger zones: 83056 to 84118
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [83054, 84120] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $1165705
+   Total fees earned: $0.0930
+   Avg daily volume: $388568
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #25 at tick 84328 -> Range: 83795 to 84861
+   Fees earned in previous range: $0.09 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=83696, range=[83795, 84861]
+   Trigger zones: 83797 to 84859
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [83795, 84861] ticks
+   Days in range: 6/6 (100.0%)
+   Total volume: $3142506
+   Total fees earned: $0.1877
+   Avg daily volume: $523751
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #26 at tick 83696 -> Range: 83163 to 84229
+   Fees earned in previous range: $0.19 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=83142, range=[83163, 84229]
+   Trigger zones: 83165 to 84227
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [83163, 84229] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $552227
+   Total fees earned: $0.0443
+   Avg daily volume: $552227
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #27 at tick 83142 -> Range: 82609 to 83675
+   Fees earned in previous range: $0.04 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=83746, range=[82609, 83675]
+   Trigger zones: 82611 to 83673
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [82609, 83675] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $371368
+   Total fees earned: $0.0622
+   Avg daily volume: $371368
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #28 at tick 83746 -> Range: 83213 to 84279
+   Fees earned in previous range: $0.06 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=84836, range=[83213, 84279]
+   Trigger zones: 83215 to 84277
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [83213, 84279] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $1786013
+   Total fees earned: $0.1761
+   Avg daily volume: $893006
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #29 at tick 84836 -> Range: 84303 to 85369
+   Fees earned in previous range: $0.18 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=83848, range=[84303, 85369]
+   Trigger zones: 84305 to 85367
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [84303, 85369] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $2011005
+   Total fees earned: $0.0990
+   Avg daily volume: $670335
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #30 at tick 83848 -> Range: 83315 to 84381
+   Fees earned in previous range: $0.10 | Gas cost: 0.003 BNB
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [83315, 84381] ticks
+   Days in range: 8/8 (100.0%)
+   Total volume: $3567465
+   Total fees earned: $0.3675
+   Avg daily volume: $445933
+   Is using mock data: Possibly
+   Time-based BNB price (day 0): $400.00
+
+💱 DYNAMIC PRICING IMPACT:
+   Fixed BNB Price ($600): 0.0047 BNB
+   Dynamic BNB Pricing: 0.0064 BNB
+   Difference: 35.8% (more profitable)
+
+--- DETAILED PERFORMANCE ANALYSIS ---
+💰 Financial Performance:
+   Net Return: -0.0836 (LOSS)
+   APR: -8.47%
+   Total Fees: $2.84 (0.0064 BNB)
+   Gas Costs: 0.0900 BNB
+
+📊 Strategy Metrics:
+   Pool Quality: 100/100 (RECOMMENDED)
+   Time in Range: 76.9%
+   Rebalance Frequency: 5.0/month
+   Fee Efficiency: 0.0002 BNB/rebalance
+   Pool Volatility: 1.07%
+
+💡 Strategy Insights:
+   Pool Type: Normal Pool
+   Rebalancing: Enabled
+   Quality Score: 100/100
+   ⚠️  High rebalancing frequency (30) - gas costs may hurt profits
+   ⚠️  Earning fees but losing money - rebalancing costs too high
+
+=== Backtesting BNB/THE for 180 days ===
+Fetching data for pool 0xc268ee337543a62115d46109d6771f1cf068063b...
+✅ Found pool: WBNB/THE
+✅ Found 110 historical data points
+Pool: WBNB/THE
+Data points: 110
+Fee tier: 1.0515%
+
+--- Pool Quality Assessment ---
+Quality Score: 100/100 (RECOMMENDED)
+Avg Daily Volume: $168583
+Pool Volatility: 2.13% daily
+Estimated Liquidity: ~$27679350544276185088
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+
+Initial position: Ticks 77301 to 79433 (Tick 78367)
+Range width: ±10.7% (adjusted for volatility)
+🔄 Rebalance trigger (WBNB/THE): tick=76657, range=[77301, 79433]
+   Trigger zones: 77304 to 79430
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [77301, 79433] ticks
+   Days in range: 5/5 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #1 at tick 76657 -> Range: 75591 to 77723
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=78901, range=[75591, 77723]
+   Trigger zones: 75594 to 77720
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [75591, 77723] ticks
+   Days in range: 10/10 (100.0%)
+   Total volume: $265044
+   Total fees earned: $0.0816
+   Avg daily volume: $26504
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #2 at tick 78901 -> Range: 77835 to 79967
+   Fees earned in previous range: $0.08 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=76941, range=[77835, 79967]
+   Trigger zones: 77838 to 79964
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [77835, 79967] ticks
+   Days in range: 45/45 (100.0%)
+   Total volume: $3271968
+   Total fees earned: $0.3927
+   Avg daily volume: $72710
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #3 at tick 76941 -> Range: 75875 to 78007
+   Fees earned in previous range: $0.39 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=71837, range=[75875, 78007]
+   Trigger zones: 75878 to 78004
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [75875, 78007] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $652141
+   Total fees earned: $0.0363
+   Avg daily volume: $652141
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #4 at tick 71837 -> Range: 70771 to 72903
+   Fees earned in previous range: $0.04 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=74266, range=[70771, 72903]
+   Trigger zones: 70774 to 72900
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [70771, 72903] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $3400604
+   Total fees earned: $0.3900
+   Avg daily volume: $1700302
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #5 at tick 74266 -> Range: 73200 to 75332
+   Fees earned in previous range: $0.39 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=75431, range=[73200, 75332]
+   Trigger zones: 73203 to 75329
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [73200, 75332] ticks
+   Days in range: 5/5 (100.0%)
+   Total volume: $1295991
+   Total fees earned: $0.1036
+   Avg daily volume: $259198
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #6 at tick 75431 -> Range: 74365 to 76497
+   Fees earned in previous range: $0.10 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=76549, range=[74365, 76497]
+   Trigger zones: 74368 to 76494
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [74365, 76497] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $749293
+   Total fees earned: $0.0761
+   Avg daily volume: $374647
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #7 at tick 76549 -> Range: 75483 to 77615
+   Fees earned in previous range: $0.08 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=75445, range=[75483, 77615]
+   Trigger zones: 75486 to 77612
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [75483, 77615] ticks
+   Days in range: 20/20 (100.0%)
+   Total volume: $3225793
+   Total fees earned: $0.2787
+   Avg daily volume: $161290
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #8 at tick 75445 -> Range: 74379 to 76511
+   Fees earned in previous range: $0.28 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=76533, range=[74379, 76511]
+   Trigger zones: 74382 to 76508
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [74379, 76511] ticks
+   Days in range: 7/7 (100.0%)
+   Total volume: $2408452
+   Total fees earned: $0.2032
+   Avg daily volume: $344065
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #9 at tick 76533 -> Range: 75467 to 77599
+   Fees earned in previous range: $0.20 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=77614, range=[75467, 77599]
+   Trigger zones: 75470 to 77596
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [75467, 77599] ticks
+   Days in range: 5/5 (100.0%)
+   Total volume: $693746
+   Total fees earned: $0.0578
+   Avg daily volume: $138749
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #10 at tick 77614 -> Range: 76548 to 78680
+   Fees earned in previous range: $0.06 | Gas cost: 0.003 BNB
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [76548, 78680] ticks
+   Days in range: 8/8 (100.0%)
+   Total volume: $599628
+   Total fees earned: $0.0695
+   Avg daily volume: $74953
+   Is using mock data: Real data
+   Time-based BNB price (day 0): $400.00
+
+💱 DYNAMIC PRICING IMPACT:
+   Fixed BNB Price ($600): 0.0028 BNB
+   Dynamic BNB Pricing: 0.0036 BNB
+   Difference: 28.8% (more profitable)
+
+--- DETAILED PERFORMANCE ANALYSIS ---
+💰 Financial Performance:
+   Net Return: -0.0264 (LOSS)
+   APR: -2.67%
+   Total Fees: $1.69 (0.0036 BNB)
+   Gas Costs: 0.0300 BNB
+
+📊 Strategy Metrics:
+   Pool Quality: 100/100 (RECOMMENDED)
+   Time in Range: 90.8%
+   Rebalance Frequency: 1.7/month
+   Fee Efficiency: 0.0004 BNB/rebalance
+   Pool Volatility: 2.13%
+
+💡 Strategy Insights:
+   Pool Type: Normal Pool
+   Rebalancing: Enabled
+   Quality Score: 100/100
+   ⚠️  Earning fees but losing money - rebalancing costs too high
+
+=== Backtesting SOL/BNB for 180 days ===
+Fetching data for pool 0x34a1e2cb5fd5c80aa4b6660a0fae019d65909037...
+✅ Found pool: SOL/WBNB
+✅ Found 139 historical data points
+Pool: SOL/WBNB
+Data points: 139
+Fee tier: 0.2008%
+
+--- Pool Quality Assessment ---
+Quality Score: 100/100 (RECOMMENDED)
+Avg Daily Volume: $570560
+Pool Volatility: 2.10% daily
+Estimated Liquidity: ~$1591001175852770816
+   🔍 Pool analysis: SOL/WBNB, isStablecoin: false
+
+Initial position: Ticks -15949 to -13853 (Tick -14901)
+Range width: ±10.5% (adjusted for volatility)
+🔄 Rebalance trigger (SOL/WBNB): tick=-13769, range=[-15949, -13853]
+   Trigger zones: -15946 to -13856
+   Pool type: Normal, Volatility: 2.10%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (SOL/WBNB):
+   Range: [-15949, -13853] ticks
+   Days in range: 9/9 (100.0%)
+   Total volume: $1
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Real data
+   🔍 Pool analysis: SOL/WBNB, isStablecoin: false
+Rebalance #1 at tick -13769 -> Range: -14817 to -12721
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (SOL/WBNB): tick=-14844, range=[-14817, -12721]
+   Trigger zones: -14814 to -12724
+   Pool type: Normal, Volatility: 2.10%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (SOL/WBNB):
+   Range: [-14817, -12721] ticks
+   Days in range: 49/49 (100.0%)
+   Total volume: $5292234
+   Total fees earned: $1.5280
+   Avg daily volume: $108005
+   Is using mock data: Real data
+   🔍 Pool analysis: SOL/WBNB, isStablecoin: false
+Rebalance #2 at tick -14844 -> Range: -15892 to -13796
+   Fees earned in previous range: $1.53 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (SOL/WBNB): tick=-13623, range=[-15892, -13796]
+   Trigger zones: -15889 to -13799
+   Pool type: Normal, Volatility: 2.10%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (SOL/WBNB):
+   Range: [-15892, -13796] ticks
+   Days in range: 38/38 (100.0%)
+   Total volume: $10109910
+   Total fees earned: $3.0433
+   Avg daily volume: $266050
+   Is using mock data: Real data
+   🔍 Pool analysis: SOL/WBNB, isStablecoin: false
+Rebalance #3 at tick -13623 -> Range: -14671 to -12575
+   Fees earned in previous range: $3.04 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (SOL/WBNB): tick=-14967, range=[-14671, -12575]
+   Trigger zones: -14668 to -12578
+   Pool type: Normal, Volatility: 2.10%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (SOL/WBNB):
+   Range: [-14671, -12575] ticks
+   Days in range: 6/6 (100.0%)
+   Total volume: $2753256
+   Total fees earned: $0.8971
+   Avg daily volume: $458876
+   Is using mock data: Real data
+   🔍 Pool analysis: SOL/WBNB, isStablecoin: false
+Rebalance #4 at tick -14967 -> Range: -16015 to -13919
+   Fees earned in previous range: $0.90 | Gas cost: 0.003 BNB
+
+🔍 FEE CALCULATION SUMMARY (SOL/WBNB):
+   Range: [-16015, -13919] ticks
+   Days in range: 37/37 (100.0%)
+   Total volume: $19672441
+   Total fees earned: $7.3069
+   Avg daily volume: $531688
+   Is using mock data: Real data
+   Time-based BNB price (day 0): $400.00
+
+💱 DYNAMIC PRICING IMPACT:
+   Fixed BNB Price ($600): 0.0213 BNB
+   Dynamic BNB Pricing: 0.0272 BNB
+   Difference: 28.0% (more profitable)
+
+--- DETAILED PERFORMANCE ANALYSIS ---
+💰 Financial Performance:
+   Net Return: 0.0152 (PROFITABLE)
+   APR: 1.55%
+   Total Fees: $12.78 (0.0272 BNB)
+   Gas Costs: 0.0120 BNB
+
+📊 Strategy Metrics:
+   Pool Quality: 100/100 (RECOMMENDED)
+   Time in Range: 97.1%
+   Rebalance Frequency: 0.7/month
+   Fee Efficiency: 0.0068 BNB/rebalance
+   Pool Volatility: 2.10%
+
+💡 Strategy Insights:
+   Pool Type: Normal Pool
+   Rebalancing: Enabled
+   Quality Score: 100/100
+
+=== Backtesting USDT/USDC for 180 days ===
+Fetching data for pool 0x7491c04dc4575e086a8ee31f7ce1c6d56fb7dcc1...
+✅ Found pool: USDT/USDC
+✅ Found 123 historical data points
+Pool: USDT/USDC
+Data points: 123
+Fee tier: 0.001%
+
+--- Pool Quality Assessment ---
+Quality Score: 100/100 (RECOMMENDED)
+Avg Daily Volume: $23038964
+Pool Volatility: 0.00% daily
+Estimated Liquidity: ~$3.012904080621629e+23
+   🔍 Pool analysis: USDT/USDC, isStablecoin: true
+   🪙 Stablecoin detected (USDT/USDC): Using ±0.05% range (target: 6% APR)
+
+Initial position: Ticks -7 to 3 (Tick -2)
+Range width: ±0.1% (adjusted for volatility)
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   Day 0: Tick=-2, Volume=$0, Fees=$0.00, Earned=$0.0000
+     🪙 Stablecoin fee (day 60): Vol=$3.3M, Share=0.0500%, Daily=0.0000
+   Day 60: Tick=2, Volume=$3292463, Fees=$32.92, Earned=$0.0000
+     🪙 Stablecoin fee (day 90): Vol=$6.6M, Share=0.0500%, Daily=0.0000
+   Day 90: Tick=-1, Volume=$6568405, Fees=$65.68, Earned=$0.0000
+     🪙 Stablecoin fee (day 120): Vol=$10.9M, Share=0.0500%, Daily=0.0000
+   Day 120: Tick=1, Volume=$10919696, Fees=$109.20, Earned=$0.0000
+
+🔍 FEE CALCULATION SUMMARY (USDT/USDC):
+   Range: [-7, 3] ticks
+   Days in range: 78/123 (63.4%)
+   Total volume: $991859789
+   Total fees earned: $0.0001
+   Avg daily volume: $8063901
+   Is using mock data: Real data
+   Time-based BNB price (day 0): $400.00
+   Time-based BNB price (day 60): $486.46
+   Time-based BNB price (day 120): $553.20
+
+💱 DYNAMIC PRICING IMPACT:
+   Fixed BNB Price ($600): 0.0000 BNB
+   Dynamic BNB Pricing: 0.0000 BNB
+   Difference: 34.9% (more profitable)
+
+--- DETAILED PERFORMANCE ANALYSIS ---
+💰 Financial Performance:
+   Net Return: 0.0000 (PROFITABLE)
+   APR: 0.00%
+   Total Fees: $0.00 (0.0000 BNB)
+   Gas Costs: 0.0000 BNB
+
+📊 Strategy Metrics:
+   Pool Quality: 100/100 (RECOMMENDED)
+   Time in Range: 63.1%
+   Rebalance Frequency: 0.0/month
+   Fee Efficiency: 0.0000 BNB/rebalance
+   Pool Volatility: 0.00%
+
+💡 Strategy Insights:
+   Pool Type: Stablecoin
+   Rebalancing: Disabled
+   Quality Score: 100/100
+   ⚠️  Low time in range (63.1%) - consider wider ranges
+   ✅ Perfect stablecoin strategy: No rebalancing needed, pure fee collection
+
+🔄 TESTING 365 DAY PERIOD (12.2 months)
+--------------------------------------------------
+
+=== Backtesting ETH/BNB for 365 days ===
+Fetching data for pool 0x58f04aada1051885a3c4e296aab0a454ea1233a3...
+✅ Found pool: ETH/WBNB
+✅ Found 211 historical data points
+Pool: ETH/WBNB
+Data points: 211
+Fee tier: 0.199%
+
+--- Pool Quality Assessment ---
+Quality Score: 100/100 (RECOMMENDED)
+Avg Daily Volume: $2665836
+Pool Volatility: 1.16% daily
+Estimated Liquidity: ~$2224332008818608896
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+
+Initial position: Ticks 15552 to 16714 (Tick 16133)
+Range width: ±5.8% (adjusted for volatility)
+🔄 Rebalance trigger (ETH/WBNB): tick=17061, range=[15552, 16714]
+   Trigger zones: 15554 to 16712
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [15552, 16714] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $2
+   Total fees earned: $0.0000
+   Avg daily volume: $1
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #1 at tick 17061 -> Range: 16480 to 17642
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15024, range=[16480, 17642]
+   Trigger zones: 16482 to 17640
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [16480, 17642] ticks
+   Days in range: 11/11 (100.0%)
+   Total volume: $16
+   Total fees earned: $0.0001
+   Avg daily volume: $1
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #2 at tick 15024 -> Range: 14443 to 15605
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=16641, range=[14443, 15605]
+   Trigger zones: 14445 to 15603
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [14443, 15605] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $3
+   Total fees earned: $0.0000
+   Avg daily volume: $3
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #3 at tick 16641 -> Range: 16060 to 17222
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=17246, range=[16060, 17222]
+   Trigger zones: 16062 to 17220
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [16060, 17222] ticks
+   Days in range: 8/8 (100.0%)
+   Total volume: $14
+   Total fees earned: $0.0001
+   Avg daily volume: $2
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #4 at tick 17246 -> Range: 16665 to 17827
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=16506, range=[16665, 17827]
+   Trigger zones: 16667 to 17825
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [16665, 17827] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #5 at tick 16506 -> Range: 15925 to 17087
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=17457, range=[15925, 17087]
+   Trigger zones: 15927 to 17085
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [15925, 17087] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $1
+   Total fees earned: $0.0000
+   Avg daily volume: $1
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #6 at tick 17457 -> Range: 16876 to 18038
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=16646, range=[16876, 18038]
+   Trigger zones: 16878 to 18036
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [16876, 18038] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $2
+   Total fees earned: $0.0000
+   Avg daily volume: $2
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #7 at tick 16646 -> Range: 16065 to 17227
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=17433, range=[16065, 17227]
+   Trigger zones: 16067 to 17225
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [16065, 17227] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $2
+   Total fees earned: $0.0000
+   Avg daily volume: $2
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #8 at tick 17433 -> Range: 16852 to 18014
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=16152, range=[16852, 18014]
+   Trigger zones: 16854 to 18012
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [16852, 18014] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $1
+   Total fees earned: $0.0000
+   Avg daily volume: $1
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #9 at tick 16152 -> Range: 15571 to 16733
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15226, range=[15571, 16733]
+   Trigger zones: 15573 to 16731
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [15571, 16733] ticks
+   Days in range: 6/6 (100.0%)
+   Total volume: $8
+   Total fees earned: $0.0000
+   Avg daily volume: $1
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #10 at tick 15226 -> Range: 14645 to 15807
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=16524, range=[14645, 15807]
+   Trigger zones: 14647 to 15805
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [14645, 15807] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $2
+   Total fees earned: $0.0000
+   Avg daily volume: $2
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #11 at tick 16524 -> Range: 15943 to 17105
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15176, range=[15943, 17105]
+   Trigger zones: 15945 to 17103
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [15943, 17105] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $2
+   Total fees earned: $0.0000
+   Avg daily volume: $2
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #12 at tick 15176 -> Range: 14595 to 15757
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15912, range=[14595, 15757]
+   Trigger zones: 14597 to 15755
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [14595, 15757] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $2
+   Total fees earned: $0.0000
+   Avg daily volume: $1
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #13 at tick 15912 -> Range: 15331 to 16493
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=16773, range=[15331, 16493]
+   Trigger zones: 15333 to 16491
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [15331, 16493] ticks
+   Days in range: 4/4 (100.0%)
+   Total volume: $2
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #14 at tick 16773 -> Range: 16192 to 17354
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15879, range=[16192, 17354]
+   Trigger zones: 16194 to 17352
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [16192, 17354] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $1
+   Total fees earned: $0.0000
+   Avg daily volume: $1
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #15 at tick 15879 -> Range: 15298 to 16460
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15224, range=[15298, 16460]
+   Trigger zones: 15300 to 16458
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [15298, 16460] ticks
+   Days in range: 4/4 (100.0%)
+   Total volume: $3
+   Total fees earned: $0.0000
+   Avg daily volume: $1
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #16 at tick 15224 -> Range: 14643 to 15805
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15972, range=[14643, 15805]
+   Trigger zones: 14645 to 15803
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [14643, 15805] ticks
+   Days in range: 9/9 (100.0%)
+   Total volume: $9
+   Total fees earned: $0.0000
+   Avg daily volume: $1
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #17 at tick 15972 -> Range: 15391 to 16553
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15228, range=[15391, 16553]
+   Trigger zones: 15393 to 16551
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [15391, 16553] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $3
+   Total fees earned: $0.0000
+   Avg daily volume: $1
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #18 at tick 15228 -> Range: 14647 to 15809
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15853, range=[14647, 15809]
+   Trigger zones: 14649 to 15807
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [14647, 15809] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $2
+   Total fees earned: $0.0000
+   Avg daily volume: $1
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #19 at tick 15853 -> Range: 15272 to 16434
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15154, range=[15272, 16434]
+   Trigger zones: 15274 to 16432
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [15272, 16434] ticks
+   Days in range: 7/7 (100.0%)
+   Total volume: $7
+   Total fees earned: $0.0001
+   Avg daily volume: $1
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #20 at tick 15154 -> Range: 14573 to 15735
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=13561, range=[14573, 15735]
+   Trigger zones: 14575 to 15733
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [14573, 15735] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $1
+   Total fees earned: $0.0000
+   Avg daily volume: $1
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #21 at tick 13561 -> Range: 12980 to 14142
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=14399, range=[12980, 14142]
+   Trigger zones: 12982 to 14140
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [12980, 14142] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $1
+   Total fees earned: $0.0000
+   Avg daily volume: $1
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #22 at tick 14399 -> Range: 13818 to 14980
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=13345, range=[13818, 14980]
+   Trigger zones: 13820 to 14978
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [13818, 14980] ticks
+   Days in range: 14/14 (100.0%)
+   Total volume: $3
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #23 at tick 13345 -> Range: 12764 to 13926
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=12750, range=[12764, 13926]
+   Trigger zones: 12766 to 13924
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [12764, 13926] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #24 at tick 12750 -> Range: 12169 to 13331
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=13759, range=[12169, 13331]
+   Trigger zones: 12171 to 13329
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [12169, 13331] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #25 at tick 13759 -> Range: 13178 to 14340
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=13173, range=[13178, 14340]
+   Trigger zones: 13180 to 14338
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [13178, 14340] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #26 at tick 13173 -> Range: 12592 to 13754
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=12477, range=[12592, 13754]
+   Trigger zones: 12594 to 13752
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [12592, 13754] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #27 at tick 12477 -> Range: 11896 to 13058
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=10839, range=[11896, 13058]
+   Trigger zones: 11898 to 13056
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [11896, 13058] ticks
+   Days in range: 8/8 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #28 at tick 10839 -> Range: 10258 to 11420
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=10195, range=[10258, 11420]
+   Trigger zones: 10260 to 11418
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [10258, 11420] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #29 at tick 10195 -> Range: 9614 to 10776
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=10810, range=[9614, 10776]
+   Trigger zones: 9616 to 10774
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [9614, 10776] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #30 at tick 10810 -> Range: 10229 to 11391
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=11578, range=[10229, 11391]
+   Trigger zones: 10231 to 11389
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [10229, 11391] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $1
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #31 at tick 11578 -> Range: 10997 to 12159
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=13547, range=[10997, 12159]
+   Trigger zones: 10999 to 12157
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [10997, 12159] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $1
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #32 at tick 13547 -> Range: 12966 to 14128
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=14286, range=[12966, 14128]
+   Trigger zones: 12968 to 14126
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [12966, 14128] ticks
+   Days in range: 19/19 (100.0%)
+   Total volume: $23601681
+   Total fees earned: $2.8190
+   Avg daily volume: $1242194
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #33 at tick 14286 -> Range: 13705 to 14867
+   Fees earned in previous range: $2.82 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=13699, range=[13705, 14867]
+   Trigger zones: 13707 to 14865
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [13705, 14867] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $7185472
+   Total fees earned: $1.3025
+   Avg daily volume: $2395157
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #34 at tick 13699 -> Range: 13118 to 14280
+   Fees earned in previous range: $1.30 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=12937, range=[13118, 14280]
+   Trigger zones: 13120 to 14278
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [13118, 14280] ticks
+   Days in range: 8/8 (100.0%)
+   Total volume: $19270662
+   Total fees earned: $2.3462
+   Avg daily volume: $2408833
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #35 at tick 12937 -> Range: 12356 to 13518
+   Fees earned in previous range: $2.35 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=13589, range=[12356, 13518]
+   Trigger zones: 12358 to 13516
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [12356, 13518] ticks
+   Days in range: 11/11 (100.0%)
+   Total volume: $21962419
+   Total fees earned: $2.7991
+   Avg daily volume: $1996584
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #36 at tick 13589 -> Range: 13008 to 14170
+   Fees earned in previous range: $2.80 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=14220, range=[13008, 14170]
+   Trigger zones: 13010 to 14168
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [13008, 14170] ticks
+   Days in range: 7/7 (100.0%)
+   Total volume: $12339209
+   Total fees earned: $1.0458
+   Avg daily volume: $1762744
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #37 at tick 14220 -> Range: 13639 to 14801
+   Fees earned in previous range: $1.05 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15144, range=[13639, 14801]
+   Trigger zones: 13641 to 14799
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [13639, 14801] ticks
+   Days in range: 6/6 (100.0%)
+   Total volume: $11263147
+   Total fees earned: $1.6956
+   Avg daily volume: $1877191
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #38 at tick 15144 -> Range: 14563 to 15725
+   Fees earned in previous range: $1.70 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15725, range=[14563, 15725]
+   Trigger zones: 14565 to 15723
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [14563, 15725] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $4316232
+   Total fees earned: $1.2604
+   Avg daily volume: $2158116
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #39 at tick 15725 -> Range: 15144 to 16306
+   Fees earned in previous range: $1.26 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=16747, range=[15144, 16306]
+   Trigger zones: 15146 to 16304
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [15144, 16306] ticks
+   Days in range: 23/23 (100.0%)
+   Total volume: $55586247
+   Total fees earned: $9.9998
+   Avg daily volume: $2416793
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #40 at tick 16747 -> Range: 16166 to 17328
+   Fees earned in previous range: $10.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=15998, range=[16166, 17328]
+   Trigger zones: 16168 to 17326
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [16166, 17328] ticks
+   Days in range: 10/10 (100.0%)
+   Total volume: $33231041
+   Total fees earned: $7.4993
+   Avg daily volume: $3323104
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #41 at tick 15998 -> Range: 15417 to 16579
+   Fees earned in previous range: $7.50 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=16815, range=[15417, 16579]
+   Trigger zones: 15419 to 16577
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [15417, 16579] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $9122387
+   Total fees earned: $1.5785
+   Avg daily volume: $3040796
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #42 at tick 16815 -> Range: 16234 to 17396
+   Fees earned in previous range: $1.58 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/WBNB): tick=16216, range=[16234, 17396]
+   Trigger zones: 16236 to 17394
+   Pool type: Normal, Volatility: 1.16%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [16234, 17396] ticks
+   Days in range: 7/7 (100.0%)
+   Total volume: $20332693
+   Total fees earned: $5.7061
+   Avg daily volume: $2904670
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/WBNB, isStablecoin: false
+Rebalance #43 at tick 16216 -> Range: 15635 to 16797
+   Fees earned in previous range: $5.71 | Gas cost: 0.003 BNB
+
+🔍 FEE CALCULATION SUMMARY (ETH/WBNB):
+   Range: [15635, 16797] ticks
+   Days in range: 4/4 (100.0%)
+   Total volume: $5833308
+   Total fees earned: $0.9933
+   Avg daily volume: $1458327
+   Is using mock data: Possibly
+   Time-based BNB price (day 0): $400.00
+   Time-based BNB price (day 210): $591.32
+
+💱 DYNAMIC PRICING IMPACT:
+   Fixed BNB Price ($600): 0.0651 BNB
+   Dynamic BNB Pricing: 0.0834 BNB
+   Difference: 28.1% (more profitable)
+
+--- DETAILED PERFORMANCE ANALYSIS ---
+💰 Financial Performance:
+   Net Return: -0.0456 (LOSS)
+   APR: -2.28%
+   Total Fees: $39.05 (0.0834 BNB)
+   Gas Costs: 0.1290 BNB
+
+📊 Strategy Metrics:
+   Pool Quality: 100/100 (RECOMMENDED)
+   Time in Range: 80.0%
+   Rebalance Frequency: 3.5/month
+   Fee Efficiency: 0.0019 BNB/rebalance
+   Pool Volatility: 1.16%
+
+💡 Strategy Insights:
+   Pool Type: Normal Pool
+   Rebalancing: Enabled
+   Quality Score: 100/100
+   ⚠️  High rebalancing frequency (43) - gas costs may hurt profits
+   ⚠️  Earning fees but losing money - rebalancing costs too high
+
+=== Backtesting BTC/BNB for 365 days ===
+Fetching data for pool 0xebe40E120bAc0D8F9793C080B4Ce1653961930C8...
+✅ Found pool: BTCB/WBNB
+✅ Found 107 historical data points
+Pool: BTCB/WBNB
+Data points: 107
+Fee tier: 0.1535%
+
+--- Pool Quality Assessment ---
+Quality Score: 100/100 (RECOMMENDED)
+Avg Daily Volume: $802055
+Pool Volatility: 0.85% daily
+Estimated Liquidity: ~$189488720743570816
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+
+Initial position: Ticks 49146 to 50146 (Tick 49646)
+Range width: ±5.0% (adjusted for volatility)
+🔄 Rebalance trigger (BTCB/WBNB): tick=50910, range=[49146, 50146]
+   Trigger zones: 49148 to 50144
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [49146, 50146] ticks
+   Days in range: 4/4 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #1 at tick 50910 -> Range: 50410 to 51410
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (BTCB/WBNB): tick=51439, range=[50410, 51410]
+   Trigger zones: 50412 to 51408
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [50410, 51410] ticks
+   Days in range: 51/51 (100.0%)
+   Total volume: $12484062
+   Total fees earned: $19.3536
+   Avg daily volume: $244786
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #2 at tick 51439 -> Range: 50939 to 51939
+   Fees earned in previous range: $19.35 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (BTCB/WBNB): tick=50867, range=[50939, 51939]
+   Trigger zones: 50941 to 51937
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [50939, 51939] ticks
+   Days in range: 6/6 (100.0%)
+   Total volume: $2031608
+   Total fees earned: $7.0281
+   Avg daily volume: $338601
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #3 at tick 50867 -> Range: 50367 to 51367
+   Fees earned in previous range: $7.03 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (BTCB/WBNB): tick=50335, range=[50367, 51367]
+   Trigger zones: 50369 to 51365
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [50367, 51367] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $1615798
+   Total fees earned: $7.7208
+   Avg daily volume: $538599
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #4 at tick 50335 -> Range: 49835 to 50835
+   Fees earned in previous range: $7.72 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (BTCB/WBNB): tick=49533, range=[49835, 50835]
+   Trigger zones: 49837 to 50833
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [49835, 50835] ticks
+   Days in range: 6/6 (100.0%)
+   Total volume: $3024264
+   Total fees earned: $13.4838
+   Avg daily volume: $504044
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #5 at tick 49533 -> Range: 49033 to 50033
+   Fees earned in previous range: $13.48 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (BTCB/WBNB): tick=50102, range=[49033, 50033]
+   Trigger zones: 49035 to 50031
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [49033, 50033] ticks
+   Days in range: 5/5 (100.0%)
+   Total volume: $3003237
+   Total fees earned: $12.4427
+   Avg daily volume: $600647
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #6 at tick 50102 -> Range: 49602 to 50602
+   Fees earned in previous range: $12.44 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (BTCB/WBNB): tick=49479, range=[49602, 50602]
+   Trigger zones: 49604 to 50600
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [49602, 50602] ticks
+   Days in range: 13/13 (100.0%)
+   Total volume: $7452069
+   Total fees earned: $19.6112
+   Avg daily volume: $573236
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #7 at tick 49479 -> Range: 48979 to 49979
+   Fees earned in previous range: $19.61 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (BTCB/WBNB): tick=48773, range=[48979, 49979]
+   Trigger zones: 48981 to 49977
+   Pool type: Normal, Volatility: 0.85%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [48979, 49979] ticks
+   Days in range: 6/6 (100.0%)
+   Total volume: $7054230
+   Total fees earned: $9.4531
+   Avg daily volume: $1175705
+   Is using mock data: Real data
+   🔍 Pool analysis: BTCB/WBNB, isStablecoin: false
+Rebalance #8 at tick 48773 -> Range: 48273 to 49273
+   Fees earned in previous range: $9.45 | Gas cost: 0.003 BNB
+
+🔍 FEE CALCULATION SUMMARY (BTCB/WBNB):
+   Range: [48273, 49273] ticks
+   Days in range: 13/13 (100.0%)
+   Total volume: $10580857
+   Total fees earned: $15.9321
+   Avg daily volume: $813912
+   Is using mock data: Real data
+   Time-based BNB price (day 0): $400.00
+   Time-based BNB price (day 30): $444.55
+   Time-based BNB price (day 60): $486.46
+   Time-based BNB price (day 90): $523.33
+
+💱 DYNAMIC PRICING IMPACT:
+   Fixed BNB Price ($600): 0.1750 BNB
+   Dynamic BNB Pricing: 0.2314 BNB
+   Difference: 32.2% (more profitable)
+
+--- DETAILED PERFORMANCE ANALYSIS ---
+💰 Financial Performance:
+   Net Return: 0.2074 (PROFITABLE)
+   APR: 10.37%
+   Total Fees: $105.03 (0.2314 BNB)
+   Gas Costs: 0.0240 BNB
+
+📊 Strategy Metrics:
+   Pool Quality: 100/100 (RECOMMENDED)
+   Time in Range: 92.5%
+   Rebalance Frequency: 0.7/month
+   Fee Efficiency: 0.0289 BNB/rebalance
+   Pool Volatility: 0.85%
+
+💡 Strategy Insights:
+   Pool Type: Normal Pool
+   Rebalancing: Enabled
+   Quality Score: 100/100
+
+=== Backtesting ETH/USDT for 365 days ===
+Fetching data for pool 0x8829abfa1a7b017078195c10a966d7411a0c9515...
+✅ Found pool: ETH/USDT
+✅ Found 131 historical data points
+Pool: ETH/USDT
+Data points: 131
+Fee tier: 0.1511%
+
+--- Pool Quality Assessment ---
+Quality Score: 100/100 (RECOMMENDED)
+Avg Daily Volume: $465200
+Pool Volatility: 1.07% daily
+Estimated Liquidity: ~$4647592464832166912
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+
+Initial position: Ticks 73496 to 74562 (Tick 74029)
+Range width: ±5.3% (adjusted for volatility)
+🔄 Rebalance trigger (ETH/USDT): tick=74789, range=[73496, 74562]
+   Trigger zones: 73498 to 74560
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [73496, 74562] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #1 at tick 74789 -> Range: 74256 to 75322
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=76904, range=[74256, 75322]
+   Trigger zones: 74258 to 75320
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [74256, 75322] ticks
+   Days in range: 12/12 (100.0%)
+   Total volume: $1
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #2 at tick 76904 -> Range: 76371 to 77437
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=77458, range=[76371, 77437]
+   Trigger zones: 76373 to 77435
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [76371, 77437] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #3 at tick 77458 -> Range: 76925 to 77991
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=78457, range=[76925, 77991]
+   Trigger zones: 76927 to 77989
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [76925, 77991] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #4 at tick 78457 -> Range: 77924 to 78990
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=77764, range=[77924, 78990]
+   Trigger zones: 77926 to 78988
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77924, 78990] ticks
+   Days in range: 7/7 (100.0%)
+   Total volume: $1
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #5 at tick 77764 -> Range: 77231 to 78297
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=78338, range=[77231, 78297]
+   Trigger zones: 77233 to 78295
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77231, 78297] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #6 at tick 78338 -> Range: 77805 to 78871
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=78935, range=[77805, 78871]
+   Trigger zones: 77807 to 78869
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77805, 78871] ticks
+   Days in range: 9/9 (100.0%)
+   Total volume: $47936
+   Total fees earned: $0.1047
+   Avg daily volume: $5326
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #7 at tick 78935 -> Range: 78402 to 79468
+   Fees earned in previous range: $0.10 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=78347, range=[78402, 79468]
+   Trigger zones: 78404 to 79466
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [78402, 79468] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $166754
+   Total fees earned: $0.0319
+   Avg daily volume: $83377
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #8 at tick 78347 -> Range: 77814 to 78880
+   Fees earned in previous range: $0.03 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=78956, range=[77814, 78880]
+   Trigger zones: 77816 to 78878
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77814, 78880] ticks
+   Days in range: 10/10 (100.0%)
+   Total volume: $3058309
+   Total fees earned: $0.2450
+   Avg daily volume: $305831
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #9 at tick 78956 -> Range: 78423 to 79489
+   Fees earned in previous range: $0.24 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=78382, range=[78423, 79489]
+   Trigger zones: 78425 to 79487
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [78423, 79489] ticks
+   Days in range: 5/5 (100.0%)
+   Total volume: $2496475
+   Total fees earned: $0.1180
+   Avg daily volume: $499295
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #10 at tick 78382 -> Range: 77849 to 78915
+   Fees earned in previous range: $0.12 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=77846, range=[77849, 78915]
+   Trigger zones: 77851 to 78913
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77849, 78915] ticks
+   Days in range: 6/6 (100.0%)
+   Total volume: $2014911
+   Total fees earned: $0.0929
+   Avg daily volume: $335819
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #11 at tick 77846 -> Range: 77313 to 78379
+   Fees earned in previous range: $0.09 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=77076, range=[77313, 78379]
+   Trigger zones: 77315 to 78377
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77313, 78379] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $665190
+   Total fees earned: $0.0370
+   Avg daily volume: $332595
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #12 at tick 77076 -> Range: 76543 to 77609
+   Fees earned in previous range: $0.04 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=77899, range=[76543, 77609]
+   Trigger zones: 76545 to 77607
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [76543, 77609] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $492633
+   Total fees earned: $0.0253
+   Avg daily volume: $492633
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #13 at tick 77899 -> Range: 77366 to 78432
+   Fees earned in previous range: $0.03 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=78503, range=[77366, 78432]
+   Trigger zones: 77368 to 78430
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77366, 78432] ticks
+   Days in range: 9/9 (100.0%)
+   Total volume: $2727520
+   Total fees earned: $0.1659
+   Avg daily volume: $303058
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #14 at tick 78503 -> Range: 77970 to 79036
+   Fees earned in previous range: $0.17 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=79275, range=[77970, 79036]
+   Trigger zones: 77972 to 79034
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [77970, 79036] ticks
+   Days in range: 7/7 (100.0%)
+   Total volume: $1478414
+   Total fees earned: $0.0756
+   Avg daily volume: $211202
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #15 at tick 79275 -> Range: 78742 to 79808
+   Fees earned in previous range: $0.08 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=79903, range=[78742, 79808]
+   Trigger zones: 78744 to 79806
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [78742, 79808] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $156251
+   Total fees earned: $0.0208
+   Avg daily volume: $156251
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #16 at tick 79903 -> Range: 79370 to 80436
+   Fees earned in previous range: $0.02 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=80514, range=[79370, 80436]
+   Trigger zones: 79372 to 80434
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [79370, 80436] ticks
+   Days in range: 5/5 (100.0%)
+   Total volume: $910145
+   Total fees earned: $0.1269
+   Avg daily volume: $182029
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #17 at tick 80514 -> Range: 79981 to 81047
+   Fees earned in previous range: $0.13 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=81223, range=[79981, 81047]
+   Trigger zones: 79983 to 81045
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [79981, 81047] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $355592
+   Total fees earned: $0.0269
+   Avg daily volume: $355592
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #18 at tick 81223 -> Range: 80690 to 81756
+   Fees earned in previous range: $0.03 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=81873, range=[80690, 81756]
+   Trigger zones: 80692 to 81754
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [80690, 81756] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $978771
+   Total fees earned: $0.1643
+   Avg daily volume: $326257
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #19 at tick 81873 -> Range: 81340 to 82406
+   Fees earned in previous range: $0.16 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=82611, range=[81340, 82406]
+   Trigger zones: 81342 to 82404
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [81340, 82406] ticks
+   Days in range: 8/8 (100.0%)
+   Total volume: $1893023
+   Total fees earned: $0.2506
+   Avg daily volume: $236628
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #20 at tick 82611 -> Range: 82078 to 83144
+   Fees earned in previous range: $0.25 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=81571, range=[82078, 83144]
+   Trigger zones: 82080 to 83142
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [82078, 83144] ticks
+   Days in range: 5/5 (100.0%)
+   Total volume: $1180598
+   Total fees earned: $0.1065
+   Avg daily volume: $236120
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #21 at tick 81571 -> Range: 81038 to 82104
+   Fees earned in previous range: $0.11 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=82210, range=[81038, 82104]
+   Trigger zones: 81040 to 82102
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [81038, 82104] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $756879
+   Total fees earned: $0.1120
+   Avg daily volume: $252293
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #22 at tick 82210 -> Range: 81677 to 82743
+   Fees earned in previous range: $0.11 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=82978, range=[81677, 82743]
+   Trigger zones: 81679 to 82741
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [81677, 82743] ticks
+   Days in range: 4/4 (100.0%)
+   Total volume: $945052
+   Total fees earned: $0.0868
+   Avg daily volume: $236263
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #23 at tick 82978 -> Range: 82445 to 83511
+   Fees earned in previous range: $0.09 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=83587, range=[82445, 83511]
+   Trigger zones: 82447 to 83509
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [82445, 83511] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $272346
+   Total fees earned: $0.0214
+   Avg daily volume: $272346
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #24 at tick 83587 -> Range: 83054 to 84120
+   Fees earned in previous range: $0.02 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=84328, range=[83054, 84120]
+   Trigger zones: 83056 to 84118
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [83054, 84120] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $1165705
+   Total fees earned: $0.0930
+   Avg daily volume: $388568
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #25 at tick 84328 -> Range: 83795 to 84861
+   Fees earned in previous range: $0.09 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=83696, range=[83795, 84861]
+   Trigger zones: 83797 to 84859
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [83795, 84861] ticks
+   Days in range: 6/6 (100.0%)
+   Total volume: $3142506
+   Total fees earned: $0.1877
+   Avg daily volume: $523751
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #26 at tick 83696 -> Range: 83163 to 84229
+   Fees earned in previous range: $0.19 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=83142, range=[83163, 84229]
+   Trigger zones: 83165 to 84227
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [83163, 84229] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $552227
+   Total fees earned: $0.0443
+   Avg daily volume: $552227
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #27 at tick 83142 -> Range: 82609 to 83675
+   Fees earned in previous range: $0.04 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=83746, range=[82609, 83675]
+   Trigger zones: 82611 to 83673
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [82609, 83675] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $371368
+   Total fees earned: $0.0622
+   Avg daily volume: $371368
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #28 at tick 83746 -> Range: 83213 to 84279
+   Fees earned in previous range: $0.06 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=84836, range=[83213, 84279]
+   Trigger zones: 83215 to 84277
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [83213, 84279] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $1786013
+   Total fees earned: $0.1761
+   Avg daily volume: $893006
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #29 at tick 84836 -> Range: 84303 to 85369
+   Fees earned in previous range: $0.18 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (ETH/USDT): tick=83848, range=[84303, 85369]
+   Trigger zones: 84305 to 85367
+   Pool type: Normal, Volatility: 1.07%, Trigger: 2
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [84303, 85369] ticks
+   Days in range: 3/3 (100.0%)
+   Total volume: $2011005
+   Total fees earned: $0.0990
+   Avg daily volume: $670335
+   Is using mock data: Possibly
+   🔍 Pool analysis: ETH/USDT, isStablecoin: false
+Rebalance #30 at tick 83848 -> Range: 83315 to 84381
+   Fees earned in previous range: $0.10 | Gas cost: 0.003 BNB
+
+🔍 FEE CALCULATION SUMMARY (ETH/USDT):
+   Range: [83315, 84381] ticks
+   Days in range: 8/8 (100.0%)
+   Total volume: $3567465
+   Total fees earned: $0.3675
+   Avg daily volume: $445933
+   Is using mock data: Possibly
+   Time-based BNB price (day 0): $400.00
+
+💱 DYNAMIC PRICING IMPACT:
+   Fixed BNB Price ($600): 0.0047 BNB
+   Dynamic BNB Pricing: 0.0064 BNB
+   Difference: 35.8% (more profitable)
+
+--- DETAILED PERFORMANCE ANALYSIS ---
+💰 Financial Performance:
+   Net Return: -0.0836 (LOSS)
+   APR: -4.18%
+   Total Fees: $2.84 (0.0064 BNB)
+   Gas Costs: 0.0900 BNB
+
+📊 Strategy Metrics:
+   Pool Quality: 100/100 (RECOMMENDED)
+   Time in Range: 76.9%
+   Rebalance Frequency: 2.5/month
+   Fee Efficiency: 0.0002 BNB/rebalance
+   Pool Volatility: 1.07%
+
+💡 Strategy Insights:
+   Pool Type: Normal Pool
+   Rebalancing: Enabled
+   Quality Score: 100/100
+   ⚠️  Earning fees but losing money - rebalancing costs too high
+
+=== Backtesting BNB/THE for 365 days ===
+Fetching data for pool 0xc268ee337543a62115d46109d6771f1cf068063b...
+✅ Found pool: WBNB/THE
+✅ Found 110 historical data points
+Pool: WBNB/THE
+Data points: 110
+Fee tier: 1.0515%
+
+--- Pool Quality Assessment ---
+Quality Score: 100/100 (RECOMMENDED)
+Avg Daily Volume: $168583
+Pool Volatility: 2.13% daily
+Estimated Liquidity: ~$27679350544276185088
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+
+Initial position: Ticks 77301 to 79433 (Tick 78367)
+Range width: ±10.7% (adjusted for volatility)
+🔄 Rebalance trigger (WBNB/THE): tick=76657, range=[77301, 79433]
+   Trigger zones: 77304 to 79430
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [77301, 79433] ticks
+   Days in range: 5/5 (100.0%)
+   Total volume: $0
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #1 at tick 76657 -> Range: 75591 to 77723
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=78901, range=[75591, 77723]
+   Trigger zones: 75594 to 77720
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [75591, 77723] ticks
+   Days in range: 10/10 (100.0%)
+   Total volume: $265044
+   Total fees earned: $0.0816
+   Avg daily volume: $26504
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #2 at tick 78901 -> Range: 77835 to 79967
+   Fees earned in previous range: $0.08 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=76941, range=[77835, 79967]
+   Trigger zones: 77838 to 79964
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [77835, 79967] ticks
+   Days in range: 45/45 (100.0%)
+   Total volume: $3271968
+   Total fees earned: $0.3927
+   Avg daily volume: $72710
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #3 at tick 76941 -> Range: 75875 to 78007
+   Fees earned in previous range: $0.39 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=71837, range=[75875, 78007]
+   Trigger zones: 75878 to 78004
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [75875, 78007] ticks
+   Days in range: 1/1 (100.0%)
+   Total volume: $652141
+   Total fees earned: $0.0363
+   Avg daily volume: $652141
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #4 at tick 71837 -> Range: 70771 to 72903
+   Fees earned in previous range: $0.04 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=74266, range=[70771, 72903]
+   Trigger zones: 70774 to 72900
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [70771, 72903] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $3400604
+   Total fees earned: $0.3900
+   Avg daily volume: $1700302
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #5 at tick 74266 -> Range: 73200 to 75332
+   Fees earned in previous range: $0.39 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=75431, range=[73200, 75332]
+   Trigger zones: 73203 to 75329
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [73200, 75332] ticks
+   Days in range: 5/5 (100.0%)
+   Total volume: $1295991
+   Total fees earned: $0.1036
+   Avg daily volume: $259198
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #6 at tick 75431 -> Range: 74365 to 76497
+   Fees earned in previous range: $0.10 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=76549, range=[74365, 76497]
+   Trigger zones: 74368 to 76494
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [74365, 76497] ticks
+   Days in range: 2/2 (100.0%)
+   Total volume: $749293
+   Total fees earned: $0.0761
+   Avg daily volume: $374647
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #7 at tick 76549 -> Range: 75483 to 77615
+   Fees earned in previous range: $0.08 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=75445, range=[75483, 77615]
+   Trigger zones: 75486 to 77612
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [75483, 77615] ticks
+   Days in range: 20/20 (100.0%)
+   Total volume: $3225793
+   Total fees earned: $0.2787
+   Avg daily volume: $161290
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #8 at tick 75445 -> Range: 74379 to 76511
+   Fees earned in previous range: $0.28 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=76533, range=[74379, 76511]
+   Trigger zones: 74382 to 76508
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [74379, 76511] ticks
+   Days in range: 7/7 (100.0%)
+   Total volume: $2408452
+   Total fees earned: $0.2032
+   Avg daily volume: $344065
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #9 at tick 76533 -> Range: 75467 to 77599
+   Fees earned in previous range: $0.20 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (WBNB/THE): tick=77614, range=[75467, 77599]
+   Trigger zones: 75470 to 77596
+   Pool type: Normal, Volatility: 2.13%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [75467, 77599] ticks
+   Days in range: 5/5 (100.0%)
+   Total volume: $693746
+   Total fees earned: $0.0578
+   Avg daily volume: $138749
+   Is using mock data: Real data
+   🔍 Pool analysis: WBNB/THE, isStablecoin: false
+Rebalance #10 at tick 77614 -> Range: 76548 to 78680
+   Fees earned in previous range: $0.06 | Gas cost: 0.003 BNB
+
+🔍 FEE CALCULATION SUMMARY (WBNB/THE):
+   Range: [76548, 78680] ticks
+   Days in range: 8/8 (100.0%)
+   Total volume: $599628
+   Total fees earned: $0.0695
+   Avg daily volume: $74953
+   Is using mock data: Real data
+   Time-based BNB price (day 0): $400.00
+
+💱 DYNAMIC PRICING IMPACT:
+   Fixed BNB Price ($600): 0.0028 BNB
+   Dynamic BNB Pricing: 0.0036 BNB
+   Difference: 28.8% (more profitable)
+
+--- DETAILED PERFORMANCE ANALYSIS ---
+💰 Financial Performance:
+   Net Return: -0.0264 (LOSS)
+   APR: -1.32%
+   Total Fees: $1.69 (0.0036 BNB)
+   Gas Costs: 0.0300 BNB
+
+📊 Strategy Metrics:
+   Pool Quality: 100/100 (RECOMMENDED)
+   Time in Range: 90.8%
+   Rebalance Frequency: 0.8/month
+   Fee Efficiency: 0.0004 BNB/rebalance
+   Pool Volatility: 2.13%
+
+💡 Strategy Insights:
+   Pool Type: Normal Pool
+   Rebalancing: Enabled
+   Quality Score: 100/100
+   ⚠️  Earning fees but losing money - rebalancing costs too high
+
+=== Backtesting SOL/BNB for 365 days ===
+Fetching data for pool 0x34a1e2cb5fd5c80aa4b6660a0fae019d65909037...
+✅ Found pool: SOL/WBNB
+✅ Found 139 historical data points
+Pool: SOL/WBNB
+Data points: 139
+Fee tier: 0.2008%
+
+--- Pool Quality Assessment ---
+Quality Score: 100/100 (RECOMMENDED)
+Avg Daily Volume: $570560
+Pool Volatility: 2.10% daily
+Estimated Liquidity: ~$1591001175852770816
+   🔍 Pool analysis: SOL/WBNB, isStablecoin: false
+
+Initial position: Ticks -15949 to -13853 (Tick -14901)
+Range width: ±10.5% (adjusted for volatility)
+🔄 Rebalance trigger (SOL/WBNB): tick=-13769, range=[-15949, -13853]
+   Trigger zones: -15946 to -13856
+   Pool type: Normal, Volatility: 2.10%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (SOL/WBNB):
+   Range: [-15949, -13853] ticks
+   Days in range: 9/9 (100.0%)
+   Total volume: $1
+   Total fees earned: $0.0000
+   Avg daily volume: $0
+   Is using mock data: Real data
+   🔍 Pool analysis: SOL/WBNB, isStablecoin: false
+Rebalance #1 at tick -13769 -> Range: -14817 to -12721
+   Fees earned in previous range: $0.00 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (SOL/WBNB): tick=-14844, range=[-14817, -12721]
+   Trigger zones: -14814 to -12724
+   Pool type: Normal, Volatility: 2.10%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (SOL/WBNB):
+   Range: [-14817, -12721] ticks
+   Days in range: 49/49 (100.0%)
+   Total volume: $5292234
+   Total fees earned: $1.5280
+   Avg daily volume: $108005
+   Is using mock data: Real data
+   🔍 Pool analysis: SOL/WBNB, isStablecoin: false
+Rebalance #2 at tick -14844 -> Range: -15892 to -13796
+   Fees earned in previous range: $1.53 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (SOL/WBNB): tick=-13623, range=[-15892, -13796]
+   Trigger zones: -15889 to -13799
+   Pool type: Normal, Volatility: 2.10%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (SOL/WBNB):
+   Range: [-15892, -13796] ticks
+   Days in range: 38/38 (100.0%)
+   Total volume: $10109910
+   Total fees earned: $3.0433
+   Avg daily volume: $266050
+   Is using mock data: Real data
+   🔍 Pool analysis: SOL/WBNB, isStablecoin: false
+Rebalance #3 at tick -13623 -> Range: -14671 to -12575
+   Fees earned in previous range: $3.04 | Gas cost: 0.003 BNB
+🔄 Rebalance trigger (SOL/WBNB): tick=-14967, range=[-14671, -12575]
+   Trigger zones: -14668 to -12578
+   Pool type: Normal, Volatility: 2.10%, Trigger: 3
+   Recent rebalances (24h): 0
+
+🔍 FEE CALCULATION SUMMARY (SOL/WBNB):
+   Range: [-14671, -12575] ticks
+   Days in range: 6/6 (100.0%)
+   Total volume: $2753256
+   Total fees earned: $0.8971
+   Avg daily volume: $458876
+   Is using mock data: Real data
+   🔍 Pool analysis: SOL/WBNB, isStablecoin: false
+Rebalance #4 at tick -14967 -> Range: -16015 to -13919
+   Fees earned in previous range: $0.90 | Gas cost: 0.003 BNB
+
+🔍 FEE CALCULATION SUMMARY (SOL/WBNB):
+   Range: [-16015, -13919] ticks
+   Days in range: 37/37 (100.0%)
+   Total volume: $19672441
+   Total fees earned: $7.3069
+   Avg daily volume: $531688
+   Is using mock data: Real data
+   Time-based BNB price (day 0): $400.00
+
+💱 DYNAMIC PRICING IMPACT:
+   Fixed BNB Price ($600): 0.0213 BNB
+   Dynamic BNB Pricing: 0.0272 BNB
+   Difference: 28.0% (more profitable)
+
+--- DETAILED PERFORMANCE ANALYSIS ---
+💰 Financial Performance:
+   Net Return: 0.0152 (PROFITABLE)
+   APR: 0.76%
+   Total Fees: $12.78 (0.0272 BNB)
+   Gas Costs: 0.0120 BNB
+
+📊 Strategy Metrics:
+   Pool Quality: 100/100 (RECOMMENDED)
+   Time in Range: 97.1%
+   Rebalance Frequency: 0.3/month
+   Fee Efficiency: 0.0068 BNB/rebalance
+   Pool Volatility: 2.10%
+
+💡 Strategy Insights:
+   Pool Type: Normal Pool
+   Rebalancing: Enabled
+   Quality Score: 100/100
+
+=== Backtesting USDT/USDC for 365 days ===
+Fetching data for pool 0x7491c04dc4575e086a8ee31f7ce1c6d56fb7dcc1...
+✅ Found pool: USDT/USDC
+✅ Found 123 historical data points
+Pool: USDT/USDC
+Data points: 123
+Fee tier: 0.001%
+
+--- Pool Quality Assessment ---
+Quality Score: 100/100 (RECOMMENDED)
+Avg Daily Volume: $23038964
+Pool Volatility: 0.00% daily
+Estimated Liquidity: ~$3.012904080621629e+23
+   🔍 Pool analysis: USDT/USDC, isStablecoin: true
+   🪙 Stablecoin detected (USDT/USDC): Using ±0.05% range (target: 6% APR)
+
+Initial position: Ticks -7 to 3 (Tick -2)
+Range width: ±0.1% (adjusted for volatility)
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   🪙 Stablecoin rebalancing DISABLED - Position out of range but keeping as is
+   Day 0: Tick=-2, Volume=$0, Fees=$0.00, Earned=$0.0000
+     🪙 Stablecoin fee (day 60): Vol=$3.3M, Share=0.0500%, Daily=0.0000
+   Day 60: Tick=2, Volume=$3292463, Fees=$32.92, Earned=$0.0000
+     🪙 Stablecoin fee (day 90): Vol=$6.6M, Share=0.0500%, Daily=0.0000
+   Day 90: Tick=-1, Volume=$6568405, Fees=$65.68, Earned=$0.0000
+     🪙 Stablecoin fee (day 120): Vol=$10.9M, Share=0.0500%, Daily=0.0000
+   Day 120: Tick=1, Volume=$10919696, Fees=$109.20, Earned=$0.0000
+
+🔍 FEE CALCULATION SUMMARY (USDT/USDC):
+   Range: [-7, 3] ticks
+   Days in range: 78/123 (63.4%)
+   Total volume: $991859789
+   Total fees earned: $0.0001
+   Avg daily volume: $8063901
+   Is using mock data: Real data
+   Time-based BNB price (day 0): $400.00
+   Time-based BNB price (day 60): $486.46
+   Time-based BNB price (day 120): $553.20
+
+💱 DYNAMIC PRICING IMPACT:
+   Fixed BNB Price ($600): 0.0000 BNB
+   Dynamic BNB Pricing: 0.0000 BNB
+   Difference: 34.9% (more profitable)
+
+--- DETAILED PERFORMANCE ANALYSIS ---
+💰 Financial Performance:
+   Net Return: 0.0000 (PROFITABLE)
+   APR: 0.00%
+   Total Fees: $0.00 (0.0000 BNB)
+   Gas Costs: 0.0000 BNB
+
+📊 Strategy Metrics:
+   Pool Quality: 100/100 (RECOMMENDED)
+   Time in Range: 63.1%
+   Rebalance Frequency: 0.0/month
+   Fee Efficiency: 0.0000 BNB/rebalance
+   Pool Volatility: 0.00%
+
+💡 Strategy Insights:
+   Pool Type: Stablecoin
+   Rebalancing: Disabled
+   Quality Score: 100/100
+   ⚠️  Low time in range (63.1%) - consider wider ranges
+   ✅ Perfect stablecoin strategy: No rebalancing needed, pure fee collection
+
+================================================================================
+📊 ADVANCED THENA STRATEGY BACKTESTING REPORT
+================================================================================
+EXECUTIVE SUMMARY: Concentrated Liquidity Performance Analysis
+Strategy: Dynamic range adjustment with intelligent rebalancing
+================================================================================
+
+📈 180 DAYS COMPREHENSIVE RESULTS:
+--------------------------------------------------------------------------------
+POOL           | APR      | NET RETURN | REBAL | TIME IN RANGE | QUALITY | STATUS
+--------------------------------------------------------------------------------
+BTC/BNB        |   21.03% |     0.2074 |     8 |         92.5% |     100 | PROFITABLE
+ETH/BNB        |    3.80% |     0.0375 |    17 |         86.8% |     100 | PROFITABLE
+SOL/BNB        |    1.55% |     0.0152 |     4 |         97.1% |     100 | PROFITABLE
+USDT/USDC      |    0.00% |     0.0000 |     0 |         63.1% |     100 | PROFITABLE
+BNB/THE        |   -2.67% |    -0.0264 |    10 |         90.8% |     100 | LOSS
+ETH/USDT       |   -8.47% |    -0.0836 |    30 |         76.9% |     100 | LOSS
+--------------------------------------------------------------------------------
+📊 PERIOD SUMMARY:
+   Average APR: 2.54%
+   Total Net Return: 0.1501 BNB
+   Profitable Pools: 4/6 tested
+   Success Rate: 66.7%
+   Average Pool Quality: 100/100
+   Pools Filtered Out: 0 (quality < 50)
+
+📈 365 DAYS COMPREHENSIVE RESULTS:
+--------------------------------------------------------------------------------
+POOL           | APR      | NET RETURN | REBAL | TIME IN RANGE | QUALITY | STATUS
+--------------------------------------------------------------------------------
+BTC/BNB        |   10.37% |     0.2074 |     8 |         92.5% |     100 | PROFITABLE
+SOL/BNB        |    0.76% |     0.0152 |     4 |         97.1% |     100 | PROFITABLE
+USDT/USDC      |    0.00% |     0.0000 |     0 |         63.1% |     100 | PROFITABLE
+BNB/THE        |   -1.32% |    -0.0264 |    10 |         90.8% |     100 | LOSS
+ETH/BNB        |   -2.28% |    -0.0456 |    43 |         80.0% |     100 | LOSS
+ETH/USDT       |   -4.18% |    -0.0836 |    30 |         76.9% |     100 | LOSS
+--------------------------------------------------------------------------------
+📊 PERIOD SUMMARY:
+   Average APR: 0.56%
+   Total Net Return: 0.0670 BNB
+   Profitable Pools: 3/6 tested
+   Success Rate: 50.0%
+   Average Pool Quality: 100/100
+   Pools Filtered Out: 0 (quality < 50)
+
+💡 STRATEGY OPTIMIZATION INSIGHTS
+==================================================
+✅ SUCCESSFUL STRATEGY PATTERNS:
+   Optimal Rebalance Frequency: ~5.9 per period
+   Profitable Pool Volatility Range: 1.01% daily
+   Best Performing Pools: ETH/BNB, BTC/BNB, SOL/BNB
+
+⚠️  LOSS PATTERN ANALYSIS:
+   Over-rebalancing Issue: Avg 24.6 rebalances (vs 5.9 profitable)
+   High Volatility Problem: 1.51% daily volatility
+   Avoid These Pools: ETH/USDT, BNB/THE, ETH/BNB
+
+🎯 RECOMMENDED STRATEGY ADJUSTMENTS:
+1. Focus on pools with daily volatility < 2.0% for consistent profits
+2. Implement wider ranges (6-8%) for volatile pools to reduce rebalancing
+3. Set maximum rebalance frequency limits (max 1 per week)
+4. Prioritize pools with >$50k daily volume for sufficient fee generation
+5. Consider dynamic gas cost thresholds based on expected fees
+
+🏆 POOL PERFORMANCE RANKINGS
+==================================================
+ETH/BNB      | Avg APR: 0.8% | Quality: 100/100 | Profitable: 1/2 | 🥉 FAIR
+BTC/BNB      | Avg APR: 15.7% | Quality: 100/100 | Profitable: 2/2 | 🥇 EXCELLENT
+ETH/USDT     | Avg APR: -6.3% | Quality: 100/100 | Profitable: 0/2 | 🚫 POOR
+BNB/THE      | Avg APR: -2.0% | Quality: 100/100 | Profitable: 0/2 | 🚫 POOR
+SOL/BNB      | Avg APR: 1.2% | Quality: 100/100 | Profitable: 2/2 | 🥉 FAIR
+USDT/USDC    | Avg APR: 0.0% | Quality: 100/100 | Profitable: 2/2 | 🚫 POOR
+
+📄 Comprehensive results saved to: /Users/marsh/Documents/Workspace/velvet/velvet-v4-private/backtest/backtest-results.json
+
+================================================================================
+✅ ADVANCED BACKTESTING COMPLETED SUCCESSFULLY!
+🚀 Use insights above to optimize your Thena strategy
+================================================================================
