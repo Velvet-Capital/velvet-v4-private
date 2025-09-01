@@ -15,6 +15,12 @@ interface IFarmingCenter {
     uint256 tokenId
   ) external returns (uint256 reward, uint256 bonusReward);
 
+  function claimReward(
+    address rewardToken,
+    address to,
+    uint256 amountRequested
+  ) external returns (uint256 rewardBalanceBefore);
+
   function enterFarming(IncentiveKey calldata key, uint256 tokenId) external;
 
   function exitFarming(IncentiveKey calldata key, uint256 tokenId) external;
