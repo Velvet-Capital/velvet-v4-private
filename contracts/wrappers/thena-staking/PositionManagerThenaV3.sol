@@ -561,6 +561,22 @@ contract PositionManagerThenaV3 is
     );
   }
 
+  /**
+   * @notice Claims collected rewards from the farming center.
+   * @param rewardToken The address of the reward token to claim.
+   * @param amountRequested The amount of reward tokens to claim.
+   */
+  function claimCollectedRewards(
+    address rewardToken,
+    uint256 amountRequested
+  ) external notEmergencyPaused nonReentrant onlyAssetManager returns (uint256 rewardBalanceBefore){
+    rewardBalanceBefore = IFarmingCenter(FARMING_CENTER_ADDRESS).claimReward(
+      rewardToken,
+      vault,
+      amountRequested
+    );
+  }
+
   function approveAndAddForFarming(
     uint256 tokenId,
     address pool,
