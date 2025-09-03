@@ -1710,6 +1710,32 @@ describe.only("Tests for Deposit", () => {
         console.log("balance of reward token in vault", await ERC20.attach(incentiveKey.rewardToken).balanceOf(await portfolio.vault()));      
       })
 
+      it("should collect collected rewards from farming center for position1", async () => {
+        await ethers.provider.send("evm_increaseTime", [9999]);
+        
+        const tokenId = await positionWrapper.tokenId();
+        const token0 = await positionWrapper.token0();
+        const token1 = await positionWrapper.token1();
+
+        const factoryContract = await ethers.getContractAt(
+          "contracts/wrappers/algebra/IFactory.sol:IFactory", 
+          addresses.thena_factory
+        );
+
+        const poolAddress = await factoryContract.poolByPair(token0, token1);
+        console.log("poolAddress", poolAddress);
+
+        const poolToKeyContract = new ethers.Contract(
+          "0x80ad2f2Ed4F00b152D7cA5E74920c944BFEF0701",
+          POOL_TO_KEY_ABI,
+          ethers.provider
+        );
+
+        const incentiveKey = await poolToKeyContract.poolToKey(poolAddress);
+        
+        const rewardToken = await positionManager.claimCollectedRewards(incentiveKey.rewardToken, 100);
+      })
+
       it("should exit from farming for position1", async () => {
 
         const tokenId = await positionWrapper.tokenId();
