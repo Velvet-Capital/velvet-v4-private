@@ -1435,6 +1435,15 @@ contract VenusAssetHandler is IAssetHandler, ExponentialNoError {
         );
         count++;
         feeCount++;
+      }else{
+        transactions[count].to = _context.executor;
+        transactions[count].txData = abi.encodeWithSelector(
+          bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
+          underlying,
+          0,
+          abi.encodeWithSelector(bytes4(keccak256("transfer(address,uint256)")), _context.receiver, underlyingAmount)
+        );
+        count++;
       }
 
       unchecked {

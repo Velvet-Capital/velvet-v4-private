@@ -1053,6 +1053,16 @@ contract AaveAssetHandler is IAssetHandler {
           )
         });
         feeCount++;
+      }else{
+        transactions[count++] = MultiTransaction({
+          to: _context.executor,
+          txData: abi.encodeWithSelector(
+            bytes4(keccak256("vaultInteraction(address,uint256,bytes)")),
+            underlying,
+            0,
+            abi.encodeWithSelector(bytes4(keccak256("transfer(address,uint256)")), _context.receiver, _sellAmount)
+          )
+        });
       }
       unchecked {
         ++j;
