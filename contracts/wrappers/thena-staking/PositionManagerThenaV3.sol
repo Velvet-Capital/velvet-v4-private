@@ -364,11 +364,6 @@ contract PositionManagerThenaV3 is
       revert ErrorLibrary.TokenNotWhitelisted();
     }
 
-    if (
-      !protocolConfig.isTokenEnabled(_token0) ||
-      !protocolConfig.isTokenEnabled(_token1)
-    ) revert ErrorLibrary.TokenNotEnabled();
-
     (address token0, address token1) = ThenaPositionLibrary
       .getTokensInPoolOrder(_token0, _token1, uniswapV3PositionManager);
 
