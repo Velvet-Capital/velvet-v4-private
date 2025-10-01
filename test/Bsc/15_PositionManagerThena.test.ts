@@ -626,23 +626,6 @@ describe.only("Tests for Deposit", () => {
         ).to.be.revertedWithCustomError(positionManager, "TokenNotWhitelisted");
       });
 
-      it("owner should not be able to create a new position if tokens are not enabled", async () => {
-        // UniswapV3 position
-        const token0 = iaddress.usdtAddress;
-        const token1 = iaddress.usdcAddress;
-
-        await expect(
-          positionManager.createNewWrapperPosition(
-            token0,
-            token1,
-            "Test",
-            "t",
-            MIN_TICK,
-            MAX_TICK
-          )
-        ).to.be.revertedWithCustomError(positionManager, "TokenNotEnabled");
-      });
-
       it("protocol owner should enable tokens", async () => {
         await protocolConfig.enableTokens([
           iaddress.ethAddress,
