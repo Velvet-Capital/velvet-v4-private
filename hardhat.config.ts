@@ -63,7 +63,7 @@ const chainIds = {
 
 const config: HardhatUserConfig = {
   gasReporter: {
-    enabled: true,
+    enabled: false,
     currency: "USD",
     gasPrice: 21,
   },
