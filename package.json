@@ -107,7 +107,7 @@
     "@uniswap/v3-periphery": "^1.4.4",
     "axios": "^1.7.9",
     "chai-bignumber": "^3.0.0",
-    "eslint": "8.10.0",
+    "eslint": "9.26.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-no-only-tests": "^3.0.0",
     "eslint-plugin-prettier": "^4.0.0",
